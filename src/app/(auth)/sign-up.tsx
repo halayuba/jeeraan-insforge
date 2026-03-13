@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, ActivityIndicator, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { insforge } from '../../lib/insforge';
-import { Link, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, Link } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function SignUp() {
@@ -12,6 +12,15 @@ export default function SignUp() {
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  const { inviteCode, neighborhoodId } = useLocalSearchParams();
+
+  React.useEffect(() => {
+    if (!inviteCode) {
+      Alert.alert('Access Restricted', 'You need a valid invite to create an account.');
+      router.replace('/(auth)/neighborhood-access');
+    }
+  }, [inviteCode]);
   
   // States to manage the registration flow
   const [requiresVerification, setRequiresVerification] = useState(false);
@@ -37,8 +46,27 @@ export default function SignUp() {
       setRequiresVerification(true);
     } else if (data?.accessToken) {
       // User signed up and successfully authenticated right away
+      const userId = data?.user?.id;
+      if (userId && neighborhoodId) {
+        await linkUserToNeighborhood(userId);
+      }
       await refreshAuth();
       router.replace('/(app)');
+    }
+  };
+
+  const linkUserToNeighborhood = async (userId: string) => {
+    try {
+      await insforge.database.from('user_neighborhoods').insert([{
+        user_id: userId,
+        neighborhood_id: neighborhoodId,
+        role: 'resident'
+      }]);
+      await insforge.database.from('invites')
+        .update({ used_at: new Date().toISOString() })
+        .eq('code', inviteCode);
+    } catch (err) {
+      console.error('Failed to link neighborhood:', err);
     }
   };
 
@@ -59,6 +87,10 @@ export default function SignUp() {
       Alert.alert('Verification Error', error.message);
     } else {
       // Session automatically saved, redirect to the app
+      const userId = data?.user?.id;
+      if (userId && neighborhoodId) {
+        await linkUserToNeighborhood(userId);
+      }
       await refreshAuth();
       router.replace('/(app)');
     }

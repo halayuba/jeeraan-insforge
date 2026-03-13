@@ -21,7 +21,7 @@ function CustomHeader() {
 }
 
 export default function AppLayout() {
-  const { session, loading } = useAuth();
+  const { session, loading, userRole } = useAuth();
 
   if (loading) {
     return (
@@ -89,6 +89,16 @@ export default function AppLayout() {
       <Tabs.Screen name="announcements" options={{ href: null }} />
       <Tabs.Screen name="service-orders" options={{ href: null }} />
       <Tabs.Screen name="classifieds" options={{ href: null }} />
+      
+      {/* Admin Screen (Conditional) */}
+      <Tabs.Screen 
+        name="admin" 
+        options={{ 
+          title: 'Analytics',
+          tabBarIcon: ({ color }) => <MaterialIcons name="analytics" size={24} color={color} />,
+          href: ((userRole === 'admin' || userRole === 'super_admin') ? '/admin' : null) as any
+        }} 
+      />
     </Tabs>
   );
 }

@@ -118,7 +118,7 @@ export default function SplashScreen() {
             
             <TouchableOpacity 
               style={[styles.button, styles.primaryButton]} 
-              onPress={() => router.push('/(auth)/sign-in')}
+              onPress={() => router.push('/(auth)/neighborhood-access')}
             >
               <Text style={styles.primaryButtonText}>Access Jeeraan</Text>
             </TouchableOpacity>
