@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Jeeraan - Members</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden max-w-md mx-auto border-x border-slate-200 dark:border-slate-800 shadow-xl">
+<!-- Header -->
+<div class="sticky top-0 z-10 flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md p-4 justify-between border-b border-slate-200 dark:border-slate-800">
+<div class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1 px-3">Members</h2>
+<div class="flex size-10 items-center justify-end">
+<button class="flex items-center justify-center rounded-full size-10 bg-transparent text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</div>
+<!-- Invite Button (Prominent at top) -->
+<div class="p-4">
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-white py-3.5 rounded-xl font-bold shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">person_add</span>
+                Request Invite for a Neighbor
+            </button>
+</div>
+<!-- Tabs -->
+<div class="px-4">
+<div class="flex border-b border-slate-200 dark:border-slate-800 gap-8">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-primary text-primary pb-3 pt-2" href="#">
+<p class="text-sm font-bold leading-normal">All Neighbors</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-slate-500 dark:text-slate-400 pb-3 pt-2 hover:text-primary transition-colors" href="#">
+<p class="text-sm font-bold leading-normal">Online (12)</p>
+</a>
+</div>
+</div>
+<!-- Members List -->
+<div class="flex flex-col divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Member 1: Online -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-900/50 px-4 min-h-[80px] py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<div class="relative flex shrink-0">
+<img alt="Avatar" class="h-14 w-14 rounded-full border-2 border-white dark:border-slate-800" data-alt="Portrait of a smiling neighbor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3kdEEyQJEt_9g02A-02Dvry6kv9qvpWNB3HOBJ3DqPXjCCnVwlc9Ji4N5S12QdVcFGe70YT3Dlf9GhAXY7kJVOcQ0TmXP0pzx6EWtMZZ9pTWcAqjQEF4nO65B8LemKJjGrImkTPsIX-kUP6qD7o_hSICl45l_JQQBtrulPTCj4joRRJvdHpGks8Aeq-A6a9CzIR59MlMrP-N-VwsjMxZ2yb3hxuB-Br48YGe-bUg6wiMwVdI-aPaqkMmGfcjbPZhjdCdbjTRtXP4"/>
+<div class="absolute bottom-0.5 right-0.5 h-4 w-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
+</div>
+<div class="flex flex-col flex-1 justify-center">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-normal">Ahmed Al-Farsi</p>
+<p class="text-green-600 dark:text-green-400 text-xs font-semibold leading-normal flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> Online
+                    </p>
+</div>
+<div class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined filled-icon">chat_bubble</span>
+</div>
+</div>
+<!-- Member 2: Offline -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-900/50 px-4 min-h-[80px] py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<div class="relative flex shrink-0">
+<img alt="Avatar" class="h-14 w-14 rounded-full border-2 border-white dark:border-slate-800" data-alt="Female neighbor avatar profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAN_LHrdhrdqoJvDF3L6CEc5bChgEJkNqp3JAow3zaSw3rw0ci81U4dXXE75Uf9RKzX2Ym5iS19wuux3NzYygSOFL9zsI9D649leGJl6E3msALTzd9ulJx0JT46TyoWQNSzlbY3W24GT4bw0x8VTQPDdMvcmxhOJxRngzY9DP_Nu_TXsook4iIetZF7-iQoD86Sa58IUtswgUkXRJvmU89LJ_WR_vL20PbHDXbcgCLudINPgr_3Uq27yfizObkGQ7b2ZumAor6zLQE"/>
+</div>
+<div class="flex flex-col flex-1 justify-center">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-normal">Sarah Johnson</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal leading-normal">Last seen 2h ago</p>
+</div>
+<div class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</div>
+</div>
+<!-- Member 3: Online -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-900/50 px-4 min-h-[80px] py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<div class="relative flex shrink-0">
+<img alt="Avatar" class="h-14 w-14 rounded-full border-2 border-white dark:border-slate-800" data-alt="Neighborhood member profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcptFKgxTpZI-SVuXMLOIO6FsWjzp_k_lLd491k3tOdxuIBZz-e5KcDXtOqC-KdL3AaKoRPedF_EUXpYbcbv9I0omkaI8QDnXh5cOrsiZ1BBsMWkAxNQTkaWmbetsfSe7Qo3cUAwwGmlBauZCbtFmcOO2B7tkA6cZI-POvVBeBbObW_4oLc1CeZNlpux8ReoCwtxAtPOT3C5Idnimzqpgwp9ZU1077CvR2K5V9uTso264llM1h0h9pua58soPm1x1Vi4qj8OKDCs0"/>
+<div class="absolute bottom-0.5 right-0.5 h-4 w-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-800"></div>
+</div>
+<div class="flex flex-col flex-1 justify-center">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-normal">Mike Henderson</p>
+<p class="text-green-600 dark:text-green-400 text-xs font-semibold leading-normal flex items-center gap-1">
+<span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> Online
+                    </p>
+</div>
+<div class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined filled-icon">chat_bubble</span>
+</div>
+</div>
+<!-- Member 4: Offline -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-900/50 px-4 min-h-[80px] py-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+<div class="relative flex shrink-0">
+<img alt="Avatar" class="h-14 w-14 rounded-full border-2 border-white dark:border-slate-800" data-alt="Neighbor profile image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAreX7R0dBt5mMXRWWgiEvaPgvtReURCC3gZSSdpLr33w4rh4WdlFL9vAOdwcVK0rA64bi5nhBhPXwFIVXmJvH-ZATqrxGkOX9QF7I2pEXEQP2-9Wnw5u8PlWSpTEC9xBv4guY8V7t4V7DGDrg54s62q5IrCmazp-gEcPWIeC-QRSTFz81HPpaqwIgu7tGmFnm8C4GiIxmpYdNnKsrOCTnNy3tb1ZInAj7EdyRpV8NB7rw6xxBbb5d-4SiqsL87EHDBCKQWD33lPvM"/>
+</div>
+<div class="flex flex-col flex-1 justify-center">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-normal">Elena Rodriguez</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal leading-normal">Last seen yesterday</p>
+</div>
+<div class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</div>
+</div>
+</div>
+<div class="h-24 bg-transparent"></div>
+<!-- Bottom NavBar -->
+<div class="fixed bottom-0 w-full max-w-md bg-white dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 px-4 pb-6 pt-2 flex justify-around">
+<a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined">home</span>
+<p class="text-xs font-medium">Home</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined filled-icon">group</span>
+<p class="text-xs font-bold">Members</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<p class="text-xs font-medium">Posts</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<p class="text-xs font-medium">Profile</p>
+</a>
+</div>
+<!-- DM Overlay Modal (Hidden by default, represented for UI) -->
+<div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm px-4 pb-4 hidden">
+<div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
+<div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<img alt="Avatar" class="h-10 w-10 rounded-full" data-alt="Portrait of neighbor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA65b9EnnH_N1LukKrGMqB1ioFtiI64GcKniC4BynCACQreISxJQsDguqzeQf0n8uBPZMFphPk9fwNjwnZQpPSdlbhtVZ7L8OJG3vHbZMNEpU08RKrKIFebHOVcUC-2L8qTSnUAliI6DPD0MyfjqkpiIWx6qREWzujL_ZCLiiFTg5cjrVxP-c-GoqixdNF6d4lU-xMR18OqEf0YBLDLDpnGripCJZJyQJWeSZ7IdKmbOjCt3vdY-iZqgU7hlSXh9oE18kQTtMPtVfo"/>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100">Ahmed Al-Farsi</p>
+<p class="text-xs text-green-500 font-semibold">Online</p>
+</div>
+</div>
+<button class="size-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+<span class="material-symbols-outlined text-base">close</span>
+</button>
+</div>
+<div class="p-4">
+<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl mb-4 min-h-[120px] text-slate-400 text-sm">
+                        Start your conversation...
+                    </div>
+<div class="flex gap-2">
+<input class="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-full px-4 focus:ring-2 focus:ring-primary/50 text-slate-900 dark:text-slate-100" placeholder="Type a message..." type="text"/>
+<button class="bg-primary text-white size-10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Invite Request Modal (Hidden by default, represented for UI) -->
+<!-- To view, remove the 'hidden' class from the next div -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-6 hidden">
+<div class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden">
+<div class="p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">Invite a Neighbor</h3>
+<button class="size-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Name</label>
+<input class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary" placeholder="Neighbor's full name" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Phone Number</label>
+<input class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary" placeholder="+1 (555) 000-0000" type="tel"/>
+</div>
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Email (Optional)</label>
+<input class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-none rounded-xl focus:ring-2 focus:ring-primary" placeholder="neighbor@example.com" type="email"/>
+</div>
+</div>
+<div class="mt-8 flex gap-3">
+<button class="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-400">Cancel</button>
+<button class="flex-1 py-3 px-4 rounded-xl bg-primary text-white font-bold shadow-lg shadow-primary/30">Send Invite</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

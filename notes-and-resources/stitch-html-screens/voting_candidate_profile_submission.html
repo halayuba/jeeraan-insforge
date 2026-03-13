@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Candidate Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1d2a33",
+                        "text-primary-light": "#0f172a",
+                        "text-primary-dark": "#f1f5f9",
+                        "text-secondary-light": "#64748b",
+                        "text-secondary-dark": "#94a3b8",
+                        "border-light": "#e2e8f0",
+                        "border-dark": "#334155"
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "0.75rem",
+                        "xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="max-w-md mx-auto">
+<header class="flex items-center justify-between p-4 bg-surface-light dark:bg-surface-dark sticky top-0 z-10 border-b border-border-light dark:border-border-dark">
+<button class="text-text-primary-light dark:text-text-primary-dark">
+<span class="material-symbols-outlined">
+                    close
+                </span>
+</button>
+<h1 class="text-lg font-bold text-text-primary-light dark:text-text-primary-dark">Candidate Profile</h1>
+<div class="w-8"></div>
+</header>
+<main class="p-4 space-y-6 pb-24">
+<div class="flex flex-col items-center space-y-4">
+<div class="relative">
+<div class="w-32 h-32 rounded-full bg-background-light dark:bg-background-dark flex items-center justify-center border-2 border-dashed border-border-light dark:border-border-dark">
+<span class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark text-4xl">
+                            add_a_photo
+                        </span>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary text-white rounded-full p-2">
+<span class="material-symbols-outlined text-base">
+                            edit
+                        </span>
+</button>
+</div>
+<p class="text-sm text-text-secondary-light dark:text-text-secondary-dark">Upload Profile Picture</p>
+</div>
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-1" for="bio">Biography</label>
+<textarea class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-primary-light dark:text-text-primary-dark placeholder-text-secondary-light dark:placeholder-text-secondary-dark focus:ring-primary focus:border-primary" id="bio" name="bio" placeholder="Tell us about yourself..." rows="5"></textarea>
+</div>
+<div>
+<label class="block text-sm font-medium text-text-primary-light dark:text-text-primary-dark mb-1" for="assets">
+                        What are your strongest assets and what would you hope to bring to the board and to the community?
+                    </label>
+<textarea class="w-full bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg p-3 text-text-primary-light dark:text-text-primary-dark placeholder-text-secondary-light dark:placeholder-text-secondary-dark focus:ring-primary focus:border-primary" id="assets" name="assets" placeholder="Your answer here..." rows="7"></textarea>
+</div>
+</div>
+</main>
+<footer class="fixed bottom-0 left-0 right-0 p-4 bg-surface-light dark:bg-surface-dark border-t border-border-light dark:border-border-dark max-w-md mx-auto">
+<button class="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors">
+                Submit Profile
+            </button>
+</footer>
+</div>
+
+</body></html>

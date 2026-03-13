@@ -41,3 +41,21 @@ app-example
 # generated native folders
 /ios
 /android
+
+# AI progress tracking (local agent notes)
+notes-and-resources/ai-progress-tracking/
+
+# InsForge & AI agent skills
+.insforge
+.agent
+.agents
+.augment
+.claude
+.cline
+.github/copilot*
+.kilocode
+.qoder
+.qwen
+.roo
+.trae
+.windsurf

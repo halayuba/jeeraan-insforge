@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<title>New Announcement</title>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Manrope%3Awght%40400%3B500%3B700%3B800&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1193d4",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101c22",
+            },
+            fontFamily: {
+              display: ["Manrope"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px"
+            },
+          },
+        },
+      };
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="flex h-screen flex-col justify-between">
+<div class="flex flex-col">
+<header class="flex items-center border-b border-b-primary/10 bg-background-light p-4 dark:border-b-primary/20 dark:bg-background-dark">
+<button class="text-slate-800 dark:text-white">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"></path>
+</svg>
+</button>
+<h1 class="flex-1 text-center text-lg font-bold text-slate-900 dark:text-white">New Announcement</h1>
+<div class="w-6"></div>
+</header>
+<main class="flex flex-col gap-4 p-4">
+<input class="form-input w-full rounded-lg border-none bg-primary/10 p-4 text-slate-900 placeholder-slate-500 focus:ring-2 focus:ring-primary dark:bg-primary/20 dark:text-white dark:placeholder-slate-400" placeholder="Title" type="text"/>
+<textarea class="form-textarea min-h-[200px] w-full rounded-lg border-none bg-primary/10 p-4 text-slate-900 placeholder-slate-500 focus:ring-2 focus:ring-primary dark:bg-primary/20 dark:text-white dark:placeholder-slate-400" placeholder="Write your announcement here..."></textarea>
+<h2 class="mt-2 text-base font-bold text-slate-900 dark:text-white">Attachments</h2>
+<button class="flex items-center gap-4 rounded-lg bg-primary/10 p-3 text-left dark:bg-primary/20">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-slate-800 dark:bg-primary/30 dark:text-white">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"></path>
+</svg>
+</div>
+<span class="flex-1 text-base font-medium text-slate-800 dark:text-white">Add Images</span>
+</button>
+<button class="flex items-center gap-4 rounded-lg bg-primary/10 p-3 text-left dark:bg-primary/20">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/20 text-slate-800 dark:bg-primary/30 dark:text-white">
+<svg fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M209.66,122.34a8,8,0,0,1,0,11.32l-82.05,82a56,56,0,0,1-79.2-79.21L147.67,35.73a40,40,0,1,1,56.61,56.55L105,193A24,24,0,1,1,71,159L154.3,74.38A8,8,0,1,1,165.7,85.6L82.39,170.31a8,8,0,1,0,11.27,11.36L192.93,81A24,24,0,1,0,159,47L59.76,147.68a40,40,0,1,0,56.53,56.62l82.06-82A8,8,0,0,1,209.66,122.34Z"></path>
+</svg>
+</div>
+<span class="flex-1 text-base font-medium text-slate-800 dark:text-white">Add Files</span>
+</button>
+</main>
+</div>
+<footer class="bg-background-light p-4 pb-8 dark:bg-background-dark">
+<button class="w-full rounded-xl bg-primary py-4 text-base font-bold text-white shadow-lg shadow-primary/30">Post Announcement</button>
+</footer>
+</div>
+
+</body></html>

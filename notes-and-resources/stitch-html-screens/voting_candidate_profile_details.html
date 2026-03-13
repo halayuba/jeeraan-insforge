@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#1193d4",
+                "background-light": "#f6f7f8",
+                "background-dark": "#101c22",
+              },
+              fontFamily: {
+                "display": ["Manrope"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<title>Jeeraan - Candidate Profile</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden max-w-md mx-auto shadow-xl">
+<!-- Header -->
+<div class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+<div class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Candidate Profile</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 bg-transparent text-slate-900 dark:text-slate-100 gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<!-- Hero Section -->
+<div class="flex p-6 @container bg-white dark:bg-background-dark">
+<div class="flex w-full flex-col gap-6 items-center">
+<div class="flex gap-4 flex-col items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full ring-4 ring-primary/20 min-h-32 w-32" data-alt="Professional portrait of a male political candidate" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCoRvvNF8M4fpnTdXA8k9XS-0Z0o06ybJYm8eQn8OhmR3SCedRpDhHDxkzpjuBVku2pLsDIzofT1ASsbmWawtgbsIs3WOhjEvT21XwtvULCiWYPX7BBPoB4LWhf6NZTOF8RgZsozdUBaUdkgScXvhCDGdlDnTFaIQOmPPFsxAKJPzKtyjZM7OZH9y8LpPUgz4kh5shWdDrO69a9O6LrvlD6LPUwwx8yXHmrEAm2b5PRCWmQdA6LEQratZJt25HTXnSaXIcU0LxV2go");'></div>
+<div class="flex flex-col items-center justify-center">
+<p class="text-slate-900 dark:text-slate-100 text-[24px] font-bold leading-tight tracking-[-0.015em] text-center">Ahmed Al-Masri</p>
+<p class="text-primary font-semibold text-base leading-normal text-center">Running for District Council</p>
+<div class="flex items-center gap-1 mt-1 text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined text-sm">call</span>
+<span class="text-sm">+962 79 123 4567</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3 w-full">
+<button class="flex-1 flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="material-symbols-outlined mr-2 text-lg">chat</span>
+<span class="truncate">Message</span>
+</button>
+<button class="flex size-12 cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined">phone</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quick Stats -->
+<div class="flex flex-nowrap overflow-x-auto gap-4 p-4 scrollbar-hide">
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-normal">Endorsements</p>
+<p class="text-slate-900 dark:text-slate-100 tracking-light text-xl font-bold leading-tight">1.2k</p>
+</div>
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-normal">Questions</p>
+<p class="text-slate-900 dark:text-slate-100 tracking-light text-xl font-bold leading-tight">45</p>
+</div>
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-normal">Response Rate</p>
+<p class="text-slate-900 dark:text-slate-100 tracking-light text-xl font-bold leading-tight">98%</p>
+</div>
+</div>
+<!-- Bio Section -->
+<div class="px-4 py-4 bg-white dark:bg-background-dark mt-2">
+<h3 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] mb-2">Bio</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                Dedicated community leader with over 15 years of experience in urban planning and public service. Ahmed is committed to improving local infrastructure, enhancing green spaces, and ensuring every resident of our district has a voice in our city's future.
+            </p>
+</div>
+<!-- Q&A Section (The Requested Change) -->
+<div class="px-4 py-6">
+<div class="bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20 p-5">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">forum</span>
+<h3 class="text-slate-900 dark:text-slate-100 text-lg font-bold">Candidate Q&amp;A</h3>
+</div>
+<span class="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Active</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm mb-4">
+                    See what neighbors are asking Ahmed and read his detailed responses on local policy, safety, and community projects.
+                </p>
+<a class="flex items-center justify-between w-full bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm group hover:ring-2 ring-primary transition-all" href="#">
+<span class="text-slate-900 dark:text-slate-100 font-bold text-sm">View All Candidate Q&amp;A</span>
+<div class="flex items-center text-primary">
+<span class="text-xs font-bold mr-1">45 Answers</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">chevron_right</span>
+</div>
+</a>
+</div>
+</div>
+<!-- Preview Question -->
+<div class="px-4 pb-10">
+<h4 class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-3 px-1">Recent Question</h4>
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+<p class="text-slate-900 dark:text-slate-100 font-semibold text-sm mb-2">"What are your specific plans for the new park project on 5th Street?"</p>
+<div class="flex items-start gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+<div class="size-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-sm">person</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-xs italic line-clamp-2">
+                        "I believe we need to prioritize sustainable playground equipment and increased lighting for safety..."
+                    </p>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto flex gap-2 border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-background-dark/90 backdrop-blur-md px-4 pb-3 pt-2">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">home</span>
+</div>
+<p class="text-xs font-medium leading-normal">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">group</span>
+</div>
+<p class="text-xs font-medium leading-normal">Candidates</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">help</span>
+</div>
+<p class="text-xs font-medium leading-normal">Q&amp;A</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-xs font-medium leading-normal">Profile</p>
+</a>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Neighborhood Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+    </style>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-200">
+<div class="relative flex h-auto min-h-screen w-full flex-col justify-between overflow-x-hidden">
+<div class="flex-grow">
+<header class="sticky top-0 z-10 flex items-center justify-between bg-background-light/80 px-4 py-3 backdrop-blur-sm dark:bg-background-dark/80">
+<button class="text-slate-800 dark:text-white">
+<span class="material-symbols-outlined text-3xl">menu</span>
+</button>
+<h1 class="text-lg font-bold text-slate-900 dark:text-white">Neighborhood Hub</h1>
+<button class="text-slate-800 dark:text-white">
+<span class="material-symbols-outlined text-3xl">notifications</span>
+</button>
+</header>
+<main class="p-4">
+<div class="grid grid-cols-2 gap-4">
+<a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">campaign</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Announcements</p>
+</a>
+<a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">groups</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Members</p>
+</a>
+<a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">person_add</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Invites</p>
+</a>
+<a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">event</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Events</p>
+</a>
+<a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">how_to_vote</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Voting</p>
+</a>
+<a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">construction</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Service Orders</p>
+</a>
+<a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">forum</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Forum</p>
+</a>
+<a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">sell</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Classified Ads</p>
+</a>
+<a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">feedback</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Grievances</p>
+</a><a class="flex flex-col items-center justify-center space-y-2 rounded-xl bg-white p-4 text-center shadow-sm transition-all hover:shadow-lg dark:bg-slate-800/50" href="#">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-3xl">history</span>
+</div>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Recent Activities</p>
+</a></div>
+</main>
+</div>
+<nav class="sticky bottom-0 z-10 border-t border-slate-200/50 bg-background-light/80 backdrop-blur-sm dark:border-slate-700/50 dark:bg-background-dark/80">
+<div class="mx-auto flex max-w-md justify-around px-2 pt-2 pb-4">
+<a class="flex flex-col items-center space-y-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">home</span>
+<span class="text-xs font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center space-y-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">chat_bubble</span>
+<span class="text-xs font-medium">Messages</span>
+</a>
+<a class="flex flex-col items-center space-y-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">calendar_month</span>
+<span class="text-xs font-medium">Events</span>
+</a>
+<a class="flex flex-col items-center space-y-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-xs font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

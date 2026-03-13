@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Neighborhood Hub - Events Calendar</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-200">
+<div class="relative flex h-auto min-h-screen w-full flex-col justify-between overflow-x-hidden">
+<div class="flex-grow">
+<header class="sticky top-0 z-10 flex items-center justify-between bg-background-light/80 px-4 py-3 backdrop-blur-sm dark:bg-background-dark/80">
+<button class="text-slate-800 dark:text-white">
+<span class="material-symbols-outlined text-3xl">menu</span>
+</button>
+<h1 class="text-lg font-bold text-slate-900 dark:text-white">Events Calendar</h1>
+<button class="text-slate-800 dark:text-white">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</header>
+<main class="p-4">
+<div class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800/50">
+<div class="flex items-center justify-between">
+<button class="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined text-slate-500">chevron_left</span>
+</button>
+<div class="text-center">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white">October 2024</h2>
+</div>
+<button class="rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-700">
+<span class="material-symbols-outlined text-slate-500">chevron_right</span>
+</button>
+</div>
+<div class="mt-4 grid grid-cols-7 gap-1 text-center text-sm">
+<div class="font-medium text-slate-500">Su</div>
+<div class="font-medium text-slate-500">Mo</div>
+<div class="font-medium text-slate-500">Tu</div>
+<div class="font-medium text-slate-500">We</div>
+<div class="font-medium text-slate-500">Th</div>
+<div class="font-medium text-slate-500">Fr</div>
+<div class="font-medium text-slate-500">Sa</div>
+</div>
+<div class="mt-2 grid grid-cols-7 gap-1 text-center">
+<div class="py-2 text-slate-400 dark:text-slate-500">29</div>
+<div class="py-2 text-slate-400 dark:text-slate-500">30</div>
+<div class="py-2">1</div>
+<div class="py-2">2</div>
+<div class="py-2">3</div>
+<div class="relative py-2">
+<span>4</span>
+<div class="absolute bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary"></div>
+</div>
+<div class="relative py-2">
+<span>5</span>
+<div class="absolute bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary"></div>
+</div>
+<div class="py-2">6</div>
+<div class="py-2">7</div>
+<div class="py-2">8</div>
+<div class="py-2">9</div>
+<div class="py-2">10</div>
+<div class="py-2">11</div>
+<div class="py-2">12</div>
+<div class="py-2">13</div>
+<div class="py-2">14</div>
+<div class="py-2">15</div>
+<div class="relative flex items-center justify-center">
+<div class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">16</div>
+</div>
+<div class="py-2">17</div>
+<div class="py-2">18</div>
+<div class="relative py-2">
+<span>19</span>
+<div class="absolute bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary"></div>
+</div>
+<div class="py-2">20</div>
+<div class="py-2">21</div>
+<div class="py-2">22</div>
+<div class="py-2">23</div>
+<div class="py-2">24</div>
+<div class="py-2">25</div>
+<div class="py-2">26</div>
+<div class="py-2">27</div>
+<div class="py-2">28</div>
+<div class="py-2">29</div>
+<div class="py-2">30</div>
+<div class="py-2">31</div>
+<div class="py-2 text-slate-400 dark:text-slate-500">1</div>
+<div class="py-2 text-slate-400 dark:text-slate-500">2</div>
+</div>
+</div>
+<div class="mt-6">
+<h3 class="text-xl font-bold text-slate-900 dark:text-white">Events on October 16</h3>
+<div class="mt-4 space-y-4">
+<div class="flex items-start space-x-4 rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800/50">
+<div class="flex-shrink-0 text-center">
+<p class="text-xs font-bold uppercase text-primary">OCT</p>
+<p class="text-2xl font-bold text-slate-800 dark:text-white">16</p>
+</div>
+<div class="flex-1 border-l-2 border-primary pl-4">
+<h4 class="font-bold text-slate-800 dark:text-white">Community BBQ</h4>
+<p class="mt-1 text-sm text-slate-600 dark:text-slate-300">12:00 PM - 3:00 PM at Central Park</p>
+<p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Join us for a fun-filled BBQ! Grills will be hot by noon. Bring a side dish to share.</p>
+</div>
+</div>
+<div class="flex items-start space-x-4 rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800/50">
+<div class="flex-shrink-0 text-center">
+<p class="text-xs font-bold uppercase text-primary">OCT</p>
+<p class="text-2xl font-bold text-slate-800 dark:text-white">16</p>
+</div>
+<div class="flex-1 border-l-2 border-primary pl-4">
+<h4 class="font-bold text-slate-800 dark:text-white">Board Meeting</h4>
+<p class="mt-1 text-sm text-slate-600 dark:text-slate-300">7:00 PM - 8:30 PM at Clubhouse</p>
+<p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Monthly neighborhood association board meeting. All residents are welcome to attend.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<nav class="sticky bottom-0 z-10 border-t border-slate-200/50 bg-background-light/80 backdrop-blur-sm dark:border-slate-700/50 dark:bg-background-dark/80">
+<div class="mx-auto flex max-w-md justify-around px-2 pt-2 pb-4">
+<a class="flex flex-col items-center space-y-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-xs font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center space-y-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">chat_bubble</span>
+<span class="text-xs font-medium">Messages</span>
+</a>
+<a class="flex flex-col items-center space-y-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">calendar_month</span>
+<span class="text-xs font-bold">Events</span>
+</a>
+<a class="flex flex-col items-center space-y-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-xs font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

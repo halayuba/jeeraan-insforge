@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Jeeraan - Grievances</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-background-dark shadow-xl overflow-hidden">
+<!-- Header -->
+<header class="flex items-center bg-white dark:bg-background-dark p-4 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-10">
+<div class="text-slate-900 dark:text-slate-100 flex size-10 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h1 class="text-slate-900 dark:text-white text-lg font-bold leading-tight flex-1 text-center">Grievances</h1>
+<div class="flex w-10 items-center justify-end">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-transparent text-slate-900 dark:text-slate-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<!-- Search and Action Bar -->
+<div class="px-4 py-4 space-y-4">
+<div class="flex gap-2">
+<label class="flex flex-col flex-1 h-12">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full bg-slate-100 dark:bg-slate-800">
+<div class="text-slate-500 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:ring-0 h-full placeholder:text-slate-500 px-4 pl-2 text-sm font-medium" placeholder="Search grievances..."/>
+</div>
+</label>
+<button class="bg-primary text-white flex items-center justify-center px-4 rounded-xl font-bold gap-2">
+<span class="material-symbols-outlined">add</span>
+<span class="text-sm">Post</span>
+</button>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+<span class="bg-primary text-white px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">All</span>
+<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Pending</span>
+<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">Resolved</span>
+<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">In Progress</span>
+</div>
+</div>
+<!-- Grievances List -->
+<main class="flex-1 overflow-y-auto px-4 pb-20">
+<div class="space-y-4">
+<!-- Grievance Item 1 -->
+<div class="bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-4 rounded-xl flex flex-col gap-3 shadow-sm">
+<div class="flex items-start gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 shrink-0 border-2 border-slate-50" data-alt="Portrait of a male user John Doe" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDvrYtsEqGQOqXyqmIjRZzBM9-nAipJxE5TaA6uCm38YF2g79H_X1X4gFHjbuEglJ_b0pn6HQtqPDkHiQoMvT5G9IlKPVCEgD6BHzUxkXqkcFE-thZY8IQLAg1Uaz6vDlgFKQPl23_r9LSJOZJElIbbrqOGuPIIFXZGvRlmLfLg31VfHWx0B2L6IVm4CpWFtw7-NIzfhBYsd4CRJhU3aBgtGMzpSys2EzNWAeKZRLWpZVhYI_25Q02MZHgo9dQZJ1ZBSyeaRsmjJ_c");'></div>
+<div class="flex flex-1 flex-col">
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Water leakage in Block B</p>
+<span class="size-3 rounded-full bg-orange-500" title="Pending"></span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">John Doe • 24 Oct 2023</p>
+</div>
+</div>
+<div class="flex items-center justify-between border-t border-slate-50 dark:border-slate-700 pt-3 mt-1">
+<div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">chat_bubble</span>
+<span class="text-xs font-bold">12 Comments</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">visibility</span>
+<span class="text-xs font-bold">45 Views</span>
+</div>
+</div>
+<span class="text-primary text-xs font-bold cursor-pointer uppercase tracking-wider">View Details</span>
+</div>
+</div>
+<!-- Grievance Item 2 -->
+<div class="bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-4 rounded-xl flex flex-col gap-3 shadow-sm">
+<div class="flex items-start gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 shrink-0 border-2 border-slate-50" data-alt="Portrait of a female user Jane Smith" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCNPJK9cQXbFe3GutuuZ_5MnaOBgE0EEama_ye5xV2rmZgOEhWoyp-VmJcQLhDwNo4PD2Q5jRnkfoQBacgjpwoz9f9qKvVzLmMRO-R3fGxJnweuFNy5uJQuJdytu9b0j4tPxon-fI8AaoiugMMvAMT2cgkaX0qAJNLK6uKxSzFNSzn1y4iaSaaxky-POdJYNRhb_B5pCPwvcumjUHhmY7Id7kZ_dD4kXxti8ckvQCszIKi3cQg9B98aLXlc10mFBjcjG8zQJDTdXZI");'></div>
+<div class="flex flex-1 flex-col">
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Street light not working</p>
+<span class="size-3 rounded-full bg-green-500" title="Resolved"></span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">Jane Smith • 22 Oct 2023</p>
+</div>
+</div>
+<div class="flex items-center justify-between border-t border-slate-50 dark:border-slate-700 pt-3 mt-1">
+<div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">chat_bubble</span>
+<span class="text-xs font-bold">5 Comments</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">visibility</span>
+<span class="text-xs font-bold">28 Views</span>
+</div>
+</div>
+<span class="text-primary text-xs font-bold cursor-pointer uppercase tracking-wider">View Details</span>
+</div>
+</div>
+<!-- Grievance Item 3 -->
+<div class="bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-4 rounded-xl flex flex-col gap-3 shadow-sm">
+<div class="flex items-start gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 shrink-0 border-2 border-slate-50" data-alt="Portrait of a male user Robert Chen" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDOU23OMg-KtrU_u2kpPJvtD8nr1B58LqGZpfO23wpZXhVf88CdCn32lzvhQOjIQ26uuahN4L6p28N5WSl6iu_-hjVtpMpJJk2i8F2TbWkzg_yWyf5GpOe-iZ0gZrR2-mD1P4-WgHsFR8pz2CEd6oNaAVh86NTFQBnwzlazdlrv8f5bvSzR7bM-59vLi8o2wB2gBM8QzOaLqaphI-1zOYsnq0G_433n2As55E8-L-08jr9gL-UwC9JGCyh3mOA-pmZsKYEzmHO-Dg0");'></div>
+<div class="flex flex-1 flex-col">
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Garbage collection delay</p>
+<span class="size-3 rounded-full bg-blue-500" title="In Progress"></span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">Robert Chen • 20 Oct 2023</p>
+</div>
+</div>
+<div class="flex items-center justify-between border-t border-slate-50 dark:border-slate-700 pt-3 mt-1">
+<div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">chat_bubble</span>
+<span class="text-xs font-bold">8 Comments</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">visibility</span>
+<span class="text-xs font-bold">32 Views</span>
+</div>
+</div>
+<span class="text-primary text-xs font-bold cursor-pointer uppercase tracking-wider">View Details</span>
+</div>
+</div>
+<!-- Grievance Item 4 -->
+<div class="bg-white dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 p-4 rounded-xl flex flex-col gap-3 shadow-sm">
+<div class="flex items-start gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 shrink-0 border-2 border-slate-50" data-alt="Portrait of a female user Sarah Williams" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAhLO7bmMmtXGKVEL6jzR9ZSEz_RdyScJUfCON4ZzOUF3DpYHmEwcxE6xzW6C00Vbk4XwBk2ODzHjcKs9wGgI2MkWTCRhVEFr8EnRgUjAg9qaNp_T6pq2DskiGJ641Abb8TsIymi0UkHZcYcc7gC5IbbHMhz4ZVUky2e4gXMdGTylKMIy1xsl4d9VVe0RZlsbZVgiYUR5zCT64n-Ineg5SUBKkJg9zDiD3KoacPH2Yiz4BeB5xulHVDBdwGLQub7zTS85IA2EZoKtE");'></div>
+<div class="flex flex-1 flex-col">
+<div class="flex justify-between items-start">
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Elevator noise in Lobby</p>
+<span class="size-3 rounded-full bg-orange-500" title="Pending"></span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1">Sarah Williams • 19 Oct 2023</p>
+</div>
+</div>
+<div class="flex items-center justify-between border-t border-slate-50 dark:border-slate-700 pt-3 mt-1">
+<div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">chat_bubble</span>
+<span class="text-xs font-bold">3 Comments</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-lg">visibility</span>
+<span class="text-xs font-bold">14 Views</span>
+</div>
+</div>
+<span class="text-primary text-xs font-bold cursor-pointer uppercase tracking-wider">View Details</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white dark:bg-background-dark border-t border-slate-100 dark:border-slate-800 flex justify-around items-center py-2 px-4 pb-6">
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">report</span>
+<span class="text-[10px] font-bold">Grievances</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">handyman</span>
+<span class="text-[10px] font-bold">Services</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-bold">Profile</span>
+</a>
+</nav>
+</div>
+</body></html>

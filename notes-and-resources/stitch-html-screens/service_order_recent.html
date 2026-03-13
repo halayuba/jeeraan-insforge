@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Service Orders</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-slate-900 shadow-xl overflow-x-hidden">
+<!-- Header -->
+<div class="flex items-center bg-white dark:bg-slate-900 p-4 pb-2 justify-between sticky top-0 z-10 border-b border-slate-100 dark:border-slate-800">
+<div class="text-primary flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 ml-2">Service Orders</h2>
+<div class="text-primary flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">add_circle</span>
+</div>
+</div>
+<!-- Search Bar -->
+<div class="px-4 py-3 bg-white dark:bg-slate-900">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-slate-100 dark:bg-slate-800">
+<div class="text-slate-500 flex items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-0 border-none bg-transparent focus:border-none h-full placeholder:text-slate-500 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Search unit or occupant" value=""/>
+</div>
+</label>
+</div>
+<!-- Filters Scrollable Row -->
+<div class="flex gap-3 p-3 overflow-x-auto no-scrollbar bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-primary/10 text-primary px-4 border border-primary/20">
+<p class="text-sm font-medium leading-normal">Year: 2023</p>
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4">
+<p class="text-sm font-medium leading-normal">Month: October</p>
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-4">
+<p class="text-sm font-medium leading-normal">Rating: 4+ stars</p>
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</button>
+</div>
+<!-- Section Title -->
+<div class="px-4 py-4 bg-background-light dark:bg-background-dark">
+<h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider">Current Month: October 2023</h3>
+</div>
+<!-- Orders List -->
+<div class="flex flex-col divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
+<!-- Order Item 1 -->
+<div class="p-4 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<p class="text-primary font-bold text-base">Unit 402 - Sarah Jenkins</p>
+<p class="text-slate-500 text-sm">Plumbing: Leaking kitchen faucet</p>
+</div>
+<span class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded text-[10px] font-bold uppercase">Completed</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="text-xs text-slate-500 ml-1">5.0</span>
+</div>
+<p class="text-slate-400 text-xs italic">Oct 24, 2:15 PM</p>
+</div>
+</div>
+<!-- Order Item 2 -->
+<div class="p-4 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<p class="text-primary font-bold text-base">Unit 115 - Michael Chen</p>
+<p class="text-slate-500 text-sm">HVAC: AC making loud noise</p>
+</div>
+<span class="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] font-bold uppercase">In Progress</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="text-xs text-slate-400">Rating pending</span>
+</div>
+<p class="text-slate-400 text-xs italic">Oct 22, 10:30 AM</p>
+</div>
+</div>
+<!-- Order Item 3 -->
+<div class="p-4 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<p class="text-primary font-bold text-base">Unit 308 - Elena Rodriguez</p>
+<p class="text-slate-500 text-sm">Electrical: Outlets not working</p>
+</div>
+<span class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded text-[10px] font-bold uppercase">Completed</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-slate-300 dark:text-slate-700 text-[18px]">star</span>
+<span class="text-xs text-slate-500 ml-1">4.0</span>
+</div>
+<p class="text-slate-400 text-xs italic">Oct 19, 4:45 PM</p>
+</div>
+</div>
+<!-- Order Item 4 -->
+<div class="p-4 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<p class="text-primary font-bold text-base">Unit 521 - David Thompson</p>
+<p class="text-slate-500 text-sm">General: Loose cabinet hinge</p>
+</div>
+<span class="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded text-[10px] font-bold uppercase">Completed</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-yellow-500 text-[18px] fill-current">star</span>
+<span class="text-xs text-slate-500 ml-1">5.0</span>
+</div>
+<p class="text-slate-400 text-xs italic">Oct 15, 9:20 AM</p>
+</div>
+</div>
+<!-- Order Item 5 -->
+<div class="p-4 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div class="flex flex-col">
+<p class="text-primary font-bold text-base">Unit 204 - Amanda Lee</p>
+<p class="text-slate-500 text-sm">Pest Control: Ants in pantry</p>
+</div>
+<span class="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded text-[10px] font-bold uppercase">Cancelled</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="text-xs text-slate-400 italic">User requested cancellation</span>
+</div>
+<p class="text-slate-400 text-xs italic">Oct 12, 11:00 AM</p>
+</div>
+</div>
+</div>
+<div class="flex-1 bg-background-light dark:bg-background-dark min-h-[100px]"></div>
+<!-- Bottom Navigation -->
+<div class="sticky bottom-0 w-full flex gap-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pb-4 pt-2 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<p class="text-xs font-medium leading-normal">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-current">assignment</span>
+<p class="text-xs font-medium leading-normal">Orders</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">apartment</span>
+<p class="text-xs font-medium leading-normal">Units</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<p class="text-xs font-medium leading-normal">Profile</p>
+</a>
+</div>
+</div>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</body></html>

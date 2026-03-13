@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>Join Neighborhood</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full max-w-md mx-auto flex-col bg-white dark:bg-background-dark shadow-xl overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+<div class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Neighborhood Access</h2>
+</div>
+<div class="flex flex-col flex-1 overflow-y-auto">
+<!-- Section 1: Join via Invite Code -->
+<section class="p-6">
+<h3 class="text-slate-900 dark:text-slate-100 tracking-tight text-2xl font-extrabold leading-tight mb-4">Join via Invite Code</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm mb-6">Enter the 6-digit code provided by your neighborhood administrator.</p>
+<div class="flex flex-col gap-4">
+<label class="flex flex-col w-full">
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal pb-2">Invite Code</span>
+<input class="form-input flex w-full rounded-lg text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 h-14 placeholder:text-slate-400 p-4 text-center text-xl font-bold tracking-widest uppercase" maxlength="6" placeholder="XXXXXX" type="text"/>
+</label>
+<button class="flex w-full cursor-pointer items-center justify-center rounded-lg h-12 px-5 bg-primary hover:bg-primary/90 text-white text-base font-bold transition-colors">
+<span>Join Neighborhood</span>
+</button>
+</div>
+</section>
+<!-- Divider -->
+<div class="flex items-center px-6 py-4">
+<div class="flex-grow h-px bg-slate-200 dark:bg-slate-800"></div>
+<span class="px-4 text-xs font-bold text-slate-400 dark:text-slate-500 tracking-widest">OR</span>
+<div class="flex-grow h-px bg-slate-200 dark:bg-slate-800"></div>
+</div>
+<!-- Section 2: Request to Join -->
+<section class="p-6 pt-2">
+<h3 class="text-slate-900 dark:text-slate-100 tracking-tight text-2xl font-extrabold leading-tight mb-4">Request to Join</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm mb-6">Don't have a code? Submit a request to your neighborhood board for verification.</p>
+<div class="space-y-5">
+<!-- Name Field -->
+<label class="flex flex-col w-full">
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal pb-2">Full Name</span>
+<input class="form-input flex w-full rounded-lg text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 px-4 text-base" placeholder="John Doe" type="text"/>
+</label>
+<!-- Phone Field -->
+<label class="flex flex-col w-full">
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal pb-2">Phone Number</span>
+<input class="form-input flex w-full rounded-lg text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 placeholder:text-slate-400 px-4 text-base" placeholder="(555) 000-0000" type="tel"/>
+</label>
+<!-- Dropdown Field -->
+<label class="flex flex-col w-full">
+<span class="text-slate-900 dark:text-slate-100 text-sm font-semibold leading-normal pb-2">Select Neighborhood</span>
+<div class="relative">
+<select class="form-select appearance-none flex w-full rounded-lg text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 h-12 px-4 text-base">
+<option disabled="" selected="" value="">Choose from list</option>
+<option value="oak-valley">Oak Valley Estates</option>
+<option value="pine-crest">Pine Crest Community</option>
+<option value="sunset-ridge">Sunset Ridge</option>
+<option value="willow-brook">Willow Brook Heights</option>
+</select>
+</div>
+</label>
+<!-- Confirmation Toggle -->
+<div class="flex items-start gap-3 py-2">
+<div class="flex items-center h-6">
+<input class="h-5 w-5 rounded border-slate-300 dark:border-slate-700 text-primary focus:ring-primary transition-all cursor-pointer" id="confirm-residency" name="confirm-residency" type="checkbox"/>
+</div>
+<div class="text-sm">
+<label class="font-medium text-slate-700 dark:text-slate-300 cursor-pointer" for="confirm-residency">
+                                I confirm that I am a resident of the selected neighborhood above
+                            </label>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="flex w-full cursor-pointer items-center justify-center rounded-lg h-12 px-5 bg-primary hover:bg-primary/90 text-white text-base font-bold transition-all mt-4">
+<span>Submit Request</span>
+</button>
+</div>
+</section>
+</div>
+<!-- Footer Decoration -->
+<div class="h-8 bg-white dark:bg-background-dark"></div>
+</div>
+</body></html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Stitch Design</title>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              primary: '#1193d4',
+              'background-light': '#f6f7f8',
+              'background-dark': '#101c22',
+            },
+            fontFamily: {
+              display: ['Manrope'],
+            },
+            borderRadius: {
+              DEFAULT: '0.25rem',
+              lg: '0.5rem',
+              xl: '0.75rem',
+              full: '9999px',
+            },
+          },
+        },
+      };
+    </script>
+<style>
+      .candidate-item:not(:last-child) {
+        border-bottom: 1px solid;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col justify-between overflow-x-hidden">
+<div>
+<header class="sticky top-0 z-10 bg-background-light/80 p-4 pb-2 backdrop-blur-sm dark:bg-background-dark/80">
+<div class="relative flex items-center justify-center">
+<button class="absolute left-0 flex h-10 w-10 items-center justify-center rounded-full bg-background-light dark:bg-background-dark">
+<svg class="text-black dark:text-white" fill="currentColor" height="24" viewBox="0 0 256 256" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"></path>
+</svg>
+</button>
+<h1 class="text-lg font-bold text-black dark:text-white">Board Elections</h1>
+</div>
+</header>
+<main class="p-4">
+<h2 class="text-2xl font-bold text-black dark:text-white mb-4">Candidates</h2>
+<div class="rounded-xl bg-background-light dark:bg-background-dark shadow-sm">
+<div class="flex cursor-pointer items-center gap-4 p-4 candidate-item border-gray-200 dark:border-gray-700">
+<img alt="Sophia Carter" class="h-14 w-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTsvXVjytqe41NOyfXvstRG72xDPKLfNvn2Stacr2UMZdUzv2TF5Yc07IAkAIWAiTAyQ-gR0qfgwIsFMpi3V2oNSMXV9U5eHndOZzL1OGFP1rVy_RBdBjfaJ9v6IPABzwF8FyUXOx5Gs0MfbhvxKWRkUZ8o-OgRTG2XM8L6wzPhvXuVv5Jat53O1cwuHbqWgTSM_TAOumADtID0dm9vv24ObkMdDr-46VIFSoLA_XgYWtQt0DmwzCJP6tBvZ8P9XHTcgI_oPIN73Q"/>
+<div class="flex-grow">
+<p class="font-bold text-black dark:text-white">Sophia Carter</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Candidate for Board of Directors</p>
+</div>
+<button class="rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30">View</button>
+</div>
+<div class="flex cursor-pointer items-center gap-4 p-4 candidate-item border-gray-200 dark:border-gray-700">
+<img alt="Ethan Bennett" class="h-14 w-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_YvI5ESGBPRHqyY1QeT3_ykN0LI59cciJ0JuFkWPCoJD76AZrHtfma8jlbW8k6sPEj8IMJcP7qNZ40Sh41lOrEdhDpxQpRQAFLtEGtasizorVHJh1VCmru_1sp1wKYC1TQVyDt1x3o3w87JXOMl3Ke8VQBhGJO7mNCU6qGkgKtBu90h_gVIYfBahCd2aKM8KKaXAOUDfInnAcsyEsEftwLDniZpIcZuCstlklzp9cUh1Gj0K-31jQdBD9zWkcosXFRrl7FvpdxGc"/>
+<div class="flex-grow">
+<p class="font-bold text-black dark:text-white">Ethan Bennett</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Candidate for Board of Directors</p>
+</div>
+<button class="rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30">View</button>
+</div>
+<div class="flex cursor-pointer items-center gap-4 p-4 candidate-item border-gray-200 dark:border-gray-700">
+<img alt="Olivia Hayes" class="h-14 w-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUW63oiPjFhzP8enVHOaWzmz2REZwR9zF_IapkMX6x-t0QEN0dLrM1WcZRzSO_MPXWp2S5vNssJ6ZOcxOZtMb3JSemGc_oEw0Y677zP-H9QaB9M17RMiEOFNyVoRyKr5IUbiJqmW9JBCi5i0QO-4IINpQxS4XEagdhWMUJLm_Nldu5ZFM-zMHd3IZFevVB1Ur_eYvxp_PbQprEogejQe-gQVvZwsHT0TR8exWl0EC16ZcIyI5EfgWLOl1A_fa3c_94Gtfsxt29khI"/>
+<div class="flex-grow">
+<p class="font-bold text-black dark:text-white">Olivia Hayes</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Candidate for Board of Directors</p>
+</div>
+<button class="rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30">View</button>
+</div>
+<div class="flex cursor-pointer items-center gap-4 p-4">
+<img alt="Noah Thompson" class="h-14 w-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVLdAsHnMHpgYm6DNw950LB6pPSmDpQBKJjRQtCsgceE9hmpNSaO9xuEFRrK3DPi3UATM3CRNg4Wx4fJr-2AUSjxeVLECaiIvnkHwQ2qKk7RmTBieRkEv7RBm_dFQLZIVceJzMeXfAT2yLb63kYa3jR8x661eClS3TZ0eO1PhDFUxHTUyuA2MjzWoC45sMAp15f_bGVLaAraufrTUHRfejMoHElRwxgugc03ACq8md4DjunPCADf1idhC07bpHb62pINV_e_gQV8M"/>
+<div class="flex-grow">
+<p class="font-bold text-black dark:text-white">Noah Thompson</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Candidate for Board of Directors</p>
+</div>
+<button class="rounded-lg bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30">View</button>
+</div>
+</div>
+</main>
+</div>
+<footer class="sticky bottom-0 bg-background-light/80 p-4 pb-6 backdrop-blur-sm dark:bg-background-dark/80">
+<button class="w-full rounded-lg bg-primary py-3.5 text-base font-bold text-white shadow-lg shadow-primary/30">Vote</button>
+</footer>
+</div>
+
+</body></html>

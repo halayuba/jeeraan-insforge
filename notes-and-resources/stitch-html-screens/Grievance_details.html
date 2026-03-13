@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Grievance Details - Jeeraan</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark max-w-md mx-auto shadow-xl">
+<!-- Header -->
+<div class="sticky top-0 z-10 flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md p-4 border-b border-slate-200 dark:border-slate-800 justify-between">
+<div class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center justify-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight flex-1 text-center">Grievance Details</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">share</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto pb-24">
+<!-- User Info Section -->
+<div class="flex p-4 @container">
+<div class="flex w-full flex-col gap-4 @[520px]:flex-row @[520px]:justify-between @[520px]:items-center">
+<div class="flex gap-4 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-16 w-16 border-2 border-primary/20" data-alt="Portrait of a smiling middle-aged man" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCnW90BlVHC9kA8_GrCi2QKYGntOQ5j8JF6kd8mZqeeEohaGni7QqtW4XvcZQKN4vlVm6A8_Gy4o7baC-BZKnUVHdK_BMdf5toVto902mDT_LVFNbArGkCOWdfD5FCPerT297Evoamiikn-vPftc4mBb2-pf_zS7--RquSbnjqKBuTqio_JK8yc2QMSDyk4RglrEbT0p7Unun6EFhGtjkGNhHdcjzMEbJoq8QgE2TV2cMMXGk--LK9X1IQZ-Oamc9COQL42h7CJMpo");'>
+</div>
+<div class="flex flex-col">
+<p class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight">Ahmed Al-Masri</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Submitted on Oct 24, 2023</p>
+<div class="mt-1">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary">
+<span class="size-1.5 rounded-full bg-primary mr-1.5"></span>
+                                    In Progress
+                                </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Section -->
+<div class="px-4 py-2">
+<h3 class="text-slate-900 dark:text-slate-100 text-2xl font-extrabold leading-tight mb-3">Street Light Malfunction in Sector 4</h3>
+<p class="text-slate-700 dark:text-slate-300 text-base font-normal leading-relaxed mb-6">
+                    The street lights on 5th Avenue have been flickering for the past three days, and since last night, they are completely off. This makes the area very dark and unsafe for pedestrians at night. Please look into this urgently. The entire stretch between the pharmacy and the local park is affected.
+                </p>
+<!-- Attached Images -->
+<div class="grid grid-cols-2 gap-2 mb-8">
+<div class="aspect-video rounded-xl bg-cover bg-center border border-slate-200 dark:border-slate-800" data-alt="Dark empty street with broken lights" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9Pv96HhxyrtIJinb8txrGXSiH7-zBfd9qPjTkvOlnHrAoqRoYJpwoUpmT_I4Xs5bjngEiP9caLHq1jFtdkasN1H0he0Im0XzaiRUYz5Kldv5-YBz3tGkStELIZSgXAzJ6qQwMCS-O02RuiUJ4la152bnHvNvrNsLROUvjkPJ-uOpy5sstc1UuEYA8EGaJfWyjzGbQzdzRhFcfqIvRGUs8PtUR7GN9O05EqHBEQiiTYlA-BZUqgSHT8yGlEepAG8eiAfU-kPlel-A");'></div>
+<div class="aspect-video rounded-xl bg-cover bg-center border border-slate-200 dark:border-slate-800" data-alt="Close up of a flickering lamppost" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuARRYKXvhCu8Qs-oAuZ9ggM1eET7_xSU_OY110Bgd3bLLlbek2amfGJ28aCEfSlgeFWnEoThNVV0O7kVC-8MvpXKitOM578mmdn9bVTwYbh965uXP7zoW0WJ2b4nICD-6y0OuhGdW68lrCLdLvvepZlRgNd0PRm_kKro35FhSs4SGchwsUWeRY3MxSgcHuq_LSo8oVv3gzZGNmGQkPe3eAfHZ9hIqJznOMSf87EnsqJmt3B2yWOKtpaz-xD_BJJsbNJz9DUNTWOd0k");'></div>
+</div>
+<!-- Location Map Snippet -->
+<!-- Comments Section -->
+<div class="space-y-6">
+<div class="flex items-center justify-between">
+<h4 class="text-slate-900 dark:text-slate-100 text-lg font-bold">Comments (3)</h4>
+<button class="text-primary text-sm font-bold hover:underline">Newest first</button>
+</div>
+<!-- Comment List -->
+<div class="space-y-4">
+<div class="flex gap-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-800 flex-shrink-0 bg-cover bg-center" data-alt="Profile photo of a young man" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA9c2P5XxoDrEyGtadfKf-OfJivuc0qS3IgQx20uVAlKTH1M_QHHZH2xs-Tx4DcZGOT-rFaV9mm0U6BkOyW7LDBiNpfpym8tsTN56SzcU4C1oiXn_MOZZovjaJ9yvwYVMN2ctUFS_BfmwDygCKYSctzfscXTGgbpQ9ffYVGjuNWpPRsq2UisPfvmglY0yH450aRTRqgmmlNAfseX5Y6QxDJJR8pkpxHGd-paScrnqLUDp9xAW1C_Xlvoa11_n4kaozrIydvN9lebak");'></div>
+<div class="bg-white dark:bg-slate-900 p-3 rounded-xl rounded-tl-none border border-slate-200 dark:border-slate-800 flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="font-bold text-sm">Omar Khalid</span>
+<span class="text-[10px] text-slate-500">2h ago</span>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400">I noticed this too! It's especially dangerous near the intersection. Thanks for reporting.</p>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="size-8 rounded-full bg-primary/20 flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-lg">admin_panel_settings</span>
+</div>
+<div class="bg-primary/5 dark:bg-primary/10 p-3 rounded-xl rounded-tl-none border border-primary/10 flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="font-bold text-sm text-primary">Municipal Support</span>
+<span class="text-[10px] text-slate-500">5h ago</span>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400">Our maintenance team has been notified and is scheduled to visit Sector 4 tomorrow morning.</p>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-800 flex-shrink-0 bg-cover bg-center" data-alt="Profile photo of a woman" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBC4yMAKfn1_QdM3EeqYe52gRG-eocxpy7iZkSiJM0bx72BLpVRDe_H2Y00i95lBHdCOqZ5fmwOWPUiFUhlxZiV2viP524xoQOxT54HYb9MIsDoKwzaeSiZ-IIFomvW34OHEKmGm37edZkJnzVwQDAnEnf4hgv-Ssl-6ECFd16XeItZvFyM3egoiltNu1XbzoTsuUDkenDT4yBgCK8TJ78OuGv_U7iAN7lrWNDcdIRvOW2rt-ZYjWhVrkgG6B4i9lsWMvCehgvObfc");'></div>
+<div class="bg-white dark:bg-slate-900 p-3 rounded-xl rounded-tl-none border border-slate-200 dark:border-slate-800 flex-1">
+<div class="flex justify-between items-start mb-1">
+<span class="font-bold text-sm">Laila Hassan</span>
+<span class="text-[10px] text-slate-500">Yesterday</span>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400">Glad this is being addressed. I almost tripped there last night.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Post Comment Section (Fixed at bottom) -->
+<div class="fixed bottom-[72px] left-0 right-0 max-w-md mx-auto bg-white dark:bg-background-dark p-3 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-end gap-3">
+<div class="flex-1 bg-slate-100 dark:bg-slate-800 rounded-xl px-4 py-2 border border-transparent focus-within:border-primary/50 transition-all">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-sm resize-none p-0 placeholder:text-slate-500" placeholder="Write a comment..." rows="1"></textarea>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white size-10 rounded-full flex items-center justify-center transition-colors shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto flex gap-2 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-4 pb-3 pt-2 z-20">
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">home</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Home</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Grievances</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">map</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Map</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-end gap-1 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-xs font-medium leading-normal tracking-[0.015em]">Profile</p>
+</a>
+</div>
+</div>
+</body></html>

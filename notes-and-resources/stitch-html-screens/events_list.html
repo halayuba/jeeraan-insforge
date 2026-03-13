@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Events - Neighborhood Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+        .filled-icon {
+            font-variation-settings:
+                'FILL' 1,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+        }
+    </style>
+<style>
+      body {
+        min-height: max(884px, 100dvh);
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-200">
+<div class="relative flex h-auto min-h-screen w-full flex-col justify-between overflow-x-hidden">
+<div class="flex-grow">
+<header class="sticky top-0 z-10 flex items-center justify-between bg-background-light/80 px-4 py-3 backdrop-blur-sm dark:bg-background-dark/80">
+<button class="text-slate-800 dark:text-white">
+<span class="material-symbols-outlined text-3xl">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold text-slate-900 dark:text-white">Events</h1>
+<button class="text-slate-800 dark:text-white">
+<span class="material-symbols-outlined text-3xl">add_circle</span>
+</button>
+</header>
+<main class="p-4 pb-20">
+<div class="relative">
+<input class="w-full rounded-full border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm shadow-sm focus:border-primary focus:ring-primary dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-400" placeholder="Search events..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+</div>
+<div class="mt-4 flex space-x-2 overflow-x-auto pb-2">
+<button class="flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white">Upcoming</button>
+<button class="flex-shrink-0 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-slate-600 shadow-sm dark:bg-slate-700 dark:text-slate-300">Past</button>
+<button class="flex-shrink-0 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-slate-600 shadow-sm dark:bg-slate-700 dark:text-slate-300">Ongoing</button>
+</div>
+<div class="mt-6 space-y-4">
+<div class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800/50">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Summer Pool Party</h3>
+<div class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">calendar_today</span>
+<span class="ml-2 font-medium">Sat, August 10, 2024</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">schedule</span>
+<span class="ml-2 font-medium">2:00 PM - 6:00 PM</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">person_pin</span>
+<span class="ml-2">Organized by <span class="font-medium text-slate-800 dark:text-slate-100">Jane Doe</span></span>
+</div>
+</div>
+</div>
+<div class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800/50">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Monthly Board Meeting</h3>
+<div class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">calendar_today</span>
+<span class="ml-2 font-medium">Wed, August 14, 2024</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">schedule</span>
+<span class="ml-2 font-medium">7:00 PM - 8:30 PM</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">person_pin</span>
+<span class="ml-2">Organized by <span class="font-medium text-slate-800 dark:text-slate-100">HOA Board</span></span>
+</div>
+</div>
+</div>
+<div class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800/50">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Community Garage Sale</h3>
+<div class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">calendar_today</span>
+<span class="ml-2 font-medium">Sat, September 7, 2024</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">schedule</span>
+<span class="ml-2 font-medium">8:00 AM - 1:00 PM</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">person_pin</span>
+<span class="ml-2">Organized by <span class="font-medium text-slate-800 dark:text-slate-100">Activities Committee</span></span>
+</div>
+</div>
+</div>
+<div class="rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800/50">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Movie Night: "The Great Outdoors"</h3>
+<div class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">calendar_today</span>
+<span class="ml-2 font-medium">Fri, September 20, 2024</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">schedule</span>
+<span class="ml-2 font-medium">Starts at 8:00 PM</span>
+</div>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-lg text-primary">person_pin</span>
+<span class="ml-2">Organized by <span class="font-medium text-slate-800 dark:text-slate-100">Alex Ray</span></span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<nav class="sticky bottom-0 z-10 border-t border-slate-200/50 bg-background-light/80 backdrop-blur-sm dark:border-slate-700/50 dark:bg-background-dark/80">
+<div class="mx-auto flex max-w-md justify-around px-2 pt-2 pb-4">
+<a class="flex flex-col items-center space-y-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-xs font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center space-y-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">chat_bubble</span>
+<span class="text-xs font-medium">Messages</span>
+</a>
+<a class="flex flex-col items-center space-y-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl filled-icon">calendar_month</span>
+<span class="text-xs font-bold">Events</span>
+</a>
+<a class="flex flex-col items-center space-y-1 text-slate-500 dark:text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-xs font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</div>
+
+</body></html>

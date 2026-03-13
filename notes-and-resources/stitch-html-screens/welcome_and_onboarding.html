@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Jeeraan - Connect with your Neighbors</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#1193d4",
+                "background-light": "#f6f7f8",
+                "background-dark": "#101c22",
+              },
+              fontFamily: {
+                "display": ["Manrope", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+<!-- Navigation / Top Bar -->
+<header class="flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">home_pin</span>
+</div>
+<span class="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Jeeraan</span>
+</div>
+<div class="flex gap-4">
+<button class="p-2 rounded-full hover:bg-primary/10 text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</header>
+<main class="flex-1 flex flex-col max-w-4xl mx-auto w-full">
+<!-- Hero Component -->
+<div class="@container w-full">
+<div class="@[480px]:px-6 @[480px]:py-4">
+<div class="bg-cover bg-center flex flex-col justify-end overflow-hidden bg-slate-200 dark:bg-slate-800 @[480px]:rounded-xl min-h-[400px] shadow-xl relative" data-alt="Happy neighbors talking in a sunlit modern residential street" style='background-image: linear-gradient(to top, rgba(16, 28, 34, 0.8) 0%, rgba(16, 28, 34, 0) 50%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuAEH_zPBvQEKvVVrNLmQXBBoLKQ_wZgaZpCnACiCKZtamsKUN4zqKXy86KFRHtldYHeksGQwIRFIpFVXQHxTe6Iz5P3kEbwwSBB2ZGaYdKyzN7bxs6A-CpgphP1NuR_gy3874vp-f7jNfwkcbM_zC4Pwl5OuAzP4Vl2BzyUV68fmMFf438779Ugj_tL-styUpa0iV13CB1x6pn28zUZqyD1iqAK4VUWX1HzyFVmoAiPfM822QIYBU1mW753-KpjkNQ0L0QFtwR3G8w");'>
+<div class="flex p-8 flex-col gap-2">
+<span class="px-3 py-1 bg-primary/20 backdrop-blur-md text-primary font-semibold text-sm rounded-full w-fit">Community First</span>
+<p class="text-white tracking-tight text-4xl font-extrabold leading-tight">Welcome to Jeeraan</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Section -->
+<div class="flex flex-col items-center px-6 py-10 text-center max-w-2xl mx-auto">
+<h1 class="text-slate-900 dark:text-slate-100 tracking-tight text-3xl md:text-4xl font-bold leading-tight pb-4">
+                    Your neighborhood, connected.
+                </h1>
+<p class="text-slate-600 dark:text-slate-400 text-lg font-normal leading-relaxed pb-8">
+                    Jeeraan helps you discover local events, share recommendations, and build a stronger community with the people living right next door. Join thousands of neighbors making their streets safer and friendlier.
+                </p>
+<!-- Value Props -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-10">
+<div class="flex flex-col items-center p-4 rounded-xl bg-primary/5 border border-primary/10">
+<span class="material-symbols-outlined text-primary mb-2 text-3xl">diversity_3</span>
+<h3 class="font-bold text-sm">Meet Neighbors</h3>
+</div>
+<div class="flex flex-col items-center p-4 rounded-xl bg-primary/5 border border-primary/10">
+<span class="material-symbols-outlined text-primary mb-2 text-3xl">campaign</span>
+<h3 class="font-bold text-sm">Local News</h3>
+</div>
+<div class="flex flex-col items-center p-4 rounded-xl bg-primary/5 border border-primary/10">
+<span class="material-symbols-outlined text-primary mb-2 text-3xl">volunteer_activism</span>
+<h3 class="font-bold text-sm">Help Others</h3>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+<button class="flex min-w-[180px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-8 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-lg font-bold leading-normal tracking-wide transition-all hover:bg-slate-300 dark:hover:bg-slate-700">
+<span class="truncate">Read more</span>
+</button>
+<button class="flex min-w-[180px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-14 px-8 bg-primary text-white text-lg font-bold leading-normal tracking-wide transition-all hover:opacity-90 shadow-lg shadow-primary/25">
+<span class="truncate">Enter Jeeraan</span>
+</button>
+</div>
+<!-- Pagination/Progress Indicators -->
+<div class="flex w-full flex-row items-center justify-center gap-3 py-10">
+<div class="h-2.5 w-8 rounded-full bg-primary"></div>
+<div class="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+<div class="h-2.5 w-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+</div>
+</div>
+</main>
+<!-- Footer Visual -->
+<footer class="mt-auto py-6 text-center border-t border-slate-200 dark:border-slate-800">
+<div class="flex justify-center gap-6 text-slate-400 dark:text-slate-600">
+<span class="text-sm font-medium">Privacy</span>
+<span class="text-sm font-medium">Terms</span>
+<span class="text-sm font-medium">Safety</span>
+</div>
+<p class="text-xs text-slate-400 dark:text-slate-600 mt-4 px-4">
+                By entering Jeeraan, you agree to foster a positive and inclusive neighborhood environment.
+            </p>
+</footer>
+</div>
+</body></html>

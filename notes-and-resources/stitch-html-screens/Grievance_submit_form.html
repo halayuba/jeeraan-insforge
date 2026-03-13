@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Submit Grievance - Jeeraan</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1193d4",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-auto min-h-screen w-full max-w-md mx-auto flex-col bg-white dark:bg-slate-900 overflow-x-hidden shadow-xl">
+<!-- Top App Bar -->
+<div class="flex items-center bg-white dark:bg-slate-900 p-4 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-10">
+<div class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center justify-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] ml-2 flex-1">Submit Grievance</h2>
+<div class="text-slate-900 dark:text-slate-100 flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">info</span>
+</div>
+</div>
+<!-- Form Content -->
+<div class="flex flex-col gap-6 p-4">
+<!-- Category Selection (Implicit for app context) -->
+<div class="flex flex-col gap-2">
+<p class="text-slate-900 dark:text-slate-100 text-base font-semibold leading-normal">Category</p>
+<div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-full text-sm font-medium whitespace-nowrap">
+<span class="material-symbols-outlined text-sm">home_work</span> Maintenance
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full text-sm font-medium whitespace-nowrap">
+<span class="material-symbols-outlined text-sm">security</span> Security
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full text-sm font-medium whitespace-nowrap">
+<span class="material-symbols-outlined text-sm">cleaning_services</span> Cleaning
+                    </button>
+</div>
+</div>
+<!-- Title Input -->
+<label class="flex flex-col w-full">
+<p class="text-slate-900 dark:text-slate-100 text-base font-semibold leading-normal pb-2">Grievance Title</p>
+<input class="form-input flex w-full rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 h-14 placeholder:text-slate-400 dark:placeholder:text-slate-500 p-4 text-base font-normal leading-normal transition-all" placeholder="Briefly name the issue" type="text"/>
+</label>
+<!-- Description Textarea -->
+<label class="flex flex-col w-full">
+<p class="text-slate-900 dark:text-slate-100 text-base font-semibold leading-normal pb-2">Description</p>
+<textarea class="form-input flex w-full min-w-0 flex-1 resize-none rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-primary/20 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 min-h-[160px] placeholder:text-slate-400 dark:placeholder:text-slate-500 p-4 text-base font-normal leading-normal transition-all" placeholder="Provide detailed information about your grievance so our team can help you better"></textarea>
+</label>
+<!-- Image Upload Section -->
+<div class="flex flex-col gap-2">
+<p class="text-slate-900 dark:text-slate-100 text-base font-semibold leading-normal">Upload Images</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm mb-2">Adding photos helps us resolve issues faster.</p>
+<div class="grid grid-cols-3 gap-3">
+<!-- Image Placeholder 1 (Add New) -->
+<div class="flex flex-col items-center justify-center aspect-square rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:bg-primary/5 hover:border-primary transition-all group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary">add_a_photo</span>
+<span class="text-[10px] mt-1 font-medium text-slate-400 group-hover:text-primary">Add Photo</span>
+</div>
+<!-- Image Placeholder 2 -->
+<div class="relative group aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
+<div class="w-full h-full bg-cover bg-center" data-alt="A photo showing a cracked wall in a building" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAhH8ZRTfyGu1cVHF9HEEtM452s6i0EF84cbeDl8EOEh1a1IXx8t4SRpqKLUwLBKM3CcO1yvLh1cxTzIW79VdVOPxPqWaUNsx2zIa60uZQWnwh86Fy49PKJUayC5mNO5rol2LOW_TFtpeKuIbxcYh_qs4fN9c-tByU6m5iZ-Dw1Mhw3ASgjgUZC8pwPsGXaeJqK3L4UxY7AaTOQSOoyfK12S21aEP9F6J6uC60rTu1eqKKwhH3sxmVXeLLZBvMKA3GjFjzw2s93GgM')"></div>
+<button class="absolute top-1 right-1 size-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-xs">close</span>
+</button>
+</div>
+<!-- Image Placeholder 3 -->
+<div class="relative group aspect-square rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
+<div class="w-full h-full bg-cover bg-center" data-alt="A photo of a leaking water pipe in a hallway" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAfzKjVnEXsr9yKIJJ2YVP5cyXZYtVeIrspMgezJfN4kcfKWpNX2tO_Sv18IfxXP6807ACoQTV5mjIVJsmVzZshcq-m4BiBTuskNU1Gdp8mEvzrN7cl7YCLukVwvq3RyW0E2Q-x0S4IjW8DJWqhxtFz_z-1pSIF0KTNVZo4eUOJrD2A3SgLzOe_-oSvycJci-kj9IxoObMIMY1K_DUv5mkoZeWs9Udf1waB30j6Trgsmc7BmqlYUOyz8J_unEzY-8DTrWYnYpJr5Nk')"></div>
+<button class="absolute top-1 right-1 size-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-xs">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Location Section -->
+<div class="h-20"></div> <!-- Bottom spacer -->
+</div>
+<!-- Sticky Submit Button -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white dark:bg-slate-900 p-4 border-t border-slate-100 dark:border-slate-800">
+<button class="w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-base transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                Submit Grievance
+                <span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</body></html>
