@@ -1,48 +1,69 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity, ScrollView, Modal, useWindowDimensions, Dimensions } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter, Redirect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../contexts/AuthContext';
+import { MaterialIcons } from '@expo/vector-icons'
+import { Redirect, useRouter } from 'expo-router'
+import React, { useState } from 'react'
+import {
+  ImageBackground,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useAuth } from '../contexts/AuthContext'
 
 const SLIDES = [
   {
-    title: "The Vision",
-    content: "To bring neighborhoods back to life — digitally and socially.\n\nJeeraan empowers communities to:\n• Share announcements instantly\n• Vote on neighborhood decisions\n• Report maintenance and work orders\n• Participate in forums\n• Post classified ads\n\nEach neighborhood becomes its own small, secure online village."
+    title: '🌿 Jeeraan',
+    content:
+      'Connecting Neighbors, Strengthening Communities.\n\n• Because good neighborhoods start with good neighbors.',
   },
   {
-    title: "How It Works",
-    content: "1. A neighborhood admin subscribes and sets up the community.\n2. Residents receive links and verify their addresses.\n3. Once inside, neighbors participate in announcements, polls, and forums.\n4. Admins and moderators keep things organized."
+    title: 'What is Jeeraan?',
+    content:
+      'Jeeraan is a new community-driven platform to help residents stay connected, informed, and engaged.\n\n• Too often, neighbors only meet when there’s a problem. Jeeraan changes that by giving every community a private digital space where communication is effortless, participation is encouraged, and every voice matters.',
   },
   {
-    title: "Why It Matters",
-    content: "• Clarity and connection: No more missed updates.\n• Empowered participation: Everyone can contribute.\n• Safer communities: Real-time alerts strengthen safety.\n• Local trust and commerce: Promote neighbor-to-neighbor help.\n\nJeeraan isn't just software — it's a digital heartbeat for local communities."
+    title: 'The Vision',
+    content:
+      'To bring neighborhoods back to life — digitally and socially.\n\nJeeraan empowers communities to:\n• Share announcements instantly\n• Vote on neighborhood decisions\n• Report maintenance and work orders\n• Participate in forums\n• Post classified ads\n\nEach neighborhood becomes its own small, secure online village.',
   },
   {
-    title: "The Ask",
-    content: "We're inviting a few trusted neighbors to join early as advocates and co-creators.\n\nYour feedback helps shape Jeeraan into something truly meaningful. Together, we can make a platform built by neighbors, for neighbors."
+    title: 'How It Works',
+    content:
+      '1. A neighborhood admin subscribes and sets up the community.\n2. Residents receive links and verify their addresses.\n3. Once inside, neighbors participate in announcements, polls, and forums.\n4. Admins and moderators keep things organized.',
   },
   {
-    title: "Next Steps",
-    content: "If you're interested in being part of this journey:\n\n• Join a short brainstorming session\n• Share insights on your ideal neighborhood app\n• Explore opportunities to partner and test\n\nJeeraan – Because good neighborhoods start with good neighbors."
-  }
-];
+    title: 'Why It Matters',
+    content:
+      "• Clarity and connection: No more missed updates.\n• Empowered participation: Everyone can contribute.\n• Safer communities: Real-time alerts strengthen safety.\n• Local trust and commerce: Promote neighbor-to-neighbor help.\n\nJeeraan isn't just software — it's a digital heartbeat for local communities.",
+  },
+  {
+    title: 'Jeeraan',
+    content: 'Built by neighbors, for neighbors.',
+  },
+]
 
 export default function SplashScreen() {
-  const router = useRouter();
-  const { width } = useWindowDimensions();
-  const [modalVisible, setModalVisible] = useState(false);
-  const { session, loading } = useAuth();
+  const router = useRouter()
+  const { width } = useWindowDimensions()
+  const [modalVisible, setModalVisible] = useState(false)
+  const { session, loading } = useAuth()
 
-  const SLIDE_WIDTH = width * 0.85 - 40; // 85% modal width minus 20 padding each side
+  const SLIDE_WIDTH = width * 0.85 - 40 // 85% modal width minus 20 padding each side
 
   if (!loading && session) {
-    return <Redirect href="/(app)" />;
+    return <Redirect href="/(app)" />
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Navigation / Top Bar */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
@@ -58,8 +79,10 @@ export default function SplashScreen() {
 
         {/* Hero Component */}
         <View style={styles.heroContainer}>
-          <ImageBackground 
-            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAEH_zPBvQEKvVVrNLmQXBBoLKQ_wZgaZpCnACiCKZtamsKUN4zqKXy86KFRHtldYHeksGQwIRFIpFVXQHxTe6Iz5P3kEbwwSBB2ZGaYdKyzN7bxs6A-CpgphP1NuR_gy3874vp-f7jNfwkcbM_zC4Pwl5OuAzP4Vl2BzyUV68fmMFf438779Ugj_tL-styUpa0iV13CB1x6pn28zUZqyD1iqAK4VUWX1HzyFVmoAiPfM822QIYBU1mW753-KpjkNQ0L0QFtwR3G8w' }} 
+          <ImageBackground
+            source={{
+              uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAEH_zPBvQEKvVVrNLmQXBBoLKQ_wZgaZpCnACiCKZtamsKUN4zqKXy86KFRHtldYHeksGQwIRFIpFVXQHxTe6Iz5P3kEbwwSBB2ZGaYdKyzN7bxs6A-CpgphP1NuR_gy3874vp-f7jNfwkcbM_zC4Pwl5OuAzP4Vl2BzyUV68fmMFf438779Ugj_tL-styUpa0iV13CB1x6pn28zUZqyD1iqAK4VUWX1HzyFVmoAiPfM822QIYBU1mW753-KpjkNQ0L0QFtwR3G8w',
+            }}
             style={styles.heroImage}
             imageStyle={{ borderRadius: 16 }}
           >
@@ -76,48 +99,81 @@ export default function SplashScreen() {
         <View style={styles.contentSection}>
           <Text style={styles.mainTitle}>Your neighborhood, connected.</Text>
           <Text style={styles.subtitle}>
-            Jeeraan helps you discover local events, share recommendations, and build a stronger community with the people living right next door. Join thousands of neighbors making their streets safer and friendlier.
+            Jeeraan helps you discover local events, share recommendations, and
+            build a stronger community with the people living right next door.
+            Join thousands of neighbors making their streets safer and
+            friendlier.
           </Text>
 
           {/* Value Props */}
           <View style={styles.grid}>
             <View style={styles.gridItem}>
-              <MaterialIcons name="groups" size={32} color="#1193d4" style={styles.gridIcon} />
+              <MaterialIcons
+                name="groups"
+                size={32}
+                color="#1193d4"
+                style={styles.gridIcon}
+              />
               <Text style={styles.gridText}>Meet Neighbors</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons name="campaign" size={32} color="#1193d4" style={styles.gridIcon} />
+              <MaterialIcons
+                name="campaign"
+                size={32}
+                color="#1193d4"
+                style={styles.gridIcon}
+              />
               <Text style={styles.gridText}>Local News</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons name="volunteer-activism" size={32} color="#1193d4" style={styles.gridIcon} />
+              <MaterialIcons
+                name="volunteer-activism"
+                size={32}
+                color="#1193d4"
+                style={styles.gridIcon}
+              />
               <Text style={styles.gridText}>Help Others</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons name="how-to-vote" size={32} color="#1193d4" style={styles.gridIcon} />
+              <MaterialIcons
+                name="how-to-vote"
+                size={32}
+                color="#1193d4"
+                style={styles.gridIcon}
+              />
               <Text style={styles.gridText}>Elections</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons name="event" size={32} color="#1193d4" style={styles.gridIcon} />
+              <MaterialIcons
+                name="event"
+                size={32}
+                color="#1193d4"
+                style={styles.gridIcon}
+              />
               <Text style={styles.gridText}>Events</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons name="forum" size={32} color="#1193d4" style={styles.gridIcon} />
+              <MaterialIcons
+                name="forum"
+                size={32}
+                color="#1193d4"
+                style={styles.gridIcon}
+              />
               <Text style={styles.gridText}>Forum</Text>
             </View>
           </View>
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              style={[styles.button, styles.secondaryButton]} 
+            <TouchableOpacity
+              style={[styles.button, styles.secondaryButton]}
               onPress={() => setModalVisible(true)}
             >
               <Text style={styles.secondaryButtonText}>Learn more</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.button, styles.primaryButton]} 
+
+            <TouchableOpacity
+              style={[styles.button, styles.primaryButton]}
               onPress={() => router.push('/(auth)/neighborhood-access')}
             >
               <Text style={styles.primaryButtonText}>Access Jeeraan</Text>
@@ -125,8 +181,16 @@ export default function SplashScreen() {
           </View>
 
           <View style={{ marginTop: 24, alignItems: 'center' }}>
-            <TouchableOpacity onPress={() => router.push('/(auth)/create-neighborhood')}>
-              <Text style={{ fontFamily: 'Manrope-SemiBold', fontSize: 15, color: '#1193d4' }}>
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/create-neighborhood')}
+            >
+              <Text
+                style={{
+                  fontFamily: 'Manrope-SemiBold',
+                  fontSize: 15,
+                  color: '#1193d4',
+                }}
+              >
                 Create a new Neighborhood (Admin)
               </Text>
             </TouchableOpacity>
@@ -137,13 +201,17 @@ export default function SplashScreen() {
         <View style={styles.footer}>
           <View style={styles.footerLinks}>
             <Text style={styles.footerLink}>Privacy</Text>
-            <TouchableOpacity onLongPress={() => router.push('/(auth)/admin-sign-in')} delayLongPress={2000}>
+            <TouchableOpacity
+              onLongPress={() => router.push('/(auth)/admin-sign-in')}
+              delayLongPress={2000}
+            >
               <Text style={styles.footerLink}>Terms</Text>
             </TouchableOpacity>
             <Text style={styles.footerLink}>Safety</Text>
           </View>
           <Text style={styles.footerText}>
-            By entering Jeeraan, you agree to foster a positive and inclusive neighborhood environment.
+            By entering Jeeraan, you agree to foster a positive and inclusive
+            neighborhood environment.
           </Text>
         </View>
       </ScrollView>
@@ -157,27 +225,30 @@ export default function SplashScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
             >
               <MaterialIcons name="close" size={24} color="#334155" />
             </TouchableOpacity>
-            
-            <ScrollView 
-              horizontal 
-              pagingEnabled 
+
+            <ScrollView
+              horizontal
+              pagingEnabled
               showsHorizontalScrollIndicator={false}
               style={{ width: SLIDE_WIDTH }}
             >
               {SLIDES.map((slide, index) => (
-                <View key={index} style={[styles.slide, { width: SLIDE_WIDTH }]}>
+                <View
+                  key={index}
+                  style={[styles.slide, { width: SLIDE_WIDTH }]}
+                >
                   <Text style={styles.slideTitle}>{slide.title}</Text>
                   <Text style={styles.slideContent}>{slide.content}</Text>
                 </View>
               ))}
             </ScrollView>
-            
+
             <View style={styles.sliderIndicator}>
               <MaterialIcons name="swipe" size={20} color="#94a3b8" />
               <Text style={styles.sliderHint}>Swipe to read more</Text>
@@ -186,7 +257,7 @@ export default function SplashScreen() {
         </View>
       </Modal>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -419,5 +490,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Medium',
     fontSize: 14,
     color: '#94a3b8',
-  }
-});
+  },
+})
