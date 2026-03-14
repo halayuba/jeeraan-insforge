@@ -1,32 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { Slot, Redirect } from 'expo-router';
-import * as LocalAuthentication from 'expo-local-authentication';
-import { useAuth } from '../../../contexts/AuthContext';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as LocalAuthentication from 'expo-local-authentication';
+import { Redirect, Slot } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function AdminLayout() {
-  const { userRole, loading } = useAuth();
+  const { userRole, globalRole, loading } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
+  const isAdmin = userRole === 'admin' || globalRole === 'super_admin';
+
   useEffect(() => {
-    if (!loading && (userRole === 'admin' || userRole === 'super_admin')) {
+    if (!loading && isAdmin) {
       authenticate();
     } else if (!loading) {
       setIsAuthenticating(false);
     }
-  }, [loading, userRole]);
+  }, [loading, isAdmin]);
 
   const authenticate = async () => {
+    // Biometric bypass for Web platform
+    if (Platform.OS === 'web') {
+      setIsAuthenticated(true);
+      setIsAuthenticating(false);
+      return;
+    }
+
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
       if (!hasHardware || !isEnrolled) {
         // Fallback for devices without biometrics enabled/available during MVP testing
-        // You could also force a password re-entry here instead.
         setIsAuthenticated(true);
         setIsAuthenticating(false);
         return;
@@ -57,7 +65,7 @@ export default function AdminLayout() {
   }
 
   // Not an admin? 
-  if (userRole !== 'admin' && userRole !== 'super_admin') {
+  if (!isAdmin) {
     return <Redirect href="/(app)" />;
   }
 

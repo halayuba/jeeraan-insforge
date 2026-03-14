@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data } = await insforge.database
         .from('user_profiles')
         .select('global_role')
-        .eq('id', userId)
+        .eq('user_id', userId)
         .single();
       if (data) {
         setGlobalRole(data.global_role);

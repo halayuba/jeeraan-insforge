@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Implement Admin Auth Flow and Neighborhood Access**
+- [x] **Track: Implement Admin Auth Flow and Neighborhood Access**
   *Link: [./tracks/admin_auth_neighborhood_access_20260314/](./tracks/admin_auth_neighborhood_access_20260314/)*
