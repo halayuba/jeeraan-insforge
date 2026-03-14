@@ -13,6 +13,8 @@
 - **Native Modules:** [Expo SDK](https://docs.expo.dev/versions/latest/) (Camera, ImagePicker, LocalAuth)
 
 ## Architecture
-- **Structure:** Feature-based organization (src/app/(app)/feature_name)
-- **State Management:** [React Context API](https://react.dev/reference/react/useContext) for global state (e.g., AuthContext)
-- **Utilities:** Centralized lib (src/lib) and contexts (src/contexts)
+- **Structure:** Feature-based organization (src/app/(app)/feature_name).
+- **Global Roles:** `user_profiles` table in InsForge for platform-wide roles (e.g., `super_admin`).
+- **State Management:** [React Context API](https://react.dev/reference/react/useContext) for global state (e.g., AuthContext).
+- **Security:** Biometric authentication with `expo-local-authentication`, featuring a secure bypass for the Web platform.
+- **Utilities:** Centralized lib (src/lib) and contexts (src/contexts).

@@ -7,15 +7,17 @@ Jeeraan (Neighbors) – A SaaS web and mobile application designed to enable res
 Jeeraan is a SaaS web and mobile application designed to empower communities by providing a secure, digital space where neighbors can stay informed, share concerns, organize events, resolve issues, and exchange goods or services. It aims to improve transparency and efficiency in community life through a centralized communication hub.
 
 ## Target Users
-1. **Neighborhood Admins:** Board members, HOA leaders, or property managers who manage neighborhood profiles, invitations, and moderation.
+1. **Neighborhood Admins:** Board members, HOA leaders, or property managers who manage neighborhood profiles, invitations, and moderation. They create neighborhoods through a dedicated onboarding flow.
 2. **Residents (Members):** Verified residents who participate in discussions, voting, classifieds, and issue reporting.
-3. **Moderators:** Delegated members who assist in managing activity and content.
+3. **Super Admin:** Platform owner with global access across all neighborhoods.
+4. **Moderators:** Delegated members who assist in managing activity and content.
 
 ## Core Features
 ### 1. Neighborhood Management
+- **Neighborhood Admin Onboarding:** Dedicated wizard for creating a new neighborhood account and community profile.
 - Secure neighborhood creation and address verification.
 - Invitation system for residents using unique links.
-- Role-based access control (Admin, Moderator, Member).
+- Role-based access control (Global: Super Admin; Local: Admin, Moderator, Member).
 
 ### 2. Community Communication
 - **Announcements:** Neighborhood-wide updates for security, events, and maintenance.
