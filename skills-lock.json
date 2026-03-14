@@ -9,7 +9,7 @@
     "insforge-cli": {
       "source": "insforge/agent-skills",
       "sourceType": "github",
-      "computedHash": "eabdd0d9db01e1cd8f5a10ba848b3c38c7563e315cfe3a1097cff4945c07d7c4"
+      "computedHash": "f63861cc583343dc6ea26c7d95c33cd25a2004caf0da3c4b9cf70adf1bfa3299"
     }
   }
 }

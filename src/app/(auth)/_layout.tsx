@@ -1,9 +1,10 @@
-import { Stack, Redirect } from 'expo-router';
+import { Stack, Redirect, useSegments } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { View, ActivityIndicator } from 'react-native';
 
 export default function AuthLayout() {
   const { session, loading } = useAuth();
+  const segments = useSegments();
 
   if (loading) {
     return (
@@ -13,7 +14,9 @@ export default function AuthLayout() {
     );
   }
 
-  if (session) {
+  const currentSegment = segments[segments.length - 1];
+
+  if (session && currentSegment !== 'create-neighborhood' && currentSegment !== 'admin-sign-in') {
     return <Redirect href="/(app)" />;
   }
 
@@ -22,6 +25,8 @@ export default function AuthLayout() {
       <Stack.Screen name="neighborhood-access" />
       <Stack.Screen name="sign-in" />
       <Stack.Screen name="sign-up" />
+      <Stack.Screen name="create-neighborhood" />
+      <Stack.Screen name="admin-sign-in" />
     </Stack>
   );
 }

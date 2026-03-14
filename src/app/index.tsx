@@ -123,13 +123,23 @@ export default function SplashScreen() {
               <Text style={styles.primaryButtonText}>Access Jeeraan</Text>
             </TouchableOpacity>
           </View>
+
+          <View style={{ marginTop: 24, alignItems: 'center' }}>
+            <TouchableOpacity onPress={() => router.push('/(auth)/create-neighborhood')}>
+              <Text style={{ fontFamily: 'Manrope-SemiBold', fontSize: 15, color: '#1193d4' }}>
+                Create a new Neighborhood (Admin)
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Footer Visual */}
         <View style={styles.footer}>
           <View style={styles.footerLinks}>
             <Text style={styles.footerLink}>Privacy</Text>
-            <Text style={styles.footerLink}>Terms</Text>
+            <TouchableOpacity onLongPress={() => router.push('/(auth)/admin-sign-in')} delayLongPress={2000}>
+              <Text style={styles.footerLink}>Terms</Text>
+            </TouchableOpacity>
             <Text style={styles.footerLink}>Safety</Text>
           </View>
           <Text style={styles.footerText}>
