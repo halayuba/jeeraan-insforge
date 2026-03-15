@@ -16,6 +16,8 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { insforge } from '../../../lib/insforge';
+import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const CATEGORIES = [
   'General Info',
@@ -27,6 +29,8 @@ const CATEGORIES = [
 
 export default function CreateAnnouncement() {
   const router = useRouter();
+  const { showToast } = useToast();
+  const { refreshAuth } = useAuth();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -92,7 +96,8 @@ export default function CreateAnnouncement() {
     setSubmitting(true);
     try {
       // 1. Get authenticated user
-      const { data: userData } = await insforge.auth.getCurrentUser();
+      const { data: userData, error: authError } = await insforge.auth.getCurrentUser();
+      if (authError) throw authError;
       if (!userData?.user) throw new Error('Not authenticated');
 
       // 2. Upload array of attached images (if any)
@@ -111,11 +116,19 @@ export default function CreateAnnouncement() {
 
       if (error) throw error;
       
-      Alert.alert('Success', 'Announcement posted successfully.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      showToast('Announcement posted successfully.', 'success');
+      router.back();
     } catch (err: any) {
       console.error('Submit error:', err);
+      
+      // Handle JWT expired/session issues specifically
+      if (err.message?.includes('JWT expired') || err.code === 'PGRST301' || err.statusCode === 401) {
+        showToast('Your session has expired. Please sign in again.', 'error');
+        // Refresh auth state which will likely trigger the global redirect in (app)/_layout.tsx
+        refreshAuth();
+        return;
+      }
+      
       Alert.alert('Error', err.message || 'Failed to post announcement.');
     } finally {
       setSubmitting(false);

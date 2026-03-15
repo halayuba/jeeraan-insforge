@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,9 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
 
@@ -19,14 +20,13 @@ export default function AnnouncementsIndex() {
   const router = useRouter();
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchAnnouncements();
-  }, []);
-
-  const fetchAnnouncements = async () => {
-    setLoading(true);
+  const fetchAnnouncements = async (isRefreshing = false) => {
+    if (isRefreshing) setRefreshing(true);
+    else setLoading(true);
+    
     try {
       const { data, error } = await insforge.database
         .from('announcements')
@@ -39,8 +39,15 @@ export default function AnnouncementsIndex() {
       console.error('Error fetching announcements:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchAnnouncements();
+    }, [])
+  );
 
   const getCategoryStyles = (category: string) => {
     const cat = category?.toLowerCase() || '';
@@ -122,7 +129,13 @@ export default function AnnouncementsIndex() {
         </ScrollView>
       </View>
 
-      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollContainer} 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => fetchAnnouncements(true)} />
+        }
+      >
         <Text style={styles.sectionHeading}>Current Month</Text>
 
         {loading ? (

@@ -9,6 +9,7 @@ type UserContextType = {
   userRole: string | null;
   neighborhoodId: string | null;
   refreshAuth: () => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<UserContextType | undefined>(undefined);
@@ -21,69 +22,147 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [neighborhoodId, setNeighborhoodId] = useState<string | null>(null);
 
+  const handleAuthError = (err: any) => {
+    // Specifically handle session/auth errors by clearing state
+    if (
+      err.message?.includes('JWT expired') || 
+      err.code === 'PGRST301' || 
+      err.statusCode === 401 ||
+      err.error === 'unauthorized'
+    ) {
+      console.log('Session expired or invalid, clearing auth state');
+      setSession(null);
+      setUser(null);
+      setUserRole(null);
+      setNeighborhoodId(null);
+      setGlobalRole(null);
+    }
+  };
+
   const fetchNeighborhoodInfo = async (userId: string) => {
     try {
-      const { data } = await insforge.database
+      const { data, error } = await insforge.database
         .from('user_neighborhoods')
         .select('role, neighborhood_id')
         .eq('user_id', userId)
         .single();
+      
+      if (error) {
+        handleAuthError(error);
+        return;
+      }
+
       if (data) {
         setUserRole(data.role);
         setNeighborhoodId(data.neighborhood_id);
       }
     } catch (err) {
       console.error('Error fetching neighborhood context', err);
+      handleAuthError(err);
     }
   };
 
   const fetchGlobalProfile = async (userId: string) => {
     try {
-      const { data } = await insforge.database
+      const { data, error } = await insforge.database
         .from('user_profiles')
         .select('global_role')
         .eq('user_id', userId)
         .single();
+
+      if (error) {
+        handleAuthError(error);
+        return;
+      }
+
       if (data) {
         setGlobalRole(data.global_role);
       }
     } catch (err) {
       console.error('Error fetching global profile', err);
+      handleAuthError(err);
     }
   };
 
   const refreshAuth = async () => {
     setLoading(true);
-    const { data } = await insforge.auth.getCurrentSession();
-    setSession(data.session);
-    setUser(data.session?.user ?? null);
-    if (data.session?.user?.id) {
-      await Promise.all([
-        fetchNeighborhoodInfo(data.session.user.id),
-        fetchGlobalProfile(data.session.user.id),
-      ]);
-    }
-    setLoading(false);
-  };
+    try {
+      const { data, error } = await insforge.auth.getCurrentSession();
+      
+      if (error) {
+        handleAuthError(error);
+        setLoading(false);
+        return;
+      }
 
-  useEffect(() => {
-    const initAuth = async () => {
-      const { data } = await insforge.auth.getCurrentSession();
       setSession(data.session);
       setUser(data.session?.user ?? null);
+      
       if (data.session?.user?.id) {
         await Promise.all([
           fetchNeighborhoodInfo(data.session.user.id),
           fetchGlobalProfile(data.session.user.id),
         ]);
       }
+    } catch (err) {
+      handleAuthError(err);
+    } finally {
       setLoading(false);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await insforge.auth.signOut();
+    } finally {
+      setSession(null);
+      setUser(null);
+      setUserRole(null);
+      setNeighborhoodId(null);
+      setGlobalRole(null);
+    }
+  };
+
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        const { data, error } = await insforge.auth.getCurrentSession();
+        
+        if (error) {
+          handleAuthError(error);
+          setLoading(false);
+          return;
+        }
+
+        setSession(data.session);
+        setUser(data.session?.user ?? null);
+        
+        if (data.session?.user?.id) {
+          await Promise.all([
+            fetchNeighborhoodInfo(data.session.user.id),
+            fetchGlobalProfile(data.session.user.id),
+          ]);
+        }
+      } catch (err) {
+        handleAuthError(err);
+      } finally {
+        setLoading(false);
+      }
     };
     initAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, globalRole, userRole, neighborhoodId, refreshAuth }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      globalRole, 
+      userRole, 
+      neighborhoodId, 
+      refreshAuth,
+      signOut
+    }}>
       {children}
     </AuthContext.Provider>
   );
