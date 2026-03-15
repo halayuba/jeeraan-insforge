@@ -31,6 +31,8 @@ export default function HomeIndex() {
       router.push('/(app)/forum' as any);
     } else if (id === 'events') {
       router.push('/(app)/events' as any);
+    } else if (id === 'members') {
+      router.push('/(app)/members' as any);
     } else if (id === 'classifieds') {
       router.push('/(app)/classifieds' as any);
     } else {

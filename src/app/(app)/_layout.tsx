@@ -89,6 +89,7 @@ export default function AppLayout() {
       <Tabs.Screen name="announcements" options={{ href: null }} />
       <Tabs.Screen name="service-orders" options={{ href: null }} />
       <Tabs.Screen name="classifieds" options={{ href: null }} />
+      <Tabs.Screen name="members" options={{ href: null }} />
       
       {/* Admin Screen (Conditional) */}
       <Tabs.Screen 
