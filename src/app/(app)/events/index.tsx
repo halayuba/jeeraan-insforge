@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,26 +7,28 @@ import {
   TextInput,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const TABS = ['Upcoming', 'Past', 'Ongoing'];
 
 export default function EventsIndex() {
   const router = useRouter();
+  const { refreshAuth } = useAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Upcoming');
 
-  useEffect(() => {
-    fetchEvents();
-  }, [activeTab]);
-
-  const fetchEvents = async () => {
-    setLoading(true);
+  const fetchEvents = async (isRefreshing = false) => {
+    if (isRefreshing) setRefreshing(true);
+    else setLoading(true);
+    
     try {
       let query = insforge.database
         .from('events')
@@ -43,14 +45,27 @@ export default function EventsIndex() {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('JWT expired') || error.code === 'PGRST301' || error.statusCode === 401) {
+          refreshAuth();
+          return;
+        }
+        throw error;
+      }
       setEvents(data || []);
     } catch (err) {
       console.error('Error fetching events:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+    }, [activeTab])
+  );
 
   const filteredEvents = events.filter(
     (ev) =>
@@ -94,7 +109,13 @@ export default function EventsIndex() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => fetchEvents(true)} />
+        }
+      >
         
         {/* Search Bar */}
         <View style={styles.searchContainer}>

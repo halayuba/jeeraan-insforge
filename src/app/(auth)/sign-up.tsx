@@ -57,6 +57,12 @@ export default function SignUp() {
 
   const linkUserToNeighborhood = async (userId: string) => {
     try {
+      // 1. Update profile with full name
+      await insforge.database.from('user_profiles')
+        .update({ full_name: name })
+        .eq('user_id', userId);
+
+      // 2. Link to neighborhood
       await insforge.database.from('user_neighborhoods').insert([{
         user_id: userId,
         neighborhood_id: neighborhoodId,

@@ -8,9 +8,9 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export default function CreateNeighborhoodScreen() {
   const router = useRouter();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, session } = useAuth();
   
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(session ? 2 : 1);
   const [loading, setLoading] = useState(false);
   
   // Step 1: Account
@@ -24,6 +24,13 @@ export default function CreateNeighborhoodScreen() {
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [zipCode, setZipCode] = useState('');
+
+  React.useEffect(() => {
+    if (session) {
+      setStep(2);
+    }
+  }, [session]);
 
   const handleCreateAccount = async () => {
     if (!email || !password || !fullName || !phone) {
@@ -53,7 +60,7 @@ export default function CreateNeighborhoodScreen() {
   };
 
   const handleSetupNeighborhood = async () => {
-    if (!neighborhoodName || !address || !city || !state) {
+    if (!neighborhoodName || !address || !city || !state || !zipCode) {
       Alert.alert('Error', 'Please fill out all neighborhood fields.');
       return;
     }
@@ -61,15 +68,14 @@ export default function CreateNeighborhoodScreen() {
     setLoading(true);
     
     // 1. Create the neighborhood record
-    // Since the user is authenticated, RLS will allow insertion if policy is open for creation
-    // Wait, by default, neighborhoods RLS might deny insert. Let's make sure we have an insert policy!
     const { data: nData, error: nError } = await insforge.database
       .from('neighborhoods')
       .insert([{
         name: neighborhoodName,
         address: address,
         city: city,
-        state: state
+        state: state,
+        zip_code: zipCode
       }])
       .select('id')
       .single();
@@ -82,7 +88,6 @@ export default function CreateNeighborhoodScreen() {
 
     const newNeighborhoodId = nData.id;
 
-    // 2. Link the user to the new neighborhood as 'admin'
     const { data: sessionData } = await insforge.auth.getCurrentSession();
     const userId = sessionData.session?.user?.id;
 
@@ -92,6 +97,15 @@ export default function CreateNeighborhoodScreen() {
       return;
     }
 
+    // 2. Update profile with full name if it was provided in step 1 or session
+    // For existing super admins, we use fullName if they provided it, or skip
+    if (fullName) {
+      await insforge.database.from('user_profiles')
+        .update({ full_name: fullName })
+        .eq('user_id', userId);
+    }
+
+    // 3. Link the user to the new neighborhood as 'admin'
     const { error: linkError } = await insforge.database
       .from('user_neighborhoods')
       .insert([{
@@ -224,6 +238,17 @@ export default function CreateNeighborhoodScreen() {
                     onChangeText={setState}
                   />
                 </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Zip Code</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. 12345"
+                  value={zipCode}
+                  onChangeText={setZipCode}
+                  keyboardType="number-pad"
+                />
               </View>
 
               <TouchableOpacity style={styles.button} onPress={handleSetupNeighborhood} disabled={loading}>

@@ -20,18 +20,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 type Member = {
   user_id: string;
   role: string;
-  users: {
-    id: string;
-    raw_user_meta_data: {
-      full_name?: string;
-      avatar_url?: string;
-    };
+  profiles: {
+    full_name: string | null;
+    avatar_url: string | null;
   };
 };
 
 export default function MembersIndex() {
   const router = useRouter();
-  const { neighborhoodId } = useAuth();
+  const { neighborhoodId, refreshAuth } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -50,19 +47,26 @@ export default function MembersIndex() {
         .select(`
           user_id,
           role,
-          users:user_id (
-            id,
-            raw_user_meta_data
+          profiles:user_id (
+            full_name,
+            avatar_url
           )
         `)
         .eq('neighborhood_id', neighborhoodId);
 
-      if (error) throw error;
+      if (error) {
+        // Handle session errors
+        if (error.message?.includes('JWT expired') || error.code === 'PGRST301' || error.statusCode === 401) {
+          refreshAuth();
+          return;
+        }
+        throw error;
+      }
       
-      // Ensure users is not an array (postgrest sometimes returns array for 1-to-1 if not specified)
+      // Ensure profiles is not an array
       const formattedData = (data || []).map((item: any) => ({
         ...item,
-        users: Array.isArray(item.users) ? item.users[0] : item.users
+        profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
       }));
       
       setMembers(formattedData);
@@ -81,7 +85,7 @@ export default function MembersIndex() {
   );
 
   const filteredMembers = members.filter(member => {
-    const fullName = member.users?.raw_user_meta_data?.full_name || 'Unknown Member';
+    const fullName = member.profiles?.full_name || 'Unknown Member';
     return fullName.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
@@ -109,7 +113,10 @@ export default function MembersIndex() {
         }
       >
         {/* Invite Button */}
-        <TouchableOpacity style={styles.inviteButton}>
+        <TouchableOpacity 
+          style={styles.inviteButton}
+          onPress={() => router.push('/(app)/invites/request' as any)}
+        >
           <MaterialIcons name="person-add" size={20} color="#ffffff" />
           <Text style={styles.inviteButtonText}>Request Invite for a Neighbor</Text>
         </TouchableOpacity>
@@ -142,14 +149,14 @@ export default function MembersIndex() {
         ) : (
           <View style={styles.membersList}>
             {filteredMembers.map((member, index) => {
-              const fullName = member.users?.raw_user_meta_data?.full_name || 'Unknown Member';
+              const fullName = member.profiles?.full_name || 'Unknown Member';
               const isOnline = index < onlineMembersCount; // Mock logic
               
               return (
                 <View key={member.user_id} style={styles.memberItem}>
                   <View style={styles.avatarContainer}>
                     <Image 
-                      source={{ uri: member.users?.raw_user_meta_data?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1193d4&color=fff` }} 
+                      source={{ uri: member.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1193d4&color=fff` }} 
                       style={styles.avatar} 
                     />
                     {isOnline && <View style={styles.onlineDot} />}
@@ -172,7 +179,6 @@ export default function MembersIndex() {
                       name="chat-bubble" 
                       size={20} 
                       color="#1193d4" 
-                      style={isOnline ? styles.filledIcon : null} 
                     />
                   </TouchableOpacity>
                 </View>

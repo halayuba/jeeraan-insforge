@@ -21,7 +21,7 @@ function CustomHeader() {
 }
 
 export default function AppLayout() {
-  const { session, loading, userRole } = useAuth();
+  const { session, loading, userRole, globalRole, neighborhoodId } = useAuth();
 
   if (loading) {
     return (
@@ -33,6 +33,11 @@ export default function AppLayout() {
 
   if (!session) {
     return <Redirect href="/(auth)/sign-in" />;
+  }
+
+  // If super admin has no neighborhood, they must create or join one
+  if (globalRole === 'super_admin' && !neighborhoodId) {
+    return <Redirect href="/(auth)/create-neighborhood" />;
   }
 
   return (
@@ -90,6 +95,7 @@ export default function AppLayout() {
       <Tabs.Screen name="service-orders" options={{ href: null }} />
       <Tabs.Screen name="classifieds" options={{ href: null }} />
       <Tabs.Screen name="members" options={{ href: null }} />
+      <Tabs.Screen name="invites" options={{ href: null }} />
       
       {/* Admin Screen (Conditional) */}
       <Tabs.Screen 
