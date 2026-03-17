@@ -9,14 +9,15 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useToast } from '../../../contexts/ToastContext';
 
 export default function SubmitServiceOrder() {
   const router = useRouter();
+  const { showToast } = useToast();
   
   const [unitAddress, setUnitAddress] = useState('');
   const [occupantName, setOccupantName] = useState('');
@@ -30,7 +31,7 @@ export default function SubmitServiceOrder() {
 
   const handleSubmit = async () => {
     if (!unitAddress.trim() || !occupantName.trim() || !issueDescription.trim()) {
-      Alert.alert('Validation Error', 'Please complete the Unit Address, Occupant Name, and Details fields.');
+      showToast('Please complete the Unit Address, Occupant Name, and Details fields.', 'error');
       return;
     }
 
@@ -56,12 +57,11 @@ export default function SubmitServiceOrder() {
 
       if (error) throw error;
       
-      Alert.alert('Success', 'Service order requested successfully.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      showToast('Service order requested successfully.');
+      router.replace('/(app)/service-orders');
     } catch (err: any) {
       console.error('Submit error:', err);
-      Alert.alert('Error', err.message || 'Failed to submit service order.');
+      showToast(err.message || 'Failed to submit service order.', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -147,7 +147,11 @@ export default function ServiceOrdersIndex() {
           filteredOrders.map((order) => {
             const statusStyle = getStatusStyles(order.status);
             return (
-              <View key={order.id} style={styles.card}>
+              <TouchableOpacity 
+                key={order.id} 
+                style={styles.card}
+                onPress={() => router.push(`/(app)/service-orders/${order.id}` as any)}
+              >
                 <View style={styles.cardTopRow}>
                   <View style={styles.cardHeaderLeft}>
                     <Text style={styles.unitNameText}>
@@ -176,7 +180,7 @@ export default function ServiceOrdersIndex() {
                     </Text>
                   </View>
                 )}
-              </View>
+              </TouchableOpacity>
             );
           })
         )}
