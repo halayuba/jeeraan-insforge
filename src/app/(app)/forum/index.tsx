@@ -11,9 +11,13 @@ import {
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 
 export default function ForumIndex() {
   const router = useRouter();
+  const { refreshAuth } = useAuth();
+  const { showToast } = useToast();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,13 +33,31 @@ export default function ForumIndex() {
         .from('forum_posts')
         .select(`
           *,
-          forum_replies (count)
+          forum_replies (count),
+          author:user_profiles(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (err) {
+      if (error) {
+        const isAuthError = 
+          error.message?.includes('JWT expired') || 
+          error.code === 'PGRST301' || 
+          error.statusCode === 401;
+
+        if (isAuthError) {
+          showToast('Your session has expired, please sign back in to continue.', 'error');
+          refreshAuth();
+          return;
+        }
+        throw error;
+      }
+      
+      const formattedData = (data || []).map((post: any) => ({
+        ...post,
+        author: Array.isArray(post.author) ? post.author[0] : post.author
+      }));
+      setPosts(formattedData);
+    } catch (err: any) {
       console.error('Error fetching forum posts:', err);
     } finally {
       setLoading(false);
@@ -84,6 +106,7 @@ export default function ForumIndex() {
 
   const renderPostRow = (post: any) => {
     const repliesCount = post.forum_replies?.[0]?.count || 0;
+    const authorName = post.author?.full_name || 'Resident';
     
     return (
       <TouchableOpacity 
@@ -97,7 +120,7 @@ export default function ForumIndex() {
         <View style={styles.postCardContent}>
           <Text style={styles.postTitle}>{post.title}</Text>
           <Text style={styles.postMeta}>
-            {repliesCount} {repliesCount === 1 ? 'reply' : 'replies'} • {formatTimeAgo(post.created_at)}
+            by {authorName} • {repliesCount} {repliesCount === 1 ? 'reply' : 'replies'} • {formatTimeAgo(post.created_at)}
           </Text>
         </View>
       </TouchableOpacity>

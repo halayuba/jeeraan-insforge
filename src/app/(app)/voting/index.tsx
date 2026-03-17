@@ -10,33 +10,23 @@ import {
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
-
-const BOARD_POSITIONS = [
-  {
-    id: '1',
-    title: 'Treasurer',
-    description: 'Oversees financial matters, budget planning, and expense management.',
-  },
-  {
-    id: '2',
-    title: 'Social Director',
-    description: 'Manages community events, social gatherings, and resident engagement.',
-  },
-  {
-    id: '3',
-    title: 'Communications Officer',
-    description: 'Handles communication, newsletters, and information dissemination.',
-  },
-];
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function VotingIndex() {
   const router = useRouter();
+  const { neighborhoodId } = useAuth();
   const [polls, setPolls] = useState<any[]>([]);
+  const [boardPositions, setBoardPositions] = useState<any[]>([]);
+  const [votingDate, setVotingDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingElection, setLoadingElection] = useState(true);
 
   useEffect(() => {
     fetchPolls();
-  }, []);
+    if (neighborhoodId) {
+      fetchElectionData();
+    }
+  }, [neighborhoodId]);
 
   const fetchPolls = async () => {
     try {
@@ -51,6 +41,51 @@ export default function VotingIndex() {
       console.error('Error fetching polls:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchElectionData = async () => {
+    setLoadingElection(true);
+    try {
+      // 1. Fetch Board Positions
+      const { data: posData, error: posError } = await insforge.database
+        .from('board_positions')
+        .select('*')
+        .eq('neighborhood_id', neighborhoodId)
+        .eq('is_open', true)
+        .order('created_at', { ascending: true });
+
+      if (!posError && posData) {
+        setBoardPositions(posData);
+      }
+
+      // 2. Fetch Voting Date
+      const { data: dateData, error: dateError } = await insforge.database
+        .from('neighborhood_election_info')
+        .select('voting_date')
+        .eq('neighborhood_id', neighborhoodId)
+        .single();
+
+      if (!dateError && dateData) {
+        setVotingDate(dateData.voting_date);
+      }
+    } catch (err) {
+      console.error('Error fetching election data:', err);
+    } finally {
+      setLoadingElection(false);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch (e) {
+      return dateStr;
     }
   };
 
@@ -69,18 +104,30 @@ export default function VotingIndex() {
         {/* Open Board Positions */}
         <Text style={styles.sectionTitle}>Open Board Positions</Text>
         <View style={styles.sectionContent}>
-          {BOARD_POSITIONS.map((pos) => (
-            <View key={pos.id} style={styles.card}>
-              <Text style={styles.cardTitle}>{pos.title}</Text>
-              <Text style={styles.cardSubtitle}>{pos.description}</Text>
-            </View>
-          ))}
+          {loadingElection ? (
+            <ActivityIndicator size="small" color="#1193d4" style={{ marginVertical: 12 }} />
+          ) : boardPositions.length === 0 ? (
+            <Text style={styles.emptyText}>No open positions defined yet.</Text>
+          ) : (
+            boardPositions.map((pos) => (
+              <View key={pos.id} style={styles.card}>
+                <Text style={styles.cardTitle}>{pos.title}</Text>
+                {pos.description ? <Text style={styles.cardSubtitle}>{pos.description}</Text> : null}
+              </View>
+            ))
+          )}
         </View>
 
         {/* Voting Date */}
         <Text style={styles.sectionTitle}>Voting Date</Text>
         <View style={styles.votingDateCard}>
-          <Text style={styles.votingDateText}>November 15, 2024</Text>
+          {loadingElection ? (
+            <ActivityIndicator size="small" color="#1193d4" />
+          ) : (
+            <Text style={styles.votingDateText}>
+              {votingDate ? formatDate(votingDate) : 'Date to be announced'}
+            </Text>
+          )}
           <MaterialIcons name="calendar-today" size={24} color="#1193d4" />
         </View>
 

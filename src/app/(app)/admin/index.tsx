@@ -1,15 +1,130 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function AdminDashboard() {
+  const { globalRole, neighborhoodId } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Election Management State
+  const [votingDate, setVotingDate] = useState('');
+  const [boardPositions, setBoardPositions] = useState<any[]>([]);
+  const [newPositionTitle, setNewPositionTitle] = useState('');
+  const [newPositionDesc, setNewPositionDesc] = useState('');
+  const [savingElection, setSavingElection] = useState(false);
 
   useEffect(() => {
     fetchRequests();
-  }, []);
+    if (globalRole === 'super_admin' && neighborhoodId) {
+      fetchElectionInfo();
+      fetchBoardPositions();
+    }
+  }, [globalRole, neighborhoodId]);
+
+  const fetchElectionInfo = async () => {
+    try {
+      const { data, error } = await insforge.database
+        .from('neighborhood_election_info')
+        .select('voting_date')
+        .eq('neighborhood_id', neighborhoodId)
+        .single();
+      
+      if (data) {
+        setVotingDate(data.voting_date);
+      }
+    } catch (err) {
+      console.error('Failed to load election info', err);
+    }
+  };
+
+  const fetchBoardPositions = async () => {
+    try {
+      const { data, error } = await insforge.database
+        .from('board_positions')
+        .select('*')
+        .eq('neighborhood_id', neighborhoodId)
+        .order('created_at', { ascending: true });
+      
+      if (data) {
+        setBoardPositions(data);
+      }
+    } catch (err) {
+      console.error('Failed to load board positions', err);
+    }
+  };
+
+  const handleUpdateVotingDate = async () => {
+    if (!votingDate) {
+      Alert.alert('Error', 'Please enter a voting date');
+      return;
+    }
+
+    setSavingElection(true);
+    try {
+      const { error } = await insforge.database
+        .from('neighborhood_election_info')
+        .upsert({
+          neighborhood_id: neighborhoodId,
+          voting_date: votingDate,
+        }, { onConflict: 'neighborhood_id' });
+
+      if (error) throw error;
+      Alert.alert('Success', 'Voting date updated successfully');
+    } catch (err) {
+      console.error('Failed to update voting date', err);
+      Alert.alert('Error', 'Failed to update voting date');
+    } finally {
+      setSavingElection(false);
+    }
+  };
+
+  const handleAddPosition = async () => {
+    if (!newPositionTitle) {
+      Alert.alert('Error', 'Please enter a position title');
+      return;
+    }
+
+    try {
+      const { data, error } = await insforge.database
+        .from('board_positions')
+        .insert([{
+          neighborhood_id: neighborhoodId,
+          title: newPositionTitle,
+          description: newPositionDesc,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setBoardPositions([...boardPositions, data]);
+      setNewPositionTitle('');
+      setNewPositionDesc('');
+      Alert.alert('Success', 'Board position added');
+    } catch (err) {
+      console.error('Failed to add position', err);
+      Alert.alert('Error', 'Failed to add position');
+    }
+  };
+
+  const handleDeletePosition = async (id: string) => {
+    try {
+      const { error } = await insforge.database
+        .from('board_positions')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      setBoardPositions(boardPositions.filter(p => p.id !== id));
+    } catch (err) {
+      console.error('Failed to delete position', err);
+      Alert.alert('Error', 'Failed to delete position');
+    }
+  };
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -157,6 +272,76 @@ export default function AdminDashboard() {
             <Text style={styles.emptyText}>No pending requests right now.</Text>
           )}
         </View>
+
+        {/* Election Management Section (Super Admin Only) */}
+        {globalRole === 'super_admin' && (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Election Management</Text>
+              <MaterialIcons name="how-to-vote" size={20} color="#1193d4" />
+            </View>
+
+            {/* Voting Date */}
+            <View style={styles.adminSection}>
+              <Text style={styles.adminLabel}>Voting Date (YYYY-MM-DD)</Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.adminInput}
+                  value={votingDate}
+                  onChangeText={setVotingDate}
+                  placeholder="2024-11-15"
+                />
+                <TouchableOpacity 
+                  style={[styles.saveBtn, savingElection && styles.disabledBtn]} 
+                  onPress={handleUpdateVotingDate}
+                  disabled={savingElection}
+                >
+                  {savingElection ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.saveBtnText}>Save</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Board Positions */}
+            <View style={styles.adminSection}>
+              <Text style={styles.adminLabel}>Open Board Positions</Text>
+              {boardPositions.map((pos) => (
+                <View key={pos.id} style={styles.positionItem}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.positionTitle}>{pos.title}</Text>
+                    {pos.description ? <Text style={styles.positionDesc}>{pos.description}</Text> : null}
+                  </View>
+                  <TouchableOpacity onPress={() => handleDeletePosition(pos.id)}>
+                    <MaterialIcons name="delete-outline" size={20} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
+              ))}
+
+              <View style={styles.addPositionForm}>
+                <TextInput
+                  style={styles.adminInput}
+                  value={newPositionTitle}
+                  onChangeText={setNewPositionTitle}
+                  placeholder="Position Title (e.g. Treasurer)"
+                />
+                <TextInput
+                  style={[styles.adminInput, { marginTop: 8 }]}
+                  value={newPositionDesc}
+                  onChangeText={setNewPositionDesc}
+                  placeholder="Brief Description"
+                  multiline
+                />
+                <TouchableOpacity style={styles.addBtn} onPress={handleAddPosition}>
+                  <MaterialIcons name="add" size={20} color="#fff" />
+                  <Text style={styles.addBtnText}>Add Position</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Activity Summary Mock */}
         <View style={styles.card}>
@@ -362,5 +547,91 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 20,
     color: '#0f172a',
+  },
+  adminSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  adminLabel: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 14,
+    color: '#475569',
+    marginBottom: 8,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  adminInput: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 14,
+    color: '#0f172a',
+  },
+  saveBtn: {
+    backgroundColor: '#1193d4',
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 70,
+  },
+  saveBtnText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    color: '#fff',
+  },
+  disabledBtn: {
+    opacity: 0.6,
+  },
+  positionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  positionTitle: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    color: '#0f172a',
+  },
+  positionDesc: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  addPositionForm: {
+    marginTop: 16,
+    backgroundColor: '#f8fafc',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderStyle: 'dashed',
+  },
+  addBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1193d4',
+    marginTop: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 4,
+  },
+  addBtnText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    color: '#fff',
   }
 });

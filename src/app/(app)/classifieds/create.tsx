@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -17,9 +16,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
 import { insforge } from '../../../lib/insforge';
+import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function CreateClassifiedAd() {
   const router = useRouter();
+  const { showToast } = useToast();
+  const { refreshAuth } = useAuth();
 
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -34,7 +37,7 @@ export default function CreateClassifiedAd() {
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.7,
@@ -47,13 +50,13 @@ export default function CreateClassifiedAd() {
       }
     } catch (err) {
       console.error('Image picking failed:', err);
-      Alert.alert('Error', 'Failed to pick image.');
+      showToast('Failed to pick image.', 'error');
     }
   };
 
   const handleSubmit = async () => {
     if (!title.trim() || !price.trim() || !contactInfo.trim()) {
-      Alert.alert('Validation Error', 'Please complete title, price, and contact info.');
+      showToast('Please complete title, price, and contact info.', 'error');
       return;
     }
 
@@ -61,7 +64,8 @@ export default function CreateClassifiedAd() {
     let uploadedImageUrl = null;
 
     try {
-      const { data: userData } = await insforge.auth.getCurrentUser();
+      const { data: userData, error: userErr } = await insforge.auth.getCurrentUser();
+      if (userErr) throw userErr;
       if (!userData?.user) throw new Error('Not authenticated');
 
       // Upload Image if present
@@ -79,11 +83,9 @@ export default function CreateClassifiedAd() {
 
         if (uploadError) throw uploadError;
 
-        const publicUrlData = insforge.storage
+        uploadedImageUrl = insforge.storage
           .from('classified-media')
           .getPublicUrl(filePath);
-
-        uploadedImageUrl = publicUrlData as unknown as string;
       }
 
       // Insert Row
@@ -92,7 +94,7 @@ export default function CreateClassifiedAd() {
         .insert([{
           user_id: userData.user.id,
           title: title.trim(),
-          price: price.trim(), // Can be text string representing whatever
+          price: price.trim(), 
           description: description.trim(),
           contact_info: contactInfo.trim(),
           image_url: uploadedImageUrl,
@@ -100,12 +102,22 @@ export default function CreateClassifiedAd() {
 
       if (dbError) throw dbError;
       
-      Alert.alert('Success', 'Ad posted successfully.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      showToast('Ad posted successfully.');
+      router.back();
     } catch (err: any) {
       console.error('Submit error:', err);
-      Alert.alert('Error', err.message || 'Failed to post ad.');
+      
+      const isAuthError = 
+        err.message?.includes('JWT expired') || 
+        err.code === 'PGRST301' || 
+        err.statusCode === 401;
+
+      if (isAuthError) {
+        showToast('Your session has expired, please sign back in to continue.', 'error');
+        refreshAuth();
+      } else {
+        showToast(err.message || 'Failed to post ad.', 'error');
+      }
     } finally {
       setSubmitting(false);
     }

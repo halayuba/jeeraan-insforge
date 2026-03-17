@@ -9,11 +9,12 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const CATEGORIES = [
   'General',
@@ -25,6 +26,8 @@ const CATEGORIES = [
 
 export default function CreateForumPost() {
   const router = useRouter();
+  const { showToast } = useToast();
+  const { refreshAuth } = useAuth();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -33,14 +36,16 @@ export default function CreateForumPost() {
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
-      Alert.alert('Validation Error', 'Please complete the title and content fields.');
+      showToast('Please complete the title and content fields.', 'error');
       return;
     }
 
     setSubmitting(true);
     try {
       // 1. Get authenticated user
-      const { data: userData } = await insforge.auth.getCurrentUser();
+      const { data: userData, error: userErr } = await insforge.auth.getCurrentUser();
+      
+      if (userErr) throw userErr;
       if (!userData?.user) throw new Error('Not authenticated');
 
       // 2. Save Forum Post
@@ -55,12 +60,22 @@ export default function CreateForumPost() {
 
       if (error) throw error;
       
-      Alert.alert('Success', 'Topic posted successfully.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      showToast('Topic posted successfully.');
+      router.replace('/forum');
     } catch (err: any) {
       console.error('Submit error:', err);
-      Alert.alert('Error', err.message || 'Failed to post topic.');
+      
+      const isAuthError = 
+        err.message?.includes('JWT expired') || 
+        err.code === 'PGRST301' || 
+        err.statusCode === 401;
+
+      if (isAuthError) {
+        showToast('Your session has expired, please sign back in to continue.', 'error');
+        refreshAuth(); // This will trigger the auth state update and potential redirect
+      } else {
+        showToast(err.message || 'Failed to post topic.', 'error');
+      }
     } finally {
       setSubmitting(false);
     }

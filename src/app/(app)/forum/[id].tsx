@@ -9,15 +9,18 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function ForumThread() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { showToast } = useToast();
+  const { refreshAuth } = useAuth();
 
   const [thread, setThread] = useState<any>(null);
   const [replies, setReplies] = useState<any[]>([]);
@@ -36,20 +39,31 @@ export default function ForumThread() {
       // 1. Fetch Post Details
       const { data: postData, error: postErr } = await insforge.database
         .from('forum_posts')
-        .select(`*, auth.users(id, username)`)
+        .select(`*, author:user_profiles(full_name, avatar_url)`)
         .eq('id', id)
         .single();
       if (postErr) throw postErr;
-      setThread(postData);
+      
+      // Ensure author is not an array (PostgREST sometimes returns it as one for certain relations)
+      const formattedPost = {
+        ...postData,
+        author: Array.isArray(postData.author) ? postData.author[0] : postData.author
+      };
+      setThread(formattedPost);
 
       // 2. Fetch Replies
       const { data: replyData, error: replyErr } = await insforge.database
         .from('forum_replies')
-        .select(`*, auth.users(id, username)`)
+        .select(`*, author:user_profiles(full_name, avatar_url)`)
         .eq('post_id', id)
         .order('created_at', { ascending: true });
       if (replyErr) throw replyErr;
-      setReplies(replyData || []);
+      
+      const formattedReplies = (replyData || []).map((reply: any) => ({
+        ...reply,
+        author: Array.isArray(reply.author) ? reply.author[0] : reply.author
+      }));
+      setReplies(formattedReplies);
 
     } catch (err) {
       console.error('Error fetching thread:', err);
@@ -63,7 +77,9 @@ export default function ForumThread() {
 
     setSubmitting(true);
     try {
-      const { data: userData } = await insforge.auth.getCurrentUser();
+      const { data: userData, error: userErr } = await insforge.auth.getCurrentUser();
+      
+      if (userErr) throw userErr;
       if (!userData?.user) throw new Error('Not authenticated');
 
       const { error } = await insforge.database
@@ -80,7 +96,18 @@ export default function ForumThread() {
       fetchThreadData(); // Refresh list to get the new message
     } catch (err: any) {
       console.error('Reply error:', err);
-      Alert.alert('Error', err.message || 'Failed to post reply.');
+      
+      const isAuthError = 
+        err.message?.includes('JWT expired') || 
+        err.code === 'PGRST301' || 
+        err.statusCode === 401;
+
+      if (isAuthError) {
+        showToast('Your session has expired, please sign back in to continue.', 'error');
+        refreshAuth();
+      } else {
+        showToast(err.message || 'Failed to post reply.', 'error');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -144,10 +171,12 @@ export default function ForumThread() {
           
           <View style={styles.authorRow}>
             <View style={styles.avatarCircleOP}>
-              <Text style={styles.avatarTextOP}>OP</Text>
+              <Text style={styles.avatarTextOP}>
+                {getInitials(thread.author?.full_name || 'U')}
+              </Text>
             </View>
             <View>
-              <Text style={styles.authorName}>Original Poster</Text>
+              <Text style={styles.authorName}>{thread.author?.full_name || 'Unknown User'}</Text>
               <Text style={styles.timestamp}>{formatTimeAgo(thread.created_at)}</Text>
             </View>
           </View>
@@ -167,11 +196,13 @@ export default function ForumThread() {
             <View key={reply.id} style={styles.replyCard}>
               <View style={styles.authorRow}>
                 <View style={styles.replyAvatar}>
-                  <Text style={styles.replyAvatarText}>R</Text>
+                  <Text style={styles.replyAvatarText}>
+                    {getInitials(reply.author?.full_name || 'R')}
+                  </Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={styles.replyAuthorName}>Resident</Text>
+                    <Text style={styles.replyAuthorName}>{reply.author?.full_name || 'Resident'}</Text>
                     <Text style={styles.timestamp}>{formatTimeAgo(reply.created_at)}</Text>
                   </View>
                   <Text style={styles.replyBodyText}>{reply.content}</Text>

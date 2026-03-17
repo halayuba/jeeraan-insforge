@@ -12,9 +12,13 @@ import {
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 
 export default function ClassifiedsIndex() {
   const router = useRouter();
+  const { refreshAuth } = useAuth();
+  const { showToast } = useToast();
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,12 +32,32 @@ export default function ClassifiedsIndex() {
     try {
       const { data, error } = await insforge.database
         .from('classified_ads')
-        .select('*')
+        .select(`
+          *,
+          author:user_profiles(full_name, avatar_url)
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setAds(data || []);
-    } catch (err) {
+      if (error) {
+        const isAuthError = 
+          error.message?.includes('JWT expired') || 
+          error.code === 'PGRST301' || 
+          error.statusCode === 401;
+
+        if (isAuthError) {
+          showToast('Your session has expired, please sign back in to continue.', 'error');
+          refreshAuth();
+          return;
+        }
+        throw error;
+      }
+      
+      const formattedData = (data || []).map((ad: any) => ({
+        ...ad,
+        author: Array.isArray(ad.author) ? ad.author[0] : ad.author
+      }));
+      setAds(formattedData);
+    } catch (err: any) {
       console.error('Error fetching classified ads:', err);
     } finally {
       setLoading(false);
@@ -103,7 +127,10 @@ export default function ClassifiedsIndex() {
                   <View style={styles.detailsBlock}>
                     <Text style={styles.adTitle} numberOfLines={2}>{ad.title}</Text>
                     <Text style={styles.adDescription} numberOfLines={2}>{ad.description}</Text>
-                    <Text style={styles.contactInfo}>Contact: {ad.contact_info}</Text>
+                    <View style={styles.metaRow}>
+                      <Text style={styles.authorName}>by {ad.author?.full_name || 'Resident'}</Text>
+                      <Text style={styles.contactInfo}>Contact: {ad.contact_info}</Text>
+                    </View>
                   </View>
                   
                 </View>
@@ -240,6 +267,14 @@ const styles = StyleSheet.create({
     color: '#64748b',
     lineHeight: 20,
     marginBottom: 8,
+  },
+  metaRow: {
+    gap: 4,
+  },
+  authorName: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#94a3b8',
   },
   contactInfo: {
     fontFamily: 'Manrope-SemiBold',
