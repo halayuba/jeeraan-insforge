@@ -42,7 +42,7 @@ export default function ClassifiedsIndex() {
         const isAuthError = 
           error.message?.includes('JWT expired') || 
           error.code === 'PGRST301' || 
-          error.statusCode === 401;
+          (error as any).statusCode === 401;
 
         if (isAuthError) {
           showToast('Your session has expired, please sign back in to continue.', 'error');
@@ -108,7 +108,11 @@ export default function ClassifiedsIndex() {
         ) : (
           <View style={styles.adsList}>
             {filteredAds.map(ad => (
-              <View key={ad.id} style={styles.adCard}>
+              <TouchableOpacity 
+                key={ad.id} 
+                style={styles.adCard}
+                onPress={() => router.push(`/(app)/classifieds/${ad.id}` as any)}
+              >
                 <View style={styles.cardContent}>
                   
                   {/* Image Block */}
@@ -134,7 +138,7 @@ export default function ClassifiedsIndex() {
                   </View>
                   
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}

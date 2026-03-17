@@ -208,6 +208,9 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginBottom: 16,
   },
+  backLink: {
+    padding: 10,
+  },
   backLinkText: {
     color: '#1193d4',
     fontFamily: 'Manrope-Bold',

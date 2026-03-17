@@ -77,15 +77,13 @@ export default function CreateClassifiedAd() {
         const fileResponse = await fetch(imageUri);
         const blob = await fileResponse.blob();
         
-        const { error: uploadError } = await insforge.storage
+        const { data: uploadData, error: uploadError } = await insforge.storage
           .from('classified-media')
           .upload(filePath, blob);
 
         if (uploadError) throw uploadError;
 
-        uploadedImageUrl = insforge.storage
-          .from('classified-media')
-          .getPublicUrl(filePath);
+        uploadedImageUrl = uploadData?.url;
       }
 
       // Insert Row
@@ -110,7 +108,7 @@ export default function CreateClassifiedAd() {
       const isAuthError = 
         err.message?.includes('JWT expired') || 
         err.code === 'PGRST301' || 
-        err.statusCode === 401;
+        (err as any).statusCode === 401;
 
       if (isAuthError) {
         showToast('Your session has expired, please sign back in to continue.', 'error');
@@ -174,7 +172,9 @@ export default function CreateClassifiedAd() {
             onChangeText={setDescription}
             multiline
             textAlignVertical="top"
+            maxLength={300}
           />
+          <Text style={styles.charCount}>{description.length}/300</Text>
         </View>
 
         <View style={styles.inputContainer}>
@@ -315,6 +315,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Medium',
     fontSize: 15,
     color: '#0f172a',
+  },
+  charCount: {
+    alignSelf: 'flex-end',
+    fontSize: 12,
+    fontFamily: 'Manrope-Regular',
+    color: '#94a3b8',
+    marginTop: -4,
   },
   imagePickerNode: {
     borderWidth: 2,
