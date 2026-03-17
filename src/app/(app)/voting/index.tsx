@@ -18,12 +18,13 @@ export default function VotingIndex() {
   const [polls, setPolls] = useState<any[]>([]);
   const [boardPositions, setBoardPositions] = useState<any[]>([]);
   const [votingDate, setVotingDate] = useState<string | null>(null);
+  const [electionPollId, setElectionPollId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingElection, setLoadingElection] = useState(true);
 
   useEffect(() => {
-    fetchPolls();
     if (neighborhoodId) {
+      fetchPolls();
       fetchElectionData();
     }
   }, [neighborhoodId]);
@@ -33,10 +34,17 @@ export default function VotingIndex() {
       const { data, error } = await insforge.database
         .from('polls')
         .select('*')
+        .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setPolls(data || []);
+
+      // Find the latest active election poll
+      const electionPoll = data?.find(p => p.type === 'election');
+      if (electionPoll) {
+        setElectionPollId(electionPoll.id);
+      }
     } catch (err) {
       console.error('Error fetching polls:', err);
     } finally {
@@ -145,7 +153,14 @@ export default function VotingIndex() {
               onPress={() => router.push(`/(app)/voting/${poll.id}/ballot` as any)}
             >
               <View style={styles.pollCardContent}>
-                <Text style={styles.pollTitle}>{poll.title}</Text>
+                <View style={styles.pollHeaderRow}>
+                  <Text style={styles.pollTitle}>{poll.title}</Text>
+                  {poll.type === 'election' && (
+                    <View style={styles.electionBadge}>
+                      <Text style={styles.electionBadgeText}>Election</Text>
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.pollDescription} numberOfLines={2}>{poll.description}</Text>
               </View>
               <MaterialIcons name="chevron-right" size={24} color="#1193d4" />
@@ -160,10 +175,13 @@ export default function VotingIndex() {
             Submit your candidate profile to be listed in the upcoming election.
           </Text>
           <TouchableOpacity
-            style={styles.ctaButton}
-            onPress={() => router.push(`/(app)/voting/election-2024/submit-profile` as any)}
+            style={[styles.ctaButton, !electionPollId && styles.ctaButtonDisabled]}
+            onPress={() => electionPollId && router.push(`/(app)/voting/${electionPollId}/submit-profile` as any)}
+            disabled={!electionPollId}
           >
-            <Text style={styles.ctaButtonText}>Run for Board</Text>
+            <Text style={styles.ctaButtonText}>
+              {electionPollId ? 'Run for Board' : 'No Active Election'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -297,11 +315,28 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
+  pollHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
+  },
   pollTitle: {
     fontSize: 16,
     fontFamily: 'Manrope-Bold',
     color: '#111618',
-    marginBottom: 2,
+  },
+  electionBadge: {
+    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  electionBadgeText: {
+    fontSize: 10,
+    fontFamily: 'Manrope-Bold',
+    color: '#1193d4',
+    textTransform: 'uppercase',
   },
   pollDescription: {
     fontSize: 14,
@@ -335,6 +370,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  ctaButtonDisabled: {
+    backgroundColor: '#9ca3af',
   },
   ctaButtonText: {
     fontSize: 16,

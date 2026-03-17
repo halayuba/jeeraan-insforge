@@ -23,6 +23,7 @@ type Member = {
   profiles: {
     full_name: string | null;
     avatar_url: string | null;
+    global_role?: string;
   };
 };
 
@@ -49,25 +50,32 @@ export default function MembersIndex() {
           role,
           profiles:user_id (
             full_name,
-            avatar_url
+            avatar_url,
+            global_role
           )
         `)
         .eq('neighborhood_id', neighborhoodId);
 
       if (error) {
         // Handle session errors
-        if (error.message?.includes('JWT expired') || error.code === 'PGRST301' || error.statusCode === 401) {
+        if (error.message?.includes('JWT expired') || error.code === 'PGRST301' || (error as any).statusCode === 401) {
           refreshAuth();
           return;
         }
         throw error;
       }
       
-      // Ensure profiles is not an array
-      const formattedData = (data || []).map((item: any) => ({
-        ...item,
-        profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
-      }));
+      // Ensure profiles is not an array and filter out admins
+      const formattedData = (data || [])
+        .map((item: any) => ({
+          ...item,
+          profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+        }))
+        .filter((member: any) => 
+          member.role !== 'admin' && 
+          member.role !== 'super_admin' && 
+          member.profiles?.global_role !== 'super_admin'
+        );
       
       setMembers(formattedData);
     } catch (err) {

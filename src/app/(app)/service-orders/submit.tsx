@@ -22,7 +22,9 @@ export default function SubmitServiceOrder() {
   const [occupantName, setOccupantName] = useState('');
   const [issueDescription, setIssueDescription] = useState('');
   const [maintenancePerson, setMaintenancePerson] = useState('');
-  const [preferredDate, setPreferredDate] = useState('');
+  const [dateSubmitted, setDateSubmitted] = useState(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+  const [completeOn, setCompleteOn] = useState('');
+  const [feedback, setFeedback] = useState('');
   const [satisfaction, setSatisfaction] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
@@ -45,9 +47,11 @@ export default function SubmitServiceOrder() {
           occupant_name: occupantName.trim(),
           issue_description: issueDescription.trim(),
           maintenance_person: maintenancePerson || null,
-          preferred_date: preferredDate || null,
+          complete_on: completeOn || null,
+          feedback: feedback.trim() || null,
           satisfaction_rating: satisfaction > 0 ? satisfaction : null,
           status: 'Pending',
+          created_at: new Date(dateSubmitted).toISOString(),
         }]);
 
       if (error) throw error;
@@ -99,7 +103,7 @@ export default function SubmitServiceOrder() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         
         {/* Resident Details */}
-        <Text style={styles.sectionTitle}>RESIDENT DETAILS</Text>
+        <Text style={styles.sectionTitle}>Resident Details</Text>
         <View style={styles.inputGroup}>
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Unit Address</Text>
@@ -124,7 +128,7 @@ export default function SubmitServiceOrder() {
         </View>
 
         {/* Issue Description */}
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>ISSUE DESCRIPTION</Text>
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Issue Description</Text>
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Details of the Issue</Text>
           <TextInput
@@ -158,34 +162,46 @@ export default function SubmitServiceOrder() {
           </View>
         </View>
 
-        {/* Scheduling */}
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>SCHEDULING</Text>
-        <View style={styles.inputGroupRow}>
+        <View style={[styles.inputGroupRow, { marginTop: 24 }]}>
           <View style={[styles.inputContainer, { flex: 1 }]}>
             <Text style={styles.label}>Date Submitted</Text>
-            <View style={styles.readOnlyInputContainer}>
-              <MaterialIcons name="calendar-today" size={20} color="#94a3b8" style={styles.inputIcon} />
+            <View style={styles.inputWithIconContainer}>
+              <MaterialIcons name="calendar-today" size={20} color="#1193d4" style={styles.inputIcon} />
               <TextInput
-                style={styles.readOnlyInput}
-                value={new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                editable={false}
+                style={styles.inputWithIcon}
+                value={dateSubmitted}
+                onChangeText={setDateSubmitted}
+                placeholder="Oct 25, 2023"
               />
             </View>
           </View>
 
           <View style={[styles.inputContainer, { flex: 1 }]}>
-            <Text style={styles.label}>Preferred Date <Text style={styles.optional}>(Optional)</Text></Text>
+            <Text style={styles.label}>Complete on <Text style={styles.optional}>(Optional)</Text></Text>
             <View style={styles.inputWithIconContainer}>
-              <MaterialIcons name="event-available" size={20} color="#94a3b8" style={styles.inputIcon} />
+              <MaterialIcons name="event-available" size={20} color="#1193d4" style={styles.inputIcon} />
               <TextInput
                 style={styles.inputWithIcon}
                 placeholder="Oct 25, 2023"
                 placeholderTextColor="#94a3b8"
-                value={preferredDate}
-                onChangeText={setPreferredDate}
+                value={completeOn}
+                onChangeText={setCompleteOn}
               />
             </View>
           </View>
+        </View>
+
+        <View style={[styles.inputContainer, { marginTop: 24 }]}>
+          <Text style={styles.label}>Feedback <Text style={styles.optional}>(Optional)</Text></Text>
+          <TextInput
+            style={styles.textArea}
+            placeholder="Share your feedback or additional comments..."
+            placeholderTextColor="#94a3b8"
+            value={feedback}
+            onChangeText={setFeedback}
+            multiline
+            textAlignVertical="top"
+          />
         </View>
         
         <Text style={styles.disclaimerText}>
@@ -273,7 +289,7 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: 'Manrope-SemiBold',
     fontSize: 14,
-    color: '#334155',
+    color: '#1193d4',
   },
   optional: {
     fontFamily: 'Manrope-Regular',

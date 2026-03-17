@@ -6,3 +6,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Implement Admin Auth Flow and Neighborhood Access**
   *Link: [./tracks/admin_auth_neighborhood_access_20260314/](./tracks/admin_auth_neighborhood_access_20260314/)*
+- [x] **Track: Voting and Polls Management**
+  *Link: [./tracks/voting_and_polls_management_20260317/](./tracks/voting_and_polls_management_20260317/)*

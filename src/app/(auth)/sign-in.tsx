@@ -30,7 +30,7 @@ export default function SignIn() {
     }
   };
 
-  const handleOAuth = async (provider: 'google' | 'github') => {
+  const handleOAuth = async (provider: 'google' | 'facebook') => {
     const { data, error } = await insforge.auth.signInWithOAuth({
       provider,
       redirectTo: 'http://localhost:8081/(app)' // Needs proper deep linking configuration based on environment later
@@ -90,10 +90,10 @@ export default function SignIn() {
       </TouchableOpacity>
 
       <TouchableOpacity 
-        style={[styles.button, styles.githubButton]} 
-        onPress={() => handleOAuth('github')}
+        style={[styles.button, styles.facebookButton]} 
+        onPress={() => handleOAuth('facebook')}
       >
-        <Text style={styles.githubButtonText}>Continue with GitHub</Text>
+        <Text style={styles.facebookButtonText}>Continue with Facebook</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
@@ -174,10 +174,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Manrope-SemiBold',
   },
-  githubButton: {
-    backgroundColor: '#333',
+  facebookButton: {
+    backgroundColor: '#1877f2',
   },
-  githubButtonText: {
+  facebookButtonText: {
     color: '#fff',
     fontSize: 16,
     fontFamily: 'Manrope-SemiBold',

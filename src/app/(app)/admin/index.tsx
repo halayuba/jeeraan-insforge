@@ -16,11 +16,19 @@ export default function AdminDashboard() {
   const [newPositionDesc, setNewPositionDesc] = useState('');
   const [savingElection, setSavingElection] = useState(false);
 
+  // General Polls Management State
+  const [polls, setPolls] = useState<any[]>([]);
+  const [newPollTitle, setNewPollTitle] = useState('');
+  const [newPollDesc, setNewPollDesc] = useState('');
+  const [newPollEndTime, setNewPollEndTime] = useState('');
+  const [savingPoll, setSavingPoll] = useState(false);
+
   useEffect(() => {
     fetchRequests();
     if (globalRole === 'super_admin' && neighborhoodId) {
       fetchElectionInfo();
       fetchBoardPositions();
+      fetchPolls();
     }
   }, [globalRole, neighborhoodId]);
 
@@ -53,6 +61,23 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error('Failed to load board positions', err);
+    }
+  };
+
+  const fetchPolls = async () => {
+    try {
+      const { data, error } = await insforge.database
+        .from('polls')
+        .select('*')
+        .eq('neighborhood_id', neighborhoodId)
+        .eq('type', 'general')
+        .order('created_at', { ascending: false });
+      
+      if (data) {
+        setPolls(data);
+      }
+    } catch (err) {
+      console.error('Failed to load polls', err);
     }
   };
 
@@ -123,6 +148,60 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Failed to delete position', err);
       Alert.alert('Error', 'Failed to delete position');
+    }
+  };
+
+  const handleCreatePoll = async () => {
+    if (!newPollTitle || !newPollEndTime) {
+      Alert.alert('Error', 'Title and End Time are required');
+      return;
+    }
+
+    setSavingPoll(true);
+    try {
+      const { data: sessionData } = await insforge.auth.getCurrentSession();
+      
+      const { data, error } = await insforge.database
+        .from('polls')
+        .insert([{
+          neighborhood_id: neighborhoodId,
+          title: newPollTitle,
+          description: newPollDesc,
+          end_time: newPollEndTime,
+          created_by: sessionData.session?.user?.id,
+          type: 'general'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setPolls([data, ...polls]);
+      setNewPollTitle('');
+      setNewPollDesc('');
+      setNewPollEndTime('');
+      Alert.alert('Success', 'General poll created');
+    } catch (err) {
+      console.error('Failed to create poll', err);
+      Alert.alert('Error', 'Failed to create poll');
+    } finally {
+      setSavingPoll(false);
+    }
+  };
+
+  const handleDeletePoll = async (id: string) => {
+    try {
+      const { error } = await insforge.database
+        .from('polls')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      setPolls(polls.filter(p => p.id !== id));
+    } catch (err) {
+      console.error('Failed to delete poll', err);
+      Alert.alert('Error', 'Failed to delete poll');
     }
   };
 
@@ -337,6 +416,71 @@ export default function AdminDashboard() {
                 <TouchableOpacity style={styles.addBtn} onPress={handleAddPosition}>
                   <MaterialIcons name="add" size={20} color="#fff" />
                   <Text style={styles.addBtnText}>Add Position</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* General Polls Management Section (Super Admin Only) */}
+        {globalRole === 'super_admin' && (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>General Polls Management</Text>
+              <MaterialIcons name="poll" size={20} color="#1193d4" />
+            </View>
+
+            <View style={styles.adminSection}>
+              <Text style={styles.adminLabel}>Active General Polls</Text>
+              {polls.length === 0 ? (
+                <Text style={styles.emptyText}>No general polls created yet.</Text>
+              ) : (
+                polls.map((poll) => (
+                  <View key={poll.id} style={styles.positionItem}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.positionTitle}>{poll.title}</Text>
+                      <Text style={styles.positionDesc}>Ends: {new Date(poll.end_time).toLocaleDateString()}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => handleDeletePoll(poll.id)}>
+                      <MaterialIcons name="delete-outline" size={20} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
+
+              <View style={styles.addPositionForm}>
+                <TextInput
+                  style={styles.adminInput}
+                  value={newPollTitle}
+                  onChangeText={setNewPollTitle}
+                  placeholder="Poll Title (e.g. Yard of the Season)"
+                />
+                <TextInput
+                  style={[styles.adminInput, { marginTop: 8 }]}
+                  value={newPollDesc}
+                  onChangeText={setNewPollDesc}
+                  placeholder="Poll Description"
+                  multiline
+                />
+                <TextInput
+                  style={[styles.adminInput, { marginTop: 8 }]}
+                  value={newPollEndTime}
+                  onChangeText={setNewPollEndTime}
+                  placeholder="End Date (YYYY-MM-DD HH:MM)"
+                />
+                <TouchableOpacity 
+                  style={[styles.addBtn, savingPoll && styles.disabledBtn]} 
+                  onPress={handleCreatePoll}
+                  disabled={savingPoll}
+                >
+                  {savingPoll ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <MaterialIcons name="add" size={20} color="#fff" />
+                      <Text style={styles.addBtnText}>Create General Poll</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
