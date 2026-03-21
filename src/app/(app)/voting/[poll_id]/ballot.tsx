@@ -17,7 +17,7 @@ import { useAuth } from '../../../../contexts/AuthContext';
 export default function BallotScreen() {
   const { poll_id } = useLocalSearchParams<{ poll_id: string }>();
   const router = useRouter();
-  const { session } = useAuth();
+  const { session, handleAuthError } = useAuth();
   const [candidates, setCandidates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
@@ -34,10 +34,7 @@ export default function BallotScreen() {
         .from('candidates')
         .select(`
           *,
-          users:user_id (
-            id,
-            raw_user_meta_data
-          )
+          user_profiles(full_name, avatar_url)
         `)
         .eq('poll_id', poll_id);
 
@@ -45,6 +42,7 @@ export default function BallotScreen() {
       setCandidates(data || []);
     } catch (err) {
       console.error('Error fetching candidates:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -75,6 +73,7 @@ export default function BallotScreen() {
       router.push(`/(app)/voting/${poll_id}/confirmation` as any);
     } catch (err) {
       console.error('Vote submission error', err);
+      handleAuthError(err);
       Alert.alert('Error', 'Failed to submit vote. Please try again.');
     } finally {
       setSubmitting(false);
@@ -102,8 +101,8 @@ export default function BallotScreen() {
             <Text style={styles.emptyText}>No candidates available yet.</Text>
           ) : (
             candidates.map((c, index) => {
-              const userData = Array.isArray(c.users) ? c.users[0] : c.users;
-              const userName = userData?.raw_user_meta_data?.full_name || 'Anonymous Candidate';
+              const profile = Array.isArray(c.user_profiles) ? c.user_profiles[0] : c.user_profiles;
+              const userName = profile?.full_name || 'Anonymous Candidate';
               const isSelected = selectedCandidate === c.id;
               const isLast = index === candidates.length - 1;
 

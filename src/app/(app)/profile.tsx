@@ -5,11 +5,10 @@ import { insforge } from '../../lib/insforge';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { session, refreshAuth } = useAuth();
+  const { session, signOut } = useAuth();
 
   const handleSignOut = async () => {
-    await insforge.auth.signOut();
-    await refreshAuth();
+    await signOut();
     router.replace('/(auth)/sign-in');
   }
 

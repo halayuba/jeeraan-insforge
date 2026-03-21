@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   Image,
+  RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -17,18 +18,21 @@ import { useToast } from '../../../contexts/ToastContext';
 
 export default function ClassifiedsIndex() {
   const router = useRouter();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, handleAuthError } = useAuth();
   const { showToast } = useToast();
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchAds();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchAds();
+    }, [])
+  );
 
-  const fetchAds = async () => {
-    setLoading(true);
+  const fetchAds = async (isManualRefresh = false) => {
+    if (!isManualRefresh) setLoading(true);
     try {
       const { data, error } = await insforge.database
         .from('classified_ads')
@@ -39,16 +43,7 @@ export default function ClassifiedsIndex() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        const isAuthError = 
-          error.message?.includes('JWT expired') || 
-          error.code === 'PGRST301' || 
-          (error as any).statusCode === 401;
-
-        if (isAuthError) {
-          showToast('Your session has expired, please sign back in to continue.', 'error');
-          refreshAuth();
-          return;
-        }
+        handleAuthError(error);
         throw error;
       }
       
@@ -59,10 +54,18 @@ export default function ClassifiedsIndex() {
       setAds(formattedData);
     } catch (err: any) {
       console.error('Error fetching classified ads:', err);
+      handleAuthError(err);
+      showToast('Failed to load ads.', 'error');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchAds(true);
+  }, []);
 
   const filteredAds = ads.filter(
     (ad) =>
@@ -86,7 +89,13 @@ export default function ClassifiedsIndex() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#1193d4']} />
+        }
+      >
         
         {/* Search Bar */}
         <View style={styles.searchContainer}>

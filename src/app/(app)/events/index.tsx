@@ -18,7 +18,7 @@ const TABS = ['Upcoming', 'Past', 'Ongoing'];
 
 export default function EventsIndex() {
   const router = useRouter();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, handleAuthError } = useAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -46,15 +46,13 @@ export default function EventsIndex() {
 
       const { data, error } = await query;
       if (error) {
-        if (error.message?.includes('JWT expired') || error.code === 'PGRST301' || error.statusCode === 401) {
-          refreshAuth();
-          return;
-        }
+        handleAuthError(error);
         throw error;
       }
       setEvents(data || []);
     } catch (err) {
       console.error('Error fetching events:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
       setRefreshing(false);

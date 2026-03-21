@@ -16,7 +16,7 @@ import { useToast } from '../../../contexts/ToastContext';
 
 export default function ForumIndex() {
   const router = useRouter();
-  const { refreshAuth } = useAuth();
+  const { handleAuthError } = useAuth();
   const { showToast } = useToast();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,19 +38,7 @@ export default function ForumIndex() {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        const isAuthError = 
-          error.message?.includes('JWT expired') || 
-          error.code === 'PGRST301' || 
-          error.statusCode === 401;
-
-        if (isAuthError) {
-          showToast('Your session has expired, please sign back in to continue.', 'error');
-          refreshAuth();
-          return;
-        }
-        throw error;
-      }
+      if (error) throw error;
       
       const formattedData = (data || []).map((post: any) => ({
         ...post,
@@ -59,6 +47,7 @@ export default function ForumIndex() {
       setPosts(formattedData);
     } catch (err: any) {
       console.error('Error fetching forum posts:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }

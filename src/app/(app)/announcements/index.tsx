@@ -13,11 +13,13 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const FILTER_OPTIONS = ['Year', 'Month', 'Category', 'Status'];
 
 export default function AnnouncementsIndex() {
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -33,10 +35,14 @@ export default function AnnouncementsIndex() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        return;
+      }
       setAnnouncements(data || []);
     } catch (err) {
       console.error('Error fetching announcements:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -29,7 +29,7 @@ type Member = {
 
 export default function MembersIndex() {
   const router = useRouter();
-  const { neighborhoodId, refreshAuth } = useAuth();
+  const { neighborhoodId, refreshAuth, handleAuthError } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,11 +57,7 @@ export default function MembersIndex() {
         .eq('neighborhood_id', neighborhoodId);
 
       if (error) {
-        // Handle session errors
-        if (error.message?.includes('JWT expired') || error.code === 'PGRST301' || (error as any).statusCode === 401) {
-          refreshAuth();
-          return;
-        }
+        handleAuthError(error);
         throw error;
       }
       
@@ -80,6 +76,7 @@ export default function MembersIndex() {
       setMembers(formattedData);
     } catch (err) {
       console.error('Error fetching members:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
       setRefreshing(false);

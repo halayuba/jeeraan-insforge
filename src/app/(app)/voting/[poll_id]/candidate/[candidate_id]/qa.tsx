@@ -10,6 +10,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../../../../lib/insforge';
+import { useAuth } from '../../../../../../contexts/AuthContext';
 
 type QAItem = {
   id: string;
@@ -26,6 +27,7 @@ const TABS = ['All Questions', 'Answered', 'Pending'];
 export default function CandidateQAScreen() {
   const { poll_id, candidate_id } = useLocalSearchParams<{ poll_id: string; candidate_id: string }>();
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   const [qaItems, setQaItems] = useState<QAItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
@@ -46,6 +48,7 @@ export default function CandidateQAScreen() {
       setQaItems(data || []);
     } catch (err) {
       console.error('Error fetching Q&A:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }

@@ -11,10 +11,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function AnnouncementDetails() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   
   const [announcement, setAnnouncement] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -32,10 +34,14 @@ export default function AnnouncementDetails() {
         .eq('id', id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        return;
+      }
       setAnnouncement(data);
     } catch (err) {
       console.error('Error fetching announcement details:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }

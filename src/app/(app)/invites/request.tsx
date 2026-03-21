@@ -16,10 +16,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
+import { checkDailyLimit, validateInvite } from '../../../lib/rateLimit';
 
 export default function InviteRequestForm() {
   const router = useRouter();
-  const { neighborhoodId, session, refreshAuth } = useAuth();
+  const { neighborhoodId, session, refreshAuth, handleAuthError } = useAuth();
   const { showToast } = useToast();
   
   const [name, setName] = useState('');
@@ -46,6 +47,22 @@ export default function InviteRequestForm() {
 
     setSubmitting(true);
     try {
+      // NEW: Check daily limit for invites (5/day)
+      if (session?.user?.id) {
+        const { allowed } = await checkDailyLimit('join_requests', session.user.id);
+        if (!allowed) {
+          showToast('You have reached your limit for the day. You can submit again on a future day.', 'error');
+          return;
+        }
+      }
+
+      // NEW: Validate phone number uniqueness across members/requests/invites
+      const { allowed: phoneAllowed, message: phoneMessage } = await validateInvite(phone.trim());
+      if (!phoneAllowed) {
+        Alert.alert('Validation Error', phoneMessage);
+        return;
+      }
+
       const { error } = await insforge.database
         .from('join_requests')
         .insert([{
@@ -58,12 +75,7 @@ export default function InviteRequestForm() {
         }]);
 
       if (error) {
-        // Handle JWT expired/session issues specifically
-        if (error.message?.includes('JWT expired') || error.code === 'PGRST301' || error.statusCode === 401) {
-          showToast('Your session has expired. Please sign in again.', 'error');
-          refreshAuth();
-          return;
-        }
+        handleAuthError(error);
         throw error;
       }
       
@@ -71,6 +83,7 @@ export default function InviteRequestForm() {
       router.back();
     } catch (err: any) {
       console.error('Submit error:', err);
+      handleAuthError(err);
       Alert.alert('Error', err.message || 'Failed to submit invite request.');
     } finally {
       setSubmitting(false);

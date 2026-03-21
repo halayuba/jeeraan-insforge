@@ -11,10 +11,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../../../lib/insforge';
+import { useAuth } from '../../../../../contexts/AuthContext';
 
 export default function CandidateProfileScreen() {
   const { poll_id, candidate_id } = useLocalSearchParams<{ poll_id: string; candidate_id: string }>();
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   const [candidate, setCandidate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ questions: 0, endorsements: 0, responseRate: 98 });
@@ -28,7 +30,7 @@ export default function CandidateProfileScreen() {
     try {
       const { data, error } = await insforge.database
         .from('candidates')
-        .select('*, users:user_id(raw_user_meta_data)')
+        .select('*, user_profiles(full_name, avatar_url)')
         .eq('id', candidate_id)
         .single();
 
@@ -36,6 +38,7 @@ export default function CandidateProfileScreen() {
       setCandidate(data);
     } catch (err) {
       console.error('Error fetching candidate:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -54,6 +57,7 @@ export default function CandidateProfileScreen() {
       setStats((prev) => ({ ...prev, endorsements: Math.floor(Math.random() * 50) + 10 }));
     } catch (err) {
       console.error(err);
+      handleAuthError(err);
     }
   };
 
@@ -76,8 +80,8 @@ export default function CandidateProfileScreen() {
     );
   }
 
-  const userData = Array.isArray(candidate.users) ? candidate.users[0] : candidate.users;
-  const userName = userData?.raw_user_meta_data?.full_name || 'Anonymous Candidate';
+  const profile = Array.isArray(candidate?.user_profiles) ? candidate.user_profiles[0] : candidate?.user_profiles;
+  const userName = profile?.full_name || 'Anonymous Candidate';
 
   return (
     <View style={styles.container}>

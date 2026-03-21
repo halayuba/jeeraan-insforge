@@ -10,6 +10,7 @@ type UserContextType = {
   neighborhoodId: string | null;
   refreshAuth: () => Promise<void>;
   signOut: () => Promise<void>;
+  handleAuthError: (err: any) => void;
 };
 
 const AuthContext = createContext<UserContextType | undefined>(undefined);
@@ -161,7 +162,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       userRole, 
       neighborhoodId, 
       refreshAuth,
-      signOut
+      signOut,
+      handleAuthError
     }}>
       {children}
     </AuthContext.Provider>

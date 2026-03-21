@@ -27,7 +27,7 @@ const CATEGORIES = [
 export default function CreateForumPost() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, handleAuthError } = useAuth();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -65,17 +65,8 @@ export default function CreateForumPost() {
     } catch (err: any) {
       console.error('Submit error:', err);
       
-      const isAuthError = 
-        err.message?.includes('JWT expired') || 
-        err.code === 'PGRST301' || 
-        err.statusCode === 401;
-
-      if (isAuthError) {
-        showToast('Your session has expired, please sign back in to continue.', 'error');
-        refreshAuth(); // This will trigger the auth state update and potential redirect
-      } else {
-        showToast(err.message || 'Failed to post topic.', 'error');
-      }
+      handleAuthError(err);
+      showToast(err.message || 'Failed to post topic.', 'error');
     } finally {
       setSubmitting(false);
     }

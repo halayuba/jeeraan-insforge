@@ -11,7 +11,9 @@ const GRID_ITEMS = [
   { id: 'service-orders', title: 'Service Orders', icon: 'construction' },
   { id: 'forum', title: 'Forum', icon: 'forum' },
   { id: 'classifieds', title: 'Classified Ads', icon: 'sell' },
+  { id: 'advertisements', title: 'Advertisements', icon: 'featured-play-list' },
   { id: 'grievances', title: 'Grievances', icon: 'feedback' },
+  { id: 'q-and-a', title: 'Q & A', icon: 'help-outline' },
   { id: 'recent', title: 'Recent Activities', icon: 'history' },
 ];
 
@@ -23,6 +25,8 @@ export default function HomeIndex() {
       router.push('/(app)/voting' as any);
     } else if (id === 'grievances') {
       router.push('/(app)/grievances' as any);
+    } else if (id === 'q-and-a') {
+      router.push('/(app)/q-and-a' as any);
     } else if (id === 'announcements') {
       router.push('/(app)/announcements' as any);
     } else if (id === 'service-orders') {
@@ -37,6 +41,8 @@ export default function HomeIndex() {
       router.push('/(app)/invites' as any);
     } else if (id === 'classifieds') {
       router.push('/(app)/classifieds' as any);
+    } else if (id === 'advertisements') {
+      router.push('/(app)/advertisements' as any);
     } else {
       console.log(`Navigate to ${id}`);
     }

@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
+import { checkDailyLimit } from '../../../lib/rateLimit';
 
 export default function SubmitServiceOrder() {
   const router = useRouter();
@@ -39,6 +40,12 @@ export default function SubmitServiceOrder() {
     try {
       const { data: userData } = await insforge.auth.getCurrentUser();
       if (!userData?.user) throw new Error('Not authenticated');
+
+      const { allowed } = await checkDailyLimit('service_orders', userData.user.id);
+      if (!allowed) {
+        showToast('You have reached your limit for the day. You can submit again on a future day.', 'error');
+        return;
+      }
 
       const { error } = await insforge.database
         .from('service_orders')

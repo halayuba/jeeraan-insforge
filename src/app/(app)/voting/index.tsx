@@ -14,7 +14,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
 export default function VotingIndex() {
   const router = useRouter();
-  const { neighborhoodId } = useAuth();
+  const { neighborhoodId, handleAuthError } = useAuth();
   const [polls, setPolls] = useState<any[]>([]);
   const [boardPositions, setBoardPositions] = useState<any[]>([]);
   const [votingDate, setVotingDate] = useState<string | null>(null);
@@ -47,6 +47,7 @@ export default function VotingIndex() {
       }
     } catch (err) {
       console.error('Error fetching polls:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -79,6 +80,7 @@ export default function VotingIndex() {
       }
     } catch (err) {
       console.error('Error fetching election data:', err);
+      handleAuthError(err);
     } finally {
       setLoadingElection(false);
     }

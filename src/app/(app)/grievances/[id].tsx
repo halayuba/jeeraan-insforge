@@ -14,10 +14,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function GrievanceDetails() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   
   const [grievance, setGrievance] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
@@ -45,14 +47,20 @@ export default function GrievanceDetails() {
       // Increment view count in background
       if (grievanceData) {
         insforge.database.rpc('increment_view_count', { row_id: id }).then(({ error }) => {
-          if (error) console.error('Increment view count error:', error);
+          if (error) {
+            console.error('Increment view count error:', error);
+            handleAuthError(error);
+          }
         });
         // Fallback if RPC doesn't exist, we just do a direct update
         insforge.database.from('grievances')
           .update({ views_count: ((grievanceData as any).views_count || 0) + 1 })
           .eq('id', id)
           .then(({ error }) => {
-            if (error) console.error('Fallback view count update error:', error);
+            if (error) {
+              console.error('Fallback view count update error:', error);
+              handleAuthError(error);
+            }
           });
       }
 
@@ -61,6 +69,7 @@ export default function GrievanceDetails() {
       
     } catch (err) {
       console.error('Error fetching grievance details:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -78,6 +87,7 @@ export default function GrievanceDetails() {
       setComments(data || []);
     } catch (err) {
       console.error('Error fetching comments:', err);
+      handleAuthError(err);
     }
   };
 
@@ -104,6 +114,7 @@ export default function GrievanceDetails() {
       await fetchComments();
     } catch (err) {
       console.error('Error posting comment:', err);
+      handleAuthError(err);
     } finally {
       setSubmitting(false);
     }

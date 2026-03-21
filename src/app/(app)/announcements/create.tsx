@@ -18,6 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { checkDailyLimit } from '../../../lib/rateLimit';
 
 const CATEGORIES = [
   'General Info',
@@ -30,7 +31,7 @@ const CATEGORIES = [
 export default function CreateAnnouncement() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, handleAuthError } = useAuth();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -61,24 +62,26 @@ export default function CreateAnnouncement() {
     
     for (const img of images) {
       try {
-        const ext = img.uri.split('.').pop() || 'jpg';
+        // Correctly handle file extension extraction, especially for blob/data URLs
+        let ext = 'jpg';
+        if (img.uri.includes('.') && !img.uri.startsWith('blob:') && !img.uri.startsWith('data:')) {
+          ext = img.uri.split('.').pop()?.split('?')[0] || 'jpg';
+        }
+
         const fileKey = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
         
         // Fetch the file and create a blob to seamlessly upload to InsForge
         const fileResponse = await fetch(img.uri);
         const blob = await fileResponse.blob();
 
-        const { error: uploadError } = await insforge.storage
+        const { data: uploadData, error: uploadError } = await insforge.storage
           .from('announcement-media')
           .upload(fileKey, blob);
           
         if (uploadError) throw uploadError;
-        
-        const publicUrlData = insforge.storage
-          .from('announcement-media')
-          .getPublicUrl(fileKey);
-          
-        imageUrls.push(publicUrlData as unknown as string);
+        if (uploadData?.url) {
+          imageUrls.push(uploadData.url);
+        }
       } catch (err) {
         console.error('Error uploading image:', err);
       }
@@ -99,6 +102,13 @@ export default function CreateAnnouncement() {
       const { data: userData, error: authError } = await insforge.auth.getCurrentUser();
       if (authError) throw authError;
       if (!userData?.user) throw new Error('Not authenticated');
+
+      // NEW: Check daily limit
+      const { allowed } = await checkDailyLimit('announcements', userData.user.id);
+      if (!allowed) {
+        showToast('You have reached your limit for the day. You can submit again on a future day.', 'error');
+        return;
+      }
 
       // 2. Upload array of attached images (if any)
       const uploadedImageUrls = await uploadImagesAndGetUrls();
@@ -122,12 +132,7 @@ export default function CreateAnnouncement() {
       console.error('Submit error:', err);
       
       // Handle JWT expired/session issues specifically
-      if (err.message?.includes('JWT expired') || err.code === 'PGRST301' || err.statusCode === 401) {
-        showToast('Your session has expired. Please sign in again.', 'error');
-        // Refresh auth state which will likely trigger the global redirect in (app)/_layout.tsx
-        refreshAuth();
-        return;
-      }
+      handleAuthError(err);
       
       Alert.alert('Error', err.message || 'Failed to post announcement.');
     } finally {

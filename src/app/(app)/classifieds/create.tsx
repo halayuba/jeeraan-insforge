@@ -18,10 +18,12 @@ import { decode } from 'base64-arraybuffer';
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { checkDailyLimit } from '../../../lib/rateLimit';
 
 export default function CreateClassifiedAd() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { handleAuthError } = useAuth();
   const { refreshAuth } = useAuth();
 
   const [title, setTitle] = useState('');
@@ -68,9 +70,20 @@ export default function CreateClassifiedAd() {
       if (userErr) throw userErr;
       if (!userData?.user) throw new Error('Not authenticated');
 
+      const { allowed } = await checkDailyLimit('classified_ads', userData.user.id);
+      if (!allowed) {
+        showToast('You have reached your limit for the day. You can submit again on a future day.', 'error');
+        return;
+      }
+
       // Upload Image if present
       if (imageUri) {
-        const fileExt = imageUri.split('.').pop() || 'png';
+        // Correctly handle file extension extraction, especially for blob/data URLs
+        let fileExt = 'jpg';
+        if (imageUri.includes('.') && !imageUri.startsWith('blob:') && !imageUri.startsWith('data:')) {
+          fileExt = imageUri.split('.').pop()?.split('?')[0] || 'jpg';
+        }
+        
         const fileName = `${userData.user.id}-${Date.now()}.${fileExt}`;
         const filePath = `classifieds/${fileName}`;
         
@@ -105,17 +118,8 @@ export default function CreateClassifiedAd() {
     } catch (err: any) {
       console.error('Submit error:', err);
       
-      const isAuthError = 
-        err.message?.includes('JWT expired') || 
-        err.code === 'PGRST301' || 
-        (err as any).statusCode === 401;
-
-      if (isAuthError) {
-        showToast('Your session has expired, please sign back in to continue.', 'error');
-        refreshAuth();
-      } else {
-        showToast(err.message || 'Failed to post ad.', 'error');
-      }
+      handleAuthError(err);
+      showToast(err.message || 'Failed to post ad.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -178,6 +182,17 @@ export default function CreateClassifiedAd() {
         </View>
 
         <View style={styles.inputContainer}>
+          <Text style={styles.label}>Contact Information</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g., John D. - 555-1234"
+            placeholderTextColor="#94a3b8"
+            value={contactInfo}
+            onChangeText={setContactInfo}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
           <Text style={styles.label}>Upload Image <Text style={styles.optional}>(Optional)</Text></Text>
           <TouchableOpacity style={styles.imagePickerNode} onPress={pickImage}>
             {imageUri ? (
@@ -190,17 +205,6 @@ export default function CreateClassifiedAd() {
               </View>
             )}
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Contact Information</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g., John D. - 555-1234"
-            placeholderTextColor="#94a3b8"
-            value={contactInfo}
-            onChangeText={setContactInfo}
-          />
         </View>
 
         <View style={styles.spacer} />

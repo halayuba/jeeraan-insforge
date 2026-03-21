@@ -17,6 +17,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
+import { checkDailyLimit } from '../../../lib/rateLimit';
 
 const CATEGORIES = [
   { id: 'Maintenance', icon: 'home-work' },
@@ -26,6 +28,7 @@ const CATEGORIES = [
 
 export default function SubmitGrievance() {
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   
   const [category, setCategory] = useState(CATEGORIES[0].id);
   const [title, setTitle] = useState('');
@@ -99,6 +102,12 @@ export default function SubmitGrievance() {
       const { data: userData } = await insforge.auth.getCurrentUser();
       if (!userData?.user) throw new Error('Not authenticated');
 
+      const { allowed } = await checkDailyLimit('grievances', userData.user.id);
+      if (!allowed) {
+        Alert.alert('Limit Reached', 'You have reached your limit for the day. You can submit again on a future day.');
+        return;
+      }
+
       // 2. Upload images if any
       const uploadedImageUrls = await uploadImagesAndGetUrls();
 
@@ -121,6 +130,7 @@ export default function SubmitGrievance() {
       ]);
     } catch (err: any) {
       console.error('Submit error:', err);
+      handleAuthError(err);
       Alert.alert('Error', err.message || 'Failed to submit grievance. Please try again.');
     } finally {
       setSubmitting(false);

@@ -12,11 +12,13 @@ import {
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const FILTER_OPTIONS = ['All', 'Pending', 'Resolved', 'In Progress'];
 
 export default function GrievancesIndex() {
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   const [grievances, setGrievances] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
@@ -43,6 +45,7 @@ export default function GrievancesIndex() {
       setGrievances(data || []);
     } catch (err) {
       console.error('Error fetching grievances:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }

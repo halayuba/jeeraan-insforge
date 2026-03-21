@@ -13,10 +13,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function ClassifiedAdDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   const [ad, setAd] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +49,7 @@ export default function ClassifiedAdDetail() {
       setAd(formattedAd);
     } catch (err) {
       console.error('Error fetching classified ad details:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }

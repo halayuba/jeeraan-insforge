@@ -1,0 +1,8 @@
+{
+  "track_id": "q_and_a_and_advertisements_20260320",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-20T12:00:00Z",
+  "updated_at": "2026-03-20T12:00:00Z",
+  "description": "I would like to add two more cards to the Home screen (which currently already have a list of many other cards each representing a service). The first card to add is \"Q & A\" this will redirect members to a screen that lists questions submitted to the Neighborhood's admin (similar to FAQ). Questions are listed in collapsable mode and when a question is pressed the answer will appear (as an accordion component). Additionally, this screen will include a button that will open a form for any of the Neighborhood members to be able to send new questions (create the backend to save to DB: the questions, answers, question sender name, date questions were created). The Neighborhood admin will receive these questions on their dashboard so responses can be provided. The Admin will have the option to toggle each of the questions (along with the answer) as public so that to appear on the Q & A screen (you create a boolean flag in the DB for each question). The second card is \"Advertisements\" which will redirect members to a screen that will display Advertisements - the display size is 300 (w) x 600 (h). The app will display advertisements as Carousel - only one image at a time. Update the Super Admin's dashboard to include advertisement management - create the necessary form to capture the advertiser's business name, industry, address, contact info, and the drop-zone-like button to allow uploading the advertisment."
+}

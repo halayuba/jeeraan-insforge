@@ -11,11 +11,13 @@ import {
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const FILTER_OPTIONS = ['Year', 'Month', 'Rating'];
 
 export default function ServiceOrdersIndex() {
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +38,7 @@ export default function ServiceOrdersIndex() {
       setOrders(data || []);
     } catch (err) {
       console.error('Error fetching service orders:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }

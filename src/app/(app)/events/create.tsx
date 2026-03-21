@@ -16,11 +16,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { checkDailyLimit } from '../../../lib/rateLimit';
 
 export default function CreateEvent() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, handleAuthError } = useAuth();
 
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
@@ -47,6 +48,12 @@ export default function CreateEvent() {
       if (authError) throw authError;
       if (!userData?.user) throw new Error('Not authenticated');
 
+      const { allowed } = await checkDailyLimit('events', userData.user.id);
+      if (!allowed) {
+        showToast('You have reached your limit for the day. You can submit again on a future day.', 'error');
+        return;
+      }
+
       const { error } = await insforge.database
         .from('events')
         .insert([{
@@ -61,12 +68,7 @@ export default function CreateEvent() {
         }]);
 
       if (error) {
-        // Handle session errors
-        if (error.message?.includes('JWT expired') || error.code === 'PGRST301' || error.statusCode === 401) {
-          showToast('Your session has expired. Please sign in again.', 'error');
-          refreshAuth();
-          return;
-        }
+        handleAuthError(error);
         throw error;
       }
       
@@ -75,13 +77,7 @@ export default function CreateEvent() {
     } catch (err: any) {
       console.error('Submit error:', err);
       
-      // Handle session errors in catch as well
-      if (err.message?.includes('JWT expired') || err.code === 'PGRST301' || err.statusCode === 401) {
-        showToast('Your session has expired. Please sign in again.', 'error');
-        refreshAuth();
-        return;
-      }
-
+      handleAuthError(err);
       Alert.alert('Error', err.message || 'Failed to create event. Make sure the date format is valid (e.g. 2024-08-10 14:00)');
     } finally {
       setSubmitting(false);

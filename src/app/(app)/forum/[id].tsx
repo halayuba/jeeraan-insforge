@@ -20,7 +20,7 @@ export default function ForumThread() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth } = useAuth();
+  const { handleAuthError } = useAuth();
 
   const [thread, setThread] = useState<any>(null);
   const [replies, setReplies] = useState<any[]>([]);
@@ -67,6 +67,7 @@ export default function ForumThread() {
 
     } catch (err) {
       console.error('Error fetching thread:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -96,18 +97,8 @@ export default function ForumThread() {
       fetchThreadData(); // Refresh list to get the new message
     } catch (err: any) {
       console.error('Reply error:', err);
-      
-      const isAuthError = 
-        err.message?.includes('JWT expired') || 
-        err.code === 'PGRST301' || 
-        err.statusCode === 401;
-
-      if (isAuthError) {
-        showToast('Your session has expired, please sign back in to continue.', 'error');
-        refreshAuth();
-      } else {
-        showToast(err.message || 'Failed to post reply.', 'error');
-      }
+      handleAuthError(err);
+      showToast(err.message || 'Failed to post reply.', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -25,7 +25,7 @@ type JoinRequest = {
 
 export default function InvitesIndex() {
   const router = useRouter();
-  const { neighborhoodId, refreshAuth } = useAuth();
+  const { neighborhoodId, refreshAuth, handleAuthError } = useAuth();
   const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -44,16 +44,13 @@ export default function InvitesIndex() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        // Handle session errors
-        if (error.message?.includes('JWT expired') || error.code === 'PGRST301' || error.statusCode === 401) {
-          refreshAuth();
-          return;
-        }
+        handleAuthError(error);
         throw error;
       }
       setRequests(data || []);
     } catch (err) {
       console.error('Error fetching join requests:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
       setRefreshing(false);

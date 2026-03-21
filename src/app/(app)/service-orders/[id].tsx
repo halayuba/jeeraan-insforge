@@ -11,10 +11,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function ServiceOrderDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const { handleAuthError } = useAuth();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,6 +39,7 @@ export default function ServiceOrderDetail() {
       setOrder(data);
     } catch (err) {
       console.error('Error fetching service order details:', err);
+      handleAuthError(err);
     } finally {
       setLoading(false);
     }

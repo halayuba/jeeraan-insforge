@@ -32,6 +32,7 @@ export default async function(req: Request): Promise<Response> {
       });
     }
 
+    /*
     // Attempt to use Twilio if configured
     const twilioSid = Deno.env.get('TWILIO_ACCOUNT_SID');
     const twilioToken = Deno.env.get('TWILIO_AUTH_TOKEN');
@@ -68,8 +69,11 @@ export default async function(req: Request): Promise<Response> {
       // Mock SMS for development
       console.log(`[MOCK SMS] To: ${phone} | Body: ${messageBody}`);
     }
+    */
+    const messageBody = `You have been invited to join ${neighborhoodName || 'the neighborhood'} on Jeeraan! Your invite code is: ${inviteCode}. It expires in 24 hours.`;
+    console.log(`[MOCK SMS] To: ${phone} | Body: ${messageBody}`);
 
-    return new Response(JSON.stringify({ success: true, message: 'Invite sent' }), {
+    return new Response(JSON.stringify({ success: true, message: 'Invite sent (Mock)' }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
