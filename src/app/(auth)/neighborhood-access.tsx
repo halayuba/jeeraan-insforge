@@ -1,42 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView, 
-  KeyboardAvoidingView, 
-  Platform,
+import { MaterialIcons } from '@expo/vector-icons'
+import { Link, useRouter } from 'expo-router'
+import React, { useEffect, useState } from 'react'
+import {
+  ActivityIndicator,
   Alert,
-  ActivityIndicator
-} from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter, Link } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { insforge } from '../../lib/insforge';
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { insforge } from '../../lib/insforge'
 
 export default function NeighborhoodAccess() {
-  const router = useRouter();
-  
+  const router = useRouter()
+
   // Accordion State
-  const [expandedSection, setExpandedSection] = useState<'invite' | 'request' | null>(null);
+  const [expandedSection, setExpandedSection] = useState<
+    'invite' | 'request' | null
+  >(null)
 
   // Section 1 State
-  const [inviteCode, setInviteCode] = useState('');
-  const [validatingCode, setValidatingCode] = useState(false);
+  const [inviteCode, setInviteCode] = useState('')
+  const [validatingCode, setValidatingCode] = useState(false)
 
   // Section 2 State
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [confirmResidency, setConfirmResidency] = useState(false);
-  const [submittingRequest, setSubmittingRequest] = useState(false);
-  const [neighborhood, setNeighborhood] = useState<any>(null); // MVP: Single active neighborhood
-  const [loadingNeighborhood, setLoadingNeighborhood] = useState(true);
+  const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [confirmResidency, setConfirmResidency] = useState(false)
+  const [submittingRequest, setSubmittingRequest] = useState(false)
+  const [neighborhood, setNeighborhood] = useState<any>(null) // MVP: Single active neighborhood
+  const [loadingNeighborhood, setLoadingNeighborhood] = useState(true)
 
   useEffect(() => {
-    fetchNeighborhood();
-  }, []);
+    fetchNeighborhood()
+  }, [])
 
   const fetchNeighborhood = async () => {
     try {
@@ -44,29 +46,29 @@ export default function NeighborhoodAccess() {
         .from('neighborhoods')
         .select('*')
         .limit(1)
-        .single();
-        
+        .single()
+
       if (!error && data) {
-        setNeighborhood(data);
+        setNeighborhood(data)
       }
     } catch (err) {
-      console.error(err);
+      console.error(err)
     } finally {
-      setLoadingNeighborhood(false);
+      setLoadingNeighborhood(false)
     }
-  };
+  }
 
   const toggleSection = (section: 'invite' | 'request') => {
-    setExpandedSection(expandedSection === section ? null : section);
-  };
+    setExpandedSection(expandedSection === section ? null : section)
+  }
 
   const handleJoinViaCode = async () => {
     if (!inviteCode || inviteCode.length !== 6) {
-      Alert.alert('Invalid Code', 'Please enter a valid 6-digit invite code.');
-      return;
+      Alert.alert('Invalid Code', 'Please enter a valid 6-digit invite code.')
+      return
     }
-    
-    setValidatingCode(true);
+
+    setValidatingCode(true)
     // TODO: Connect edge function or validate directly from DB when invite code validation logic is fully specified
     // For now, allow mocked validation or direct DB check if policy allows it.
     try {
@@ -74,83 +76,102 @@ export default function NeighborhoodAccess() {
         .from('invites')
         .select('*')
         .eq('code', inviteCode.toUpperCase())
-        .single();
+        .single()
 
       if (error || !data) {
-        Alert.alert('Error', 'Invalid or expired invite code.');
+        Alert.alert('Error', 'Invalid or expired invite code.')
       } else {
         // Invite is valid! Direct to sign-up and pass the code
         // For MVP we just navigate to sign-up
-        router.push({ pathname: '/(auth)/sign-up', params: { inviteCode: data.code, neighborhoodId: data.neighborhood_id } });
+        router.push({
+          pathname: '/(auth)/sign-up',
+          params: {
+            inviteCode: data.code,
+            neighborhoodId: data.neighborhood_id,
+          },
+        })
       }
     } catch (err) {
-      Alert.alert('Error', 'Failed to validate invite code.');
+      Alert.alert('Error', 'Failed to validate invite code.')
     } finally {
-      setValidatingCode(false);
+      setValidatingCode(false)
     }
-  };
+  }
 
   const handleRequestToJoin = async () => {
     if (!fullName || !phone) {
-      Alert.alert('Error', 'Please enter both your full name and phone number.');
-      return;
+      Alert.alert('Error', 'Please enter both your full name and phone number.')
+      return
     }
     if (!neighborhood) {
-      Alert.alert('Error', 'No neighborhood available to join.');
-      return;
+      Alert.alert('Error', 'No neighborhood available to join.')
+      return
     }
     if (!confirmResidency) {
-      Alert.alert('Error', 'You must confirm your residency to submit a request.');
-      return;
+      Alert.alert(
+        'Error',
+        'You must confirm your residency to submit a request.',
+      )
+      return
     }
 
-    setSubmittingRequest(true);
+    setSubmittingRequest(true)
     try {
-      const { error } = await insforge.database
-        .from('join_requests')
-        .insert([{
+      const { error } = await insforge.database.from('join_requests').insert([
+        {
           name: fullName,
           phone: phone,
           neighborhood_id: neighborhood.id,
-          status: 'pending'
-        }]);
+          status: 'pending',
+        },
+      ])
 
       if (error) {
-        Alert.alert('Error', 'Failed to submit request. Please try again.');
-        console.error(error);
+        Alert.alert('Error', 'Failed to submit request. Please try again.')
+        console.error(error)
       } else {
-        Alert.alert('Success', 'Your request has been submitted. The neighborhood admin will review it.');
-        setFullName('');
-        setPhone('');
-        setConfirmResidency(false);
+        Alert.alert(
+          'Success',
+          'Your request has been submitted. The neighborhood admin will review it.',
+        )
+        setFullName('')
+        setPhone('')
+        setConfirmResidency(false)
       }
     } catch (err) {
-      Alert.alert('Error', 'An unexpected error occurred.');
+      Alert.alert('Error', 'An unexpected error occurred.')
     } finally {
-      setSubmittingRequest(false);
+      setSubmittingRequest(false)
     }
-  };
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Neighborhood Access</Text>
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Prominent Sign In Section */}
           <View style={styles.prominentSignIn}>
             <Text style={styles.signInTitle}>Welcome Back</Text>
-            <Text style={styles.signInSubtitle}>Already a resident? Sign in to your neighborhood portal.</Text>
+            <Text style={styles.signInSubtitle}>
+              Already a resident? Sign in to your neighborhood portal.
+            </Text>
             <Link href="/(auth)/sign-in" asChild>
               <TouchableOpacity style={styles.signInLargeButton}>
                 <Text style={styles.signInLargeButtonText}>Sign In</Text>
@@ -160,26 +181,50 @@ export default function NeighborhoodAccess() {
 
           <View style={styles.accordionContainer}>
             {/* Section 1: Join via Invite Code */}
-            <TouchableOpacity 
-              style={[styles.accordionHeader, expandedSection === 'invite' && styles.accordionHeaderActive]} 
+            <TouchableOpacity
+              style={[
+                styles.accordionHeader,
+                expandedSection === 'invite' && styles.accordionHeaderActive,
+              ]}
               onPress={() => toggleSection('invite')}
               activeOpacity={0.7}
             >
               <View style={styles.accordionTitleContainer}>
-                <MaterialIcons name="vpn-key" size={24} color={expandedSection === 'invite' ? '#1193d4' : '#64748b'} />
-                <Text style={[styles.accordionTitle, expandedSection === 'invite' && styles.accordionTitleActive]}>Join via Invite Code</Text>
+                <MaterialIcons
+                  name="vpn-key"
+                  size={24}
+                  color={expandedSection === 'invite' ? '#1193d4' : '#64748b'}
+                />
+                <Text
+                  style={[
+                    styles.accordionTitle,
+                    expandedSection === 'invite' && styles.accordionTitleActive,
+                  ]}
+                >
+                  Join via Invite Code
+                </Text>
               </View>
-              <MaterialIcons 
-                name={expandedSection === 'invite' ? 'expand-less' : 'expand-more'} 
-                size={28} 
-                color="#64748b" 
+              <MaterialIcons
+                name={
+                  expandedSection === 'invite' ? 'expand-less' : 'expand-more'
+                }
+                size={28}
+                color="#64748b"
               />
             </TouchableOpacity>
 
             {expandedSection === 'invite' && (
               <View style={styles.accordionContent}>
-                <Text style={styles.sectionSubtitle}>Enter the 6-digit code provided by your neighborhood administrator.</Text>
-                
+                <Text style={styles.sectionSubtitle}>
+                  If you received a one-time invitation code from your
+                  neighborhood administrator at the phone number you provided,
+                  please enter it below to proceed with joining your
+                  neighborhood. This code is valid for one-time use only and
+                  will expire in 10 minutes. If you encounter an error after
+                  entering the code, you will need to submit a new request to
+                  join (see the section below).
+                </Text>
+
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Invite Code</Text>
                   <TextInput
@@ -193,37 +238,65 @@ export default function NeighborhoodAccess() {
                   />
                 </View>
 
-                <TouchableOpacity 
-                  style={[styles.primaryButton, (!inviteCode || validatingCode) && styles.disabledButton]} 
+                <TouchableOpacity
+                  style={[
+                    styles.primaryButton,
+                    (!inviteCode || validatingCode) && styles.disabledButton,
+                  ]}
                   onPress={handleJoinViaCode}
                   disabled={!inviteCode || validatingCode}
                 >
-                  {validatingCode ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>Join Neighborhood</Text>}
+                  {validatingCode ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.primaryButtonText}>Verify</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             )}
 
             {/* Section 2: Request to Join */}
-            <TouchableOpacity 
-              style={[styles.accordionHeader, expandedSection === 'request' && styles.accordionHeaderActive, { marginTop: 12 }]} 
+            <TouchableOpacity
+              style={[
+                styles.accordionHeader,
+                expandedSection === 'request' && styles.accordionHeaderActive,
+                { marginTop: 12 },
+              ]}
               onPress={() => toggleSection('request')}
               activeOpacity={0.7}
             >
               <View style={styles.accordionTitleContainer}>
-                <MaterialIcons name="person-add" size={24} color={expandedSection === 'request' ? '#1193d4' : '#64748b'} />
-                <Text style={[styles.accordionTitle, expandedSection === 'request' && styles.accordionTitleActive]}>Request to Join</Text>
+                <MaterialIcons
+                  name="person-add"
+                  size={24}
+                  color={expandedSection === 'request' ? '#1193d4' : '#64748b'}
+                />
+                <Text
+                  style={[
+                    styles.accordionTitle,
+                    expandedSection === 'request' &&
+                      styles.accordionTitleActive,
+                  ]}
+                >
+                  Request to Join
+                </Text>
               </View>
-              <MaterialIcons 
-                name={expandedSection === 'request' ? 'expand-less' : 'expand-more'} 
-                size={28} 
-                color="#64748b" 
+              <MaterialIcons
+                name={
+                  expandedSection === 'request' ? 'expand-less' : 'expand-more'
+                }
+                size={28}
+                color="#64748b"
               />
             </TouchableOpacity>
 
             {expandedSection === 'request' && (
               <View style={styles.accordionContent}>
-                <Text style={styles.sectionSubtitle}>Don't have a code? Submit a request to your neighborhood board for verification.</Text>
-                
+                <Text style={styles.sectionSubtitle}>
+                  Don't have a code? Submit a request to your neighborhood board
+                  for verification.
+                </Text>
+
                 <View style={styles.formGroup}>
                   <View style={styles.inputContainer}>
                     <Text style={styles.label}>Full Name</Text>
@@ -254,42 +327,72 @@ export default function NeighborhoodAccess() {
                       {loadingNeighborhood ? (
                         <ActivityIndicator size="small" color="#1193d4" />
                       ) : neighborhood ? (
-                        <Text style={styles.readOnlyText}>{neighborhood.name}</Text>
+                        <Text style={styles.readOnlyText}>
+                          {neighborhood.name}
+                        </Text>
                       ) : (
-                        <Text style={styles.readOnlyText}>No active neighborhoods</Text>
+                        <Text style={styles.readOnlyText}>
+                          No active neighborhoods
+                        </Text>
                       )}
                     </View>
                   </View>
 
-                  <TouchableOpacity 
-                    style={styles.checkboxContainer} 
+                  <TouchableOpacity
+                    style={styles.checkboxContainer}
                     onPress={() => setConfirmResidency(!confirmResidency)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.checkbox, confirmResidency && styles.checkboxChecked]}>
-                      {confirmResidency && <MaterialIcons name="check" size={16} color="#fff" />}
+                    <View
+                      style={[
+                        styles.checkbox,
+                        confirmResidency && styles.checkboxChecked,
+                      ]}
+                    >
+                      {confirmResidency && (
+                        <MaterialIcons name="check" size={16} color="#fff" />
+                      )}
                     </View>
                     <Text style={styles.checkboxLabel}>
-                      I confirm that I am a resident of the selected neighborhood above
+                      I confirm that I am a resident of the selected
+                      neighborhood above
                     </Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity 
-                    style={[styles.primaryButton, styles.submitButton, (!fullName || !phone || !confirmResidency || submittingRequest) && styles.disabledButton]} 
+                  <TouchableOpacity
+                    style={[
+                      styles.primaryButton,
+                      styles.submitButton,
+                      (!fullName ||
+                        !phone ||
+                        !confirmResidency ||
+                        submittingRequest) &&
+                        styles.disabledButton,
+                    ]}
                     onPress={handleRequestToJoin}
-                    disabled={!fullName || !phone || !confirmResidency || submittingRequest}
+                    disabled={
+                      !fullName ||
+                      !phone ||
+                      !confirmResidency ||
+                      submittingRequest
+                    }
                   >
-                    {submittingRequest ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>Submit Request</Text>}
+                    {submittingRequest ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.primaryButtonText}>
+                        Submit Request
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
             )}
           </View>
-
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -490,5 +593,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Medium',
     color: '#334155',
     lineHeight: 20,
-  }
-});
+  },
+})
