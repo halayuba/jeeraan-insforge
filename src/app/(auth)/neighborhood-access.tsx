@@ -31,6 +31,7 @@ export default function NeighborhoodAccess() {
   // Section 2 State
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
   const [confirmResidency, setConfirmResidency] = useState(false)
   const [submittingRequest, setSubmittingRequest] = useState(false)
   const [neighborhood, setNeighborhood] = useState<any>(null) // MVP: Single active neighborhood
@@ -99,8 +100,8 @@ export default function NeighborhoodAccess() {
   }
 
   const handleRequestToJoin = async () => {
-    if (!fullName || !phone) {
-      Alert.alert('Error', 'Please enter both your full name and phone number.')
+    if (!fullName || !phone || !address) {
+      Alert.alert('Error', 'Please enter your full name, phone number, and address.')
       return
     }
     if (!neighborhood) {
@@ -121,6 +122,7 @@ export default function NeighborhoodAccess() {
         {
           name: fullName,
           phone: phone,
+          address: address,
           neighborhood_id: neighborhood.id,
           status: 'pending',
         },
@@ -136,6 +138,7 @@ export default function NeighborhoodAccess() {
         )
         setFullName('')
         setPhone('')
+        setAddress('')
         setConfirmResidency(false)
       }
     } catch (err) {
@@ -293,8 +296,10 @@ export default function NeighborhoodAccess() {
             {expandedSection === 'request' && (
               <View style={styles.accordionContent}>
                 <Text style={styles.sectionSubtitle}>
-                  Don't have a code? Submit a request to your neighborhood board
-                  for verification.
+                  Would you like to join your neighborhood but don't have a code
+                  yet? Submit a request to your neighborhood admin for
+                  verification. (Note: Your information is required for
+                  verification and will never be shared with anyone.)
                 </Text>
 
                 <View style={styles.formGroup}>
@@ -318,6 +323,17 @@ export default function NeighborhoodAccess() {
                       keyboardType="phone-pad"
                       value={phone}
                       onChangeText={setPhone}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Address</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="123 Neighborhood St"
+                      placeholderTextColor="#94a3b8"
+                      value={address}
+                      onChangeText={setAddress}
                     />
                   </View>
 
@@ -365,6 +381,7 @@ export default function NeighborhoodAccess() {
                       styles.submitButton,
                       (!fullName ||
                         !phone ||
+                        !address ||
                         !confirmResidency ||
                         submittingRequest) &&
                         styles.disabledButton,
@@ -373,6 +390,7 @@ export default function NeighborhoodAccess() {
                     disabled={
                       !fullName ||
                       !phone ||
+                      !address ||
                       !confirmResidency ||
                       submittingRequest
                     }

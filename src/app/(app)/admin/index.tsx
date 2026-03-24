@@ -7,8 +7,12 @@ import { useAuth } from '../../../contexts/AuthContext';
 export default function AdminDashboard() {
   const { globalRole, neighborhoodId, handleAuthError } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
+  const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
+  const [rejectedRequests, setRejectedRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeMembersCount, setActiveMembersCount] = useState(0);
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [neighborhood, setNeighborhood] = useState<any>(null);
   
   // Election Management State
   const [votingDate, setVotingDate] = useState('');
@@ -49,6 +53,7 @@ export default function AdminDashboard() {
     fetchActiveMembersCount();
     if (neighborhoodId) {
       fetchQuestions();
+      fetchNeighborhood();
     }
     if (globalRole === 'super_admin' && neighborhoodId) {
       fetchElectionInfo();
@@ -57,6 +62,22 @@ export default function AdminDashboard() {
       fetchAdminAds();
     }
   }, [globalRole, neighborhoodId]);
+
+  const fetchNeighborhood = async () => {
+    try {
+      const { data, error } = await insforge.database
+        .from('neighborhoods')
+        .select('*')
+        .eq('id', neighborhoodId)
+        .single();
+      
+      if (data) {
+        setNeighborhood(data);
+      }
+    } catch (err) {
+      console.error('Failed to load neighborhood', err);
+    }
+  };
 
   const fetchAdminAds = async () => {
     setLoadingAds(true);
@@ -403,13 +424,16 @@ export default function AdminDashboard() {
       const { data, error } = await insforge.database
         .from('join_requests')
         .select('*')
-        .eq('status', 'pending');
+        .eq('neighborhood_id', neighborhoodId)
+        .order('created_at', { ascending: false });
         
       if (!error && data) {
-        setRequests(data);
+        setRequests(data.filter((r: any) => r.status === 'pending'));
+        setApprovedRequests(data.filter((r: any) => r.status === 'approved'));
+        setRejectedRequests(data.filter((r: any) => r.status === 'declined'));
       }
     } catch (err) {
-      console.error('Failed to load pending requests', err);
+      console.error('Failed to load join requests', err);
       handleAuthError(err);
     } finally {
       setLoading(false);
@@ -421,7 +445,7 @@ export default function AdminDashboard() {
       // 1. Mark request as approved
       await insforge.database
         .from('join_requests')
-        .update({ status: 'approved' })
+        .update({ status: 'approved', updated_at: new Date().toISOString() })
         .eq('id', request.id);
         
       // 2. We generate an invite code for them natively
@@ -440,17 +464,6 @@ export default function AdminDashboard() {
           expires_at: expiresAt.toISOString()
         }]);
         
-      // 4. Comment out Edge function for now
-      /*
-      await insforge.functions.invoke('send-invite-sms', {
-        body: {
-          phone: request.phone,
-          inviteCode: inviteCode,
-          neighborhoodName: 'Jeeraan' 
-        }
-      });
-      */
-
       // 5. Present the 6-digit code to the admin for manual sending
       Alert.alert(
         'Invite Approved',
@@ -458,8 +471,8 @@ export default function AdminDashboard() {
         [{ text: 'OK' }]
       );
       
-      // Clear from view
-      setRequests(requests.filter(r => r.id !== request.id));
+      // Refresh requests
+      fetchRequests();
     } catch (err) {
       console.error('Failed to approve request:', err);
       handleAuthError(err);
@@ -470,14 +483,61 @@ export default function AdminDashboard() {
     try {
       await insforge.database
         .from('join_requests')
-        .update({ status: 'declined' })
+        .update({ status: 'declined', updated_at: new Date().toISOString() })
         .eq('id', id);
         
-      setRequests(requests.filter(r => r.id !== id));
+      fetchRequests();
     } catch (err) {
       console.error('Failed to decline request:', err);
       handleAuthError(err);
     }
+  };
+
+  const renderRequestsTab = () => {
+    let data = [];
+    if (activeTab === 'pending') data = requests;
+    else if (activeTab === 'approved') data = approvedRequests;
+    else data = rejectedRequests;
+
+    if (loading) {
+      return <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />;
+    }
+
+    if (data.length === 0) {
+      return <Text style={styles.emptyText}>No {activeTab} requests found.</Text>;
+    }
+
+    return (
+      <View style={styles.requestsContainer}>
+        {data.map((req) => (
+          <View key={req.id} style={styles.requestRowExtended}>
+            <View style={styles.requestInfo}>
+              <View style={styles.requestMainInfo}>
+                <Text style={styles.requestName}>{req.name}</Text>
+                <Text style={styles.requestNeighborhood}>{neighborhood?.name || 'Loading...'}</Text>
+              </View>
+              <Text style={styles.requestDetail}>Phone: {req.phone}</Text>
+              <Text style={styles.requestDetail}>Address: {req.address || 'N/A'}</Text>
+              <Text style={styles.requestDetail}>
+                {activeTab === 'pending' ? 'Submitted on: ' : activeTab === 'approved' ? 'Joined on: ' : 'Rejected on: '}
+                {new Date(activeTab === 'pending' ? req.created_at : req.updated_at).toLocaleDateString()}
+              </Text>
+            </View>
+            
+            {activeTab === 'pending' && (
+              <View style={styles.actionGroupVertical}>
+                <TouchableOpacity style={styles.approveBtn} onPress={() => handleApprove(req)}>
+                  <Text style={styles.approveText}>Approve</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.declineBtn} onPress={() => handleDecline(req.id)}>
+                  <Text style={styles.declineText}>Decline</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        ))}
+      </View>
+    );
   };
 
   return (
@@ -540,39 +600,32 @@ export default function AdminDashboard() {
         {/* Pending Requests Section */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Pending Invite Requests</Text>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{requests.length} New</Text>
-            </View>
+            <Text style={styles.cardTitle}>Invite Requests Management</Text>
           </View>
 
-          {loading ? (
-            <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />
-          ) : requests.length > 0 ? (
-            <View style={styles.requestsContainer}>
-              {requests.map((req) => (
-                <View key={req.id} style={styles.requestRow}>
-                  <View style={styles.requestInfo}>
-                    <Text style={styles.requestName}>{req.name}</Text>
-                    <Text style={styles.requestPhone}>{req.phone}</Text>
-                  </View>
-                  <View style={styles.actionGroup}>
-                    <TouchableOpacity style={styles.declineBtn} onPress={() => handleDecline(req.id)}>
-                      <Text style={styles.declineText}>Decline</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.approveBtn} onPress={() => handleApprove(req)}>
-                      <Text style={styles.approveText}>Approve</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
-              <TouchableOpacity style={styles.viewAllBtn}>
-                <Text style={styles.viewAllText}>View All Requests</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <Text style={styles.emptyText}>No pending requests right now.</Text>
-          )}
+          {/* Tab Selector */}
+          <View style={styles.tabContainer}>
+            <TouchableOpacity 
+              style={[styles.tabButton, activeTab === 'pending' && styles.activeTabButton]} 
+              onPress={() => setActiveTab('pending')}
+            >
+              <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>Pending ({requests.length})</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.tabButton, activeTab === 'approved' && styles.activeTabButton]} 
+              onPress={() => setActiveTab('approved')}
+            >
+              <Text style={[styles.tabText, activeTab === 'approved' && styles.activeTabText]}>Members ({approvedRequests.length})</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.tabButton, activeTab === 'rejected' && styles.activeTabButton]} 
+              onPress={() => setActiveTab('rejected')}
+            >
+              <Text style={[styles.tabText, activeTab === 'rejected' && styles.activeTabText]}>Rejected ({rejectedRequests.length})</Text>
+            </TouchableOpacity>
+          </View>
+
+          {renderRequestsTab()}
         </View>
 
         {/* Election Management Section (Super Admin Only) */}
@@ -926,6 +979,68 @@ const styles = StyleSheet.create({
   requestInfo: {
     flex: 1,
     gap: 2,
+  },
+  requestMainInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  requestNeighborhood: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#1193d4',
+    backgroundColor: 'rgba(17, 147, 212, 0.05)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  requestDetail: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 13,
+    color: '#475569',
+  },
+  requestRowExtended: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+    gap: 12,
+  },
+  actionGroupVertical: {
+    gap: 8,
+    alignItems: 'flex-end',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    padding: 4,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 6,
+  },
+  activeTabButton: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  tabText: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 12,
+    color: '#64748b',
+  },
+  activeTabText: {
+    color: '#1193d4',
   },
   requestName: {
     fontFamily: 'Manrope-Bold',
