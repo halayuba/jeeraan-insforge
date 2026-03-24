@@ -6,14 +6,12 @@ const GRID_ITEMS = [
   { id: 'announcements', title: 'Announcements', icon: 'campaign' },
   { id: 'members', title: 'Members', icon: 'groups' },
   { id: 'invites', title: 'Invites', icon: 'person-add' },
-  { id: 'events', title: 'Events', icon: 'event' },
+  { id: 'faq', title: 'FAQ', icon: 'help' },
   { id: 'voting', title: 'Voting', icon: 'how-to-vote' },
   { id: 'service-orders', title: 'Service Orders', icon: 'construction' },
   { id: 'forum', title: 'Forum', icon: 'forum' },
   { id: 'classifieds', title: 'Classified Ads', icon: 'sell' },
-  { id: 'advertisements', title: 'Advertisements', icon: 'featured-play-list' },
   { id: 'grievances', title: 'Grievances', icon: 'feedback' },
-  { id: 'q-and-a', title: 'Q & A', icon: 'help-outline' },
   { id: 'recent', title: 'Recent Activities', icon: 'history' },
 ];
 
@@ -25,24 +23,20 @@ export default function HomeIndex() {
       router.push('/(app)/voting' as any);
     } else if (id === 'grievances') {
       router.push('/(app)/grievances' as any);
-    } else if (id === 'q-and-a') {
-      router.push('/(app)/q-and-a' as any);
+    } else if (id === 'faq') {
+      router.push('/(app)/faq' as any);
     } else if (id === 'announcements') {
       router.push('/(app)/announcements' as any);
     } else if (id === 'service-orders') {
       router.push('/(app)/service-orders' as any);
     } else if (id === 'forum') {
       router.push('/(app)/forum' as any);
-    } else if (id === 'events') {
-      router.push('/(app)/events' as any);
     } else if (id === 'members') {
       router.push('/(app)/members' as any);
     } else if (id === 'invites') {
       router.push('/(app)/invites' as any);
     } else if (id === 'classifieds') {
       router.push('/(app)/classifieds' as any);
-    } else if (id === 'advertisements') {
-      router.push('/(app)/advertisements' as any);
     } else {
       console.log(`Navigate to ${id}`);
     }

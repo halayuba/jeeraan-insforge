@@ -66,28 +66,25 @@ export default function AppLayout() {
         }} 
       />
       <Tabs.Screen 
-        name="messages" 
-        options={{ 
-          title: 'Messages',
-          tabBarIcon: ({ color }) => <MaterialIcons name="chat-bubble" size={24} color={color} />
-        }} 
-      />
-      <Tabs.Screen 
-        name="events" 
-        options={{ 
-          title: 'Events',
-          tabBarIcon: ({ color }) => <MaterialIcons name="event" size={24} color={color} />
-        }} 
-      />
-      <Tabs.Screen 
         name="profile" 
         options={{ 
           title: 'Profile',
           tabBarIcon: ({ color }) => <MaterialIcons name="person" size={24} color={color} />
         }} 
       />
+      <Tabs.Screen 
+        name="faq" 
+        options={{ 
+          title: 'FAQ',
+          tabBarIcon: ({ color }) => <MaterialIcons name="help" size={24} color={color} />
+        }} 
+      />
       
       {/* Hidden Screens */}
+      <Tabs.Screen name="messages" options={{ href: null }} />
+      <Tabs.Screen name="events" options={{ href: null }} />
+      <Tabs.Screen name="q-and-a" options={{ href: null }} />
+      <Tabs.Screen name="advertisements" options={{ href: null }} />
       <Tabs.Screen name="forum" options={{ href: null }} />
       <Tabs.Screen name="voting" options={{ href: null }} />
       <Tabs.Screen name="grievances" options={{ href: null }} />
