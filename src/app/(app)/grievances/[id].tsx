@@ -256,9 +256,11 @@ export default function GrievanceDetails() {
         <View style={styles.commentsSection}>
           <View style={styles.commentsHeader}>
             <Text style={styles.commentsTitle}>Comments ({comments.length})</Text>
-            <TouchableOpacity>
-              <Text style={styles.sortText}>Newest first</Text>
-            </TouchableOpacity>
+            {comments.length > 0 && (
+              <TouchableOpacity>
+                <Text style={styles.sortText}>Newest first</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.commentsList}>
