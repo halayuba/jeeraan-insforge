@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -18,6 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit } from '../../../lib/rateLimit';
 
 const CATEGORIES = [
@@ -29,6 +29,7 @@ const CATEGORIES = [
 export default function SubmitGrievance() {
   const router = useRouter();
   const { handleAuthError } = useAuth();
+  const { showToast } = useToast();
   
   const [category, setCategory] = useState(CATEGORIES[0].id);
   const [title, setTitle] = useState('');
@@ -92,7 +93,7 @@ export default function SubmitGrievance() {
 
   const handleSubmit = async () => {
     if (!title.trim() || !description.trim()) {
-      Alert.alert('Validation Error', 'Please provide a title and description for your grievance.');
+      showToast('Please provide a title and description.', 'error');
       return;
     }
 
@@ -104,7 +105,7 @@ export default function SubmitGrievance() {
 
       const { allowed } = await checkDailyLimit('grievances', userData.user.id);
       if (!allowed) {
-        Alert.alert('Limit Reached', 'You have reached your limit for the day. You can submit again on a future day.');
+        showToast('Daily limit reached. Please try again tomorrow.', 'error');
         return;
       }
 
@@ -125,13 +126,12 @@ export default function SubmitGrievance() {
 
       if (error) throw error;
       
-      Alert.alert('Success', 'Your grievance has been reported successfully.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      showToast('Grievance reported successfully!');
+      router.push('/(app)/grievances');
     } catch (err: any) {
       console.error('Submit error:', err);
       handleAuthError(err);
-      Alert.alert('Error', err.message || 'Failed to submit grievance. Please try again.');
+      showToast(err.message || 'Failed to submit grievance.', 'error');
     } finally {
       setSubmitting(false);
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -24,9 +24,11 @@ export default function GrievancesIndex() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    fetchGrievances();
-  }, [activeFilter]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchGrievances();
+    }, [activeFilter])
+  );
 
   const fetchGrievances = async () => {
     setLoading(true);
