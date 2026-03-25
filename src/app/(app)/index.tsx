@@ -15,7 +15,7 @@ const GRID_ITEMS = [
   { id: 'advertisements', title: 'Advertisements', icon: 'featured-play-list' },
   { id: 'grievances', title: 'Grievances', icon: 'feedback' },
   { id: 'q-and-a', title: 'Q & A', icon: 'help-outline' },
-  { id: 'recent', title: 'Recent Activities', icon: 'history' },
+  // { id: 'recent', title: 'Recent Activities', icon: 'history' },
 ];
 
 export default function HomeIndex() {
