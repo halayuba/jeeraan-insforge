@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const FAQ_DATA = [
   {
@@ -149,11 +149,20 @@ const FAQ_DATA = [
 ];
 
 export default function FAQScreen() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>FAQ</Text>
+        <View style={styles.iconButton} />
+      </View>
+
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>FAQ</Text>
+        <View style={styles.introSection}>
           <Text style={styles.headerSubtitle}>Everything you need to know about Jeeraan</Text>
         </View>
 
@@ -183,12 +192,29 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   header: {
-    marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontFamily: 'Manrope-Bold',
-    fontSize: 24,
+    fontSize: 18,
     color: '#0f172a',
+    flex: 1,
+    textAlign: 'center',
+  },
+  introSection: {
+    marginBottom: 24,
   },
   headerSubtitle: {
     fontFamily: 'Manrope-Regular',

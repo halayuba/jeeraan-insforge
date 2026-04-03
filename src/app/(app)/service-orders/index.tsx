@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#0f172a',
     flex: 1,
-    marginLeft: 8,
+    textAlign: 'center',
   },
   searchContainer: {
     paddingHorizontal: 16,

@@ -103,11 +103,11 @@ export default function AnnouncementDetails() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Announcement</Text>
         <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="share" size={24} color="#0f172a" />
+          <MaterialIcons name="share" size={24} color="#1193d4" />
         </TouchableOpacity>
       </View>
 

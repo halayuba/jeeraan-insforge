@@ -78,14 +78,14 @@ export default function ClassifiedsIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Classifieds</Text>
         <TouchableOpacity 
           onPress={() => router.push('/(app)/classifieds/create' as any)}
           style={styles.iconButton}
         >
-          <MaterialIcons name="add-circle" size={28} color="#0f172a" />
+          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
         </TouchableOpacity>
       </View>
 

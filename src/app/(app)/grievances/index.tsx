@@ -79,15 +79,18 @@ export default function GrievancesIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Grievances</Text>
-        <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="notifications" size={24} color="#0f172a" />
+        <TouchableOpacity 
+          style={styles.iconButton}
+          onPress={() => router.push('/(app)/grievances/submit' as any)}
+        >
+          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
         </TouchableOpacity>
       </View>
 
-      {/* Search and Action Bar */}
+      {/* Search Bar */}
       <View style={styles.actionContainer}>
         <View style={styles.searchBar}>
           <MaterialIcons name="search" size={24} color="#64748b" style={styles.searchIcon} />
@@ -99,13 +102,6 @@ export default function GrievancesIndex() {
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity 
-          style={styles.postButton}
-          onPress={() => router.push('/(app)/grievances/submit' as any)}
-        >
-          <MaterialIcons name="add" size={20} color="#ffffff" />
-          <Text style={styles.postButtonText}>Post</Text>
-        </TouchableOpacity>
       </View>
 
       {/* Filter Chips */}
@@ -139,8 +135,6 @@ export default function GrievancesIndex() {
           {grievances.filter(g => g.title.toLowerCase().includes(searchQuery.toLowerCase())).map((grievance) => (
             <View key={grievance.id} style={styles.card}>
               <View style={styles.cardHeader}>
-                {/* Normally we'd use the user avatar. For now, a placeholder */}
-                <View style={[styles.avatar, { backgroundColor: '#e2e8f0' }]} />
                 <View style={styles.cardHeaderInfo}>
                   <View style={styles.cardTitleRow}>
                     <Text style={styles.cardTitle}>{grievance.title}</Text>
@@ -226,20 +220,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#0f172a',
   },
-  postButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1193d4',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 48,
-    gap: 8,
-  },
-  postButtonText: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 14,
-    color: '#ffffff',
-  },
   filtersWrapper: {
     paddingBottom: 8,
   },
@@ -290,11 +270,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 16,
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
   },
   cardHeaderInfo: {
     flex: 1,

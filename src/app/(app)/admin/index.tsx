@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const { globalRole, neighborhoodId, handleAuthError } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
@@ -46,22 +49,43 @@ export default function AdminDashboard() {
     website_url: '',
     image_url: ''
   });
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [savingAd, setSavingAd] = useState(false);
 
-  useEffect(() => {
-    fetchRequests();
-    fetchActiveMembersCount();
-    if (neighborhoodId) {
-      fetchQuestions();
-      fetchNeighborhood();
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.7,
+      });
+
+      if (!result.canceled) {
+        setImageUri(result.assets[0].uri);
+      }
+    } catch (err) {
+      console.error('Image picking failed:', err);
+      Alert.alert('Error', 'Failed to pick image.');
     }
-    if (globalRole === 'super_admin' && neighborhoodId) {
-      fetchElectionInfo();
-      fetchBoardPositions();
-      fetchPolls();
-      fetchAdminAds();
-    }
-  }, [globalRole, neighborhoodId]);
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchRequests();
+      fetchActiveMembersCount();
+      if (neighborhoodId) {
+        fetchQuestions();
+        fetchNeighborhood();
+      }
+      if (globalRole === 'super_admin' && neighborhoodId) {
+        fetchElectionInfo();
+        fetchBoardPositions();
+        fetchPolls();
+        fetchAdminAds();
+      }
+    }, [globalRole, neighborhoodId])
+  );
 
   const fetchNeighborhood = async () => {
     try {
@@ -98,19 +122,42 @@ export default function AdminDashboard() {
   };
 
   const handleCreateAd = async () => {
-    const { business_name, industry, address, contact_info, website_url, image_url } = newAd;
-    if (!business_name || !website_url || !image_url) {
-      Alert.alert('Error', 'Business Name, Website URL, and Image URL are required');
+    const { business_name, website_url } = newAd;
+    if (!business_name || !website_url || !imageUri) {
+      Alert.alert('Error', 'Business Name, Website URL, and Image are required');
       return;
     }
 
     setSavingAd(true);
+    let uploadedImageUrl = null;
     try {
+      // 1. Upload image if present
+      if (imageUri) {
+        let fileExt = 'jpg';
+        if (imageUri.includes('.') && !imageUri.startsWith('blob:') && !imageUri.startsWith('data:')) {
+          fileExt = imageUri.split('.').pop()?.split('?')[0] || 'jpg';
+        }
+        
+        const fileName = `ad-${Date.now()}.${fileExt}`;
+        const filePath = `ads/${fileName}`;
+        
+        const fileResponse = await fetch(imageUri);
+        const blob = await fileResponse.blob();
+        
+        const { data: uploadData, error: uploadError } = await insforge.storage
+          .from('ad-media')
+          .upload(filePath, blob);
+
+        if (uploadError) throw uploadError;
+        uploadedImageUrl = uploadData?.url;
+      }
+
       const { data, error } = await insforge.database
         .from('advertisements')
         .insert([{
           neighborhood_id: neighborhoodId,
-          ...newAd
+          ...newAd,
+          image_url: uploadedImageUrl
         }])
         .select()
         .single();
@@ -126,6 +173,7 @@ export default function AdminDashboard() {
         website_url: '',
         image_url: ''
       });
+      setImageUri(null);
       Alert.alert('Success', 'Advertisement created');
     } catch (err) {
       console.error('Failed to create advertisement', err);
@@ -836,12 +884,22 @@ export default function AdminDashboard() {
                   onChangeText={(text) => setNewAd({ ...newAd, website_url: text })}
                   placeholder="Website URL"
                 />
-                <TextInput
-                  style={[styles.adminInput, { marginTop: 8 }]}
-                  value={newAd.image_url}
-                  onChangeText={(text) => setNewAd({ ...newAd, image_url: text })}
-                  placeholder="Image URL (300x600 recommended)"
-                />
+                
+                <View style={styles.uploadContainer}>
+                  <Text style={styles.adminLabel}>Upload Advertisement Image</Text>
+                  <TouchableOpacity style={styles.imagePickerNode} onPress={pickImage}>
+                    {imageUri ? (
+                      <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="cover" />
+                    ) : (
+                      <View style={styles.imagePlaceholder}>
+                        <MaterialIcons name="cloud-upload" size={48} color="#94a3b8" />
+                        <Text style={styles.imagePickerText}>Tap to pick an image</Text>
+                        <Text style={styles.imagePickerSubtext}>300x600 recommended</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
+
                 <TouchableOpacity 
                   style={[styles.addBtn, savingAd && styles.disabledBtn]} 
                   onPress={handleCreateAd}
@@ -1304,5 +1362,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
+  },
+  uploadContainer: {
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  imagePickerNode: {
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#f8fafc',
+  },
+  imagePlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
+  },
+  imagePickerText: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 14,
+    color: '#3b82f6',
+    marginTop: 8,
+  },
+  imagePickerSubtext: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 4,
+  },
+  previewImage: {
+    width: '100%',
+    height: 150,
   }
 });

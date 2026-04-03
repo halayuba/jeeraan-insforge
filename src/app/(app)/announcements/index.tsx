@@ -103,10 +103,15 @@ export default function AnnouncementsIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Recent Announcements</Text>
-        <View style={styles.iconButton} />
+        <TouchableOpacity 
+          onPress={() => router.push('/(app)/announcements/create' as any)}
+          style={styles.iconButton}
+        >
+          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
+        </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
@@ -194,14 +199,6 @@ export default function AnnouncementsIndex() {
           })
         )}
       </ScrollView>
-
-      {/* Floating Action Button for Admins to create new */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => router.push('/(app)/announcements/create' as any)}
-      >
-        <MaterialIcons name="add" size={28} color="#ffffff" />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -382,21 +379,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 14,
     color: '#1193d4',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#1193d4',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
   },
 });

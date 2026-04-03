@@ -92,7 +92,7 @@ export default function CreateEvent() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Create New Event</Text>
         <View style={styles.iconButton} />

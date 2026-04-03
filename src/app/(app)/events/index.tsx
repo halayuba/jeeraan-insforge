@@ -96,14 +96,14 @@ export default function EventsIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Events</Text>
         <TouchableOpacity 
           onPress={() => router.push('/(app)/events/create' as any)}
           style={styles.iconButton}
         >
-          <MaterialIcons name="add-circle" size={28} color="#0f172a" />
+          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
         </TouchableOpacity>
       </View>
 
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#f6f7f8',
+    backgroundColor: '#ffffff',
   },
   iconButton: {
     width: 40,
@@ -212,6 +212,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#0f172a',
     flex: 1,
+    textAlign: 'center',
   },
   scrollView: {
     flex: 1,

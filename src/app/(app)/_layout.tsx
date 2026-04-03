@@ -49,12 +49,12 @@ export default function AppLayout() {
         tabBarStyle: {
           backgroundColor: '#f6f7f8',
           borderTopColor: '#e2e8f0',
-          paddingBottom: 4,
-          height: 60,
+          paddingBottom: 12,
+          height: 75,
         },
         tabBarLabelStyle: {
-          fontFamily: 'Manrope-Medium',
           fontSize: 12,
+          fontWeight: '500',
         }
       }}
     >

@@ -132,10 +132,15 @@ export default function QandAIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back-ios" size={20} color="#0f172a" />
+          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Q & A</Text>
-        <View style={styles.iconButton} />
+        <TouchableOpacity 
+          onPress={() => router.push('/(app)/q-and-a/submit' as any)}
+          style={styles.iconButton}
+        >
+          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
@@ -159,17 +164,6 @@ export default function QandAIndex() {
           questions.map(renderQuestion)
         )}
       </ScrollView>
-
-      {/* Floating Action Button for New Question */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity 
-          style={styles.fabButton}
-          onPress={() => router.push('/(app)/q-and-a/submit' as any)}
-        >
-          <MaterialIcons name="add" size={24} color="#ffffff" style={{ marginRight: 8 }} />
-          <Text style={styles.fabButtonText}>Ask a Question</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -186,7 +180,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 12,
-    backgroundColor: '#f6f7f8',
+    backgroundColor: '#ffffff',
   },
   iconButton: {
     width: 40,
@@ -342,31 +336,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#94a3b8',
     marginTop: 4,
-  },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    backgroundColor: 'rgba(246, 247, 248, 0.9)',
-  },
-  fabButton: {
-    flexDirection: 'row',
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#1193d4',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  fabButtonText: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#ffffff',
   },
 });

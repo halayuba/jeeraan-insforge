@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Dimensions,
   Linking,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -29,9 +29,11 @@ export default function AdvertisementsIndex() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
-  useEffect(() => {
-    fetchAds();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchAds();
+    }, [neighborhoodId])
+  );
 
   useEffect(() => {
     if (ads.length > 1) {
@@ -45,6 +47,8 @@ export default function AdvertisementsIndex() {
   }, [ads, currentIndex]);
 
   const fetchAds = async () => {
+    if (!neighborhoodId) return;
+    
     setLoading(true);
     try {
       const { data, error } = await insforge.database
