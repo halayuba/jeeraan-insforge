@@ -28,6 +28,11 @@ Jeeraan is a SaaS web and mobile application designed to empower communities by 
 ### 3. Engagement and Governance
 - **Voting/Polls:** Digital ballots for community decisions and elections.
 - **Classified Ads:** Marketplace for residents to buy, sell, or giveaway items and services.
+- **Gamified Engagement Engine:** 
+  - **Points & Levels:** Members earn points for meaningful actions (announcements, invites, feedback, etc.).
+  - **Leaderboard:** "Top Neighbors" ranking to encourage participation.
+  - **Role Promotion:** Path for active members to become eligible for Moderator roles.
+  - **Admin Configurable:** Neighborhood admins can dynamically define point values and level thresholds.
 - **Advertisements:** A neighborhood-specific carousel of advertisements from local business partners.
 
 ### 4. Service and Operations
