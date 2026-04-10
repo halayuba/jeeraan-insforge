@@ -66,3 +66,6 @@
     - [x] Write Tests: Verify user role updates upon admin approval.
     - [x] Implement: Manual approval button and role update logic in the dashboard.
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Moderation' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 4b07e2b
