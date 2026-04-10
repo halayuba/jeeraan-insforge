@@ -13,3 +13,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Q & A and Advertisements**
   *Link: [./tracks/q_and_a_and_advertisements_20260320/](./tracks/q_and_a_and_advertisements_20260320/)*
+
+---
+
+- [ ] **Track: Gamified Engagement Engine**
+*Link: [./tracks/gamified_engagement_engine_20260410/](./tracks/gamified_engagement_engine_20260410/)*
