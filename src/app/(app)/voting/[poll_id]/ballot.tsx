@@ -1,3 +1,6 @@
+import { ArrowLeft, CheckCircle2 } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -10,7 +13,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../../lib/insforge';
 import { useAuth } from '../../../../contexts/AuthContext';
 
@@ -85,7 +88,7 @@ export default function BallotScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#111618" />
+          <ArrowLeft size={24} color="#111618" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Board Elections</Text>
         <View style={styles.headerRight} />
@@ -128,7 +131,7 @@ export default function BallotScreen() {
                   </View>
                   {isSelected && (
                     <View style={styles.selectedIndicator}>
-                      <MaterialIcons name="check-circle" size={22} color="#1193d4" />
+                      <CheckCircle2 size={22} color="#1193d4" strokeWidth={2} />
                     </View>
                   )}
                   <TouchableOpacity

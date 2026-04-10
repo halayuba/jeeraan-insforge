@@ -1,3 +1,6 @@
+import { ArrowLeft, MessageCircle, MessageSquarePlus, Search, ThumbsUp, UserCircle2 } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,7 +11,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../../../../lib/insforge';
 import { useAuth } from '../../../../../../contexts/AuthContext';
 
@@ -78,11 +81,11 @@ export default function CandidateQAScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          <ArrowLeft size={24} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Candidate Q&A</Text>
         <TouchableOpacity style={styles.searchButton}>
-          <MaterialIcons name="search" size={24} color="#0f172a" />
+          <Search size={24} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -114,7 +117,7 @@ export default function CandidateQAScreen() {
                 <View style={styles.questionSection}>
                   <Text style={styles.questionText}>{item.question}</Text>
                   <View style={styles.askedByRow}>
-                    <MaterialIcons name="account-circle" size={14} color="#1193d4" />
+                    <UserCircle2 size={14} color="#1193d4" strokeWidth={2} />
                     <Text style={styles.askedByText}>
                       {item.asked_by ? `Asked by ${item.asked_by}` : 'Anonymous'} •{' '}
                       {formatDate(item.created_at)}
@@ -132,11 +135,11 @@ export default function CandidateQAScreen() {
                 <View style={styles.actionsRow}>
                   <View style={styles.reactionButtons}>
                     <TouchableOpacity style={styles.reactionButton}>
-                      <MaterialIcons name="thumb-up" size={16} color="#64748b" />
+                      <ThumbsUp size={16} color="#64748b" strokeWidth={2} />
                       <Text style={styles.reactionText}>{item.helpful_count ?? 0} Helpful</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.reactionButton}>
-                      <MaterialIcons name="chat-bubble-outline" size={16} color="#64748b" />
+                      <MessageCircle size={16} color="#64748b" strokeWidth={2} />
                       <Text style={styles.reactionText}>{item.comment_count ?? 0} Comments</Text>
                     </TouchableOpacity>
                   </View>
@@ -152,7 +155,7 @@ export default function CandidateQAScreen() {
 
       {/* FAB */}
       <TouchableOpacity style={styles.fab}>
-        <MaterialIcons name="add-comment" size={28} color="#ffffff" />
+        <MessageSquarePlus size={28} color="#ffffff" strokeWidth={2} />
       </TouchableOpacity>
     </View>
   );

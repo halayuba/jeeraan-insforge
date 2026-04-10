@@ -1,3 +1,6 @@
+import { ArrowLeft, Contact, MessageSquare, Share2, Store } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,7 +14,7 @@ import {
   Share,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -90,11 +93,11 @@ export default function ClassifiedAdDetail() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Ad Details</Text>
         <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
-          <MaterialIcons name="share" size={24} color="#1193d4" />
+          <Share2 size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -106,7 +109,7 @@ export default function ClassifiedAdDetail() {
             <Image source={{ uri: ad.image_url }} style={styles.mainImage} resizeMode="contain" />
           ) : (
             <View style={styles.placeholderContainer}>
-              <MaterialIcons name="storefront" size={80} color="#cbd5e1" />
+              <Store size={80} color="#cbd5e1" strokeWidth={2} />
               <Text style={styles.placeholderText}>No Image Available</Text>
             </View>
           )}
@@ -145,7 +148,7 @@ export default function ClassifiedAdDetail() {
           </View>
           
           <View style={styles.contactCard}>
-            <MaterialIcons name="contact-phone" size={20} color="#1193d4" />
+            <Contact size={20} color="#1193d4" strokeWidth={2} />
             <Text style={styles.contactInfo}>{ad.contact_info}</Text>
           </View>
         </View>
@@ -155,7 +158,7 @@ export default function ClassifiedAdDetail() {
       {/* Bottom Action */}
       <View style={styles.bottomBar}>
         <TouchableOpacity style={styles.contactButton} onPress={() => {}}>
-          <MaterialIcons name="chat" size={20} color="#ffffff" />
+          <MessageSquare size={20} color="#ffffff" strokeWidth={2} />
           <Text style={styles.contactButtonText}>Message Seller</Text>
         </TouchableOpacity>
       </View>

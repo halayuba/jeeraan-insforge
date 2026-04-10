@@ -1,3 +1,6 @@
+import { ArrowLeft } from 'lucide-react-native';
+
+
 import React, { useState } from 'react';
 import {
   View,
@@ -12,7 +15,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -92,7 +95,7 @@ export default function CreateEvent() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Create New Event</Text>
         <View style={styles.iconButton} />

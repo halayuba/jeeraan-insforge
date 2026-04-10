@@ -1,3 +1,6 @@
+import { ArrowLeft, Plus, PlusCircle, Search, Store } from 'lucide-react-native';
+
+
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -11,7 +14,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -78,14 +81,14 @@ export default function ClassifiedsIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Classifieds</Text>
         <TouchableOpacity 
           onPress={() => router.push('/(app)/classifieds/create' as any)}
           style={styles.iconButton}
         >
-          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
+          <PlusCircle size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -99,7 +102,7 @@ export default function ClassifiedsIndex() {
         
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={24} color="#94a3b8" style={styles.searchIcon} />
+          <Search size={24} color="#94a3b8" style={styles.searchIcon} strokeWidth={2} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search ads..."
@@ -130,7 +133,7 @@ export default function ClassifiedsIndex() {
                       <Image source={{ uri: ad.image_url }} style={styles.adImage} resizeMode="cover" />
                     ) : (
                       <View style={styles.placeholderImage}>
-                        <MaterialIcons name="storefront" size={32} color="#94a3b8" />
+                        <Store size={32} color="#94a3b8" strokeWidth={2} />
                       </View>
                     )}
                     <Text style={styles.priceTag}>${ad.price}</Text>
@@ -159,7 +162,7 @@ export default function ClassifiedsIndex() {
           style={styles.fab} 
           onPress={() => router.push('/(app)/classifieds/create' as any)}
         >
-          <MaterialIcons name="add" size={24} color="#ffffff" />
+          <Plus size={24} color="#ffffff" strokeWidth={2} />
           <Text style={styles.fabText}>Post Ad</Text>
         </TouchableOpacity>
       </View>

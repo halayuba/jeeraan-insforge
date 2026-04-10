@@ -1,3 +1,6 @@
+import { AlertCircle, Bell, CheckCircle2, Info } from 'lucide-react-native';
+
+
 import React, { useEffect } from 'react';
 import {
   Animated,
@@ -7,7 +10,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -85,15 +88,17 @@ export const Toast: React.FC<ToastProps> = ({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return 'check-circle';
+        return CheckCircle2;
       case 'error':
-        return 'error';
+        return AlertCircle;
       case 'info':
-        return 'info';
+        return Info;
       default:
-        return 'notifications';
+        return Bell;
     }
   };
+
+  const IconComponent = getIcon();
 
   return (
     <Animated.View
@@ -108,7 +113,7 @@ export const Toast: React.FC<ToastProps> = ({
       ]}
     >
       <View style={styles.content}>
-        <MaterialIcons name={getIcon() as any} size={20} color="#ffffff" />
+        <IconComponent size={20} color="#ffffff" strokeWidth={2} />
         <Text style={styles.text}>{message}</Text>
       </View>
     </Animated.View>

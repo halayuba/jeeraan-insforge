@@ -1,3 +1,6 @@
+import { ChevronLeft, Layout } from 'lucide-react-native';
+
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
@@ -11,7 +14,7 @@ import {
   Linking,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -101,7 +104,7 @@ export default function AdvertisementsIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back-ios" size={20} color="#0f172a" />
+          <ChevronLeft size={20} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Local Ads</Text>
         <View style={styles.iconButton} />
@@ -117,7 +120,7 @@ export default function AdvertisementsIndex() {
           <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 100 }} />
         ) : ads.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="featured-play-list" size={64} color="#e2e8f0" />
+            <Layout size={64} color="#e2e8f0" strokeWidth={2} />
             <Text style={styles.emptyText}>No advertisements available.</Text>
             <Text style={styles.emptySubtext}>Check back later for local offers!</Text>
           </View>

@@ -1,3 +1,6 @@
+import { ArrowLeft, Calendar, CalendarCheck, MoreVertical, Send, Star } from 'lucide-react-native';
+
+
 import React, { useState } from 'react';
 import {
   View,
@@ -11,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit } from '../../../lib/rateLimit';
@@ -19,6 +22,7 @@ import { checkDailyLimit } from '../../../lib/rateLimit';
 export default function SubmitServiceOrder() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { neighborhoodId } = useAuth();
   
   const [unitAddress, setUnitAddress] = useState('');
   const [occupantName, setOccupantName] = useState('');
@@ -29,6 +33,18 @@ export default function SubmitServiceOrder() {
   const [feedback, setFeedback] = useState('');
   const [satisfaction, setSatisfaction] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+
+  const handleGamificationReward = (rewardData: any) => {
+    if (rewardData?.success && rewardData.points_added > 0) {
+      let message = `You earned ${rewardData.points_added} points for feedback!`;
+      if (rewardData.level_up) {
+        message += ` 🎉 You reached Level ${rewardData.new_level}!`;
+      } else if (rewardData.eligible_for_moderator) {
+        message += ` 🎖️ You are now eligible for Moderator role!`;
+      }
+      showToast(message, 'success');
+    }
+  };
 
   const handleSubmit = async () => {
     if (!unitAddress.trim() || !occupantName.trim() || !issueDescription.trim()) {
@@ -47,7 +63,7 @@ export default function SubmitServiceOrder() {
         return;
       }
 
-      const { error } = await insforge.database
+      const { data: newOrder, error } = await insforge.database
         .from('service_orders')
         .insert([{
           user_id: userData.user.id,
@@ -60,10 +76,27 @@ export default function SubmitServiceOrder() {
           satisfaction_rating: satisfaction > 0 ? satisfaction : null,
           status: 'Pending',
           created_at: new Date(dateSubmitted).toISOString(),
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
       
+      // Award Points for feedback/submission
+      try {
+        const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
+          body: {
+            userId: userData.user.id,
+            actionType: 'work_order_feedback',
+            neighborhoodId: neighborhoodId,
+            entityId: newOrder.id
+          }
+        });
+        handleGamificationReward(rewardData);
+      } catch (rewardErr) {
+        console.error('Failed to award points:', rewardErr);
+      }
+
       showToast('Service order requested successfully.');
       router.replace('/(app)/service-orders');
     } catch (err: any) {
@@ -82,11 +115,7 @@ export default function SubmitServiceOrder() {
         style={styles.starButton}
         onPress={() => setSatisfaction(index)}
       >
-        <MaterialIcons 
-          name="star" 
-          size={24} 
-          color={isSelected ? '#eab308' : '#cbd5e1'} 
-        />
+        <Star size={24} color={isSelected ? '#eab308' : '#cbd5e1'} strokeWidth={2} />
       </TouchableOpacity>
     );
   };
@@ -99,11 +128,11 @@ export default function SubmitServiceOrder() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Submit Service Order</Text>
         <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="more-vert" size={24} color="#1193d4" />
+          <MoreVertical size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -173,7 +202,7 @@ export default function SubmitServiceOrder() {
           <View style={[styles.inputContainer, { flex: 1 }]}>
             <Text style={styles.label}>Date Submitted</Text>
             <View style={styles.inputWithIconContainer}>
-              <MaterialIcons name="calendar-today" size={20} color="#1193d4" style={styles.inputIcon} />
+              <Calendar size={20} color="#1193d4" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={styles.inputWithIcon}
                 value={dateSubmitted}
@@ -186,7 +215,7 @@ export default function SubmitServiceOrder() {
           <View style={[styles.inputContainer, { flex: 1 }]}>
             <Text style={styles.label}>Complete on <Text style={styles.optional}>(Optional)</Text></Text>
             <View style={styles.inputWithIconContainer}>
-              <MaterialIcons name="event-available" size={20} color="#1193d4" style={styles.inputIcon} />
+              <CalendarCheck size={20} color="#1193d4" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={styles.inputWithIcon}
                 placeholder="Oct 25, 2023"
@@ -232,7 +261,7 @@ export default function SubmitServiceOrder() {
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
             <>
-              <MaterialIcons name="send" size={20} color="#ffffff" />
+              <Send size={20} color="#ffffff" strokeWidth={2} />
               <Text style={styles.submitButtonText}>Submit Order</Text>
             </>
           )}

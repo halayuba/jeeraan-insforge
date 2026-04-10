@@ -1,3 +1,6 @@
+import { ArrowLeft, Image as ImageIcon, Paperclip, X } from 'lucide-react-native';
+
+
 import React, { useState } from 'react';
 import {
   View,
@@ -13,7 +16,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import * as ImagePicker from 'expo-image-picker';
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
@@ -31,13 +34,25 @@ const CATEGORIES = [
 export default function CreateAnnouncement() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth, handleAuthError } = useAuth();
+  const { refreshAuth, handleAuthError, neighborhoodId } = useAuth();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const handleGamificationReward = (rewardData: any) => {
+    if (rewardData?.success && rewardData.points_added > 0) {
+      let message = `You earned ${rewardData.points_added} points!`;
+      if (rewardData.level_up) {
+        message += ` 🎉 You reached Level ${rewardData.new_level}!`;
+      } else if (rewardData.eligible_for_moderator) {
+        message += ` 🎖️ You are now eligible for Moderator role!`;
+      }
+      showToast(message, 'success');
+    }
+  };
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -114,7 +129,7 @@ export default function CreateAnnouncement() {
       const uploadedImageUrls = await uploadImagesAndGetUrls();
 
       // 3. Save Announcement DB Record
-      const { error } = await insforge.database
+      const { data: newAnnouncement, error } = await insforge.database
         .from('announcements')
         .insert([{
           title: title.trim(),
@@ -122,10 +137,28 @@ export default function CreateAnnouncement() {
           category,
           images: uploadedImageUrls,
           author_id: userData.user.id,
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
       
+      // 4. Award Points
+      try {
+        const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
+          body: {
+            userId: userData.user.id,
+            actionType: 'announcement',
+            neighborhoodId: neighborhoodId,
+            entityId: newAnnouncement.id
+          }
+        });
+        handleGamificationReward(rewardData);
+      } catch (rewardErr) {
+        console.error('Failed to award points:', rewardErr);
+        // Don't fail the whole process if gamification fails
+      }
+
       showToast('Announcement posted successfully.', 'success');
       router.back();
     } catch (err: any) {
@@ -148,7 +181,7 @@ export default function CreateAnnouncement() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>New Announcement</Text>
         <View style={styles.iconButton} />
@@ -198,14 +231,14 @@ export default function CreateAnnouncement() {
         
         <TouchableOpacity style={styles.attachmentButton} onPress={pickImage}>
           <View style={styles.attachmentIconContainer}>
-            <MaterialIcons name="image" size={20} color="#0f172a" />
+            <ImageIcon size={20} color="#0f172a" strokeWidth={2} />
           </View>
           <Text style={styles.attachmentText}>Add Images</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.attachmentButton}>
           <View style={styles.attachmentIconContainer}>
-            <MaterialIcons name="attach-file" size={20} color="#0f172a" />
+            <Paperclip size={20} color="#0f172a" strokeWidth={2} />
           </View>
           <Text style={styles.attachmentText}>Add Files</Text>
         </TouchableOpacity>
@@ -220,7 +253,7 @@ export default function CreateAnnouncement() {
                   style={styles.removeImageBtn}
                   onPress={() => removeImage(index)}
                 >
-                  <MaterialIcons name="close" size={14} color="#ffffff" />
+                  <X size={14} color="#ffffff" strokeWidth={2} />
                 </TouchableOpacity>
               </View>
             ))}

@@ -1,4 +1,5 @@
-import { MaterialIcons } from '@expo/vector-icons'
+import { ArrowLeft, Check, ChevronDown, ChevronUp, Key, UserPlus } from 'lucide-react-native';
+
 import { Link, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import {
@@ -159,7 +160,7 @@ export default function NeighborhoodAccess() {
             onPress={() => router.back()}
             style={styles.backButton}
           >
-            <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+            <ArrowLeft size={24} color="#0f172a" strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Neighborhood Access</Text>
           <View style={{ width: 40 }} />
@@ -193,10 +194,10 @@ export default function NeighborhoodAccess() {
               activeOpacity={0.7}
             >
               <View style={styles.accordionTitleContainer}>
-                <MaterialIcons
-                  name="vpn-key"
+                <Key
                   size={24}
                   color={expandedSection === 'invite' ? '#1193d4' : '#64748b'}
+                  strokeWidth={2}
                 />
                 <Text
                   style={[
@@ -207,13 +208,11 @@ export default function NeighborhoodAccess() {
                   Join via Invite Code
                 </Text>
               </View>
-              <MaterialIcons
-                name={
-                  expandedSection === 'invite' ? 'expand-less' : 'expand-more'
-                }
-                size={28}
-                color="#64748b"
-              />
+              {expandedSection === 'invite' ? (
+                <ChevronUp size={28} color="#64748b" strokeWidth={2} />
+              ) : (
+                <ChevronDown size={28} color="#64748b" strokeWidth={2} />
+              )}
             </TouchableOpacity>
 
             {expandedSection === 'invite' && (
@@ -269,11 +268,7 @@ export default function NeighborhoodAccess() {
               activeOpacity={0.7}
             >
               <View style={styles.accordionTitleContainer}>
-                <MaterialIcons
-                  name="person-add"
-                  size={24}
-                  color={expandedSection === 'request' ? '#1193d4' : '#64748b'}
-                />
+                <UserPlus size={24} color={expandedSection === 'request' ? '#1193d4' : '#64748b'} strokeWidth={2} />
                 <Text
                   style={[
                     styles.accordionTitle,
@@ -284,13 +279,11 @@ export default function NeighborhoodAccess() {
                   Request to Join
                 </Text>
               </View>
-              <MaterialIcons
-                name={
-                  expandedSection === 'request' ? 'expand-less' : 'expand-more'
-                }
-                size={28}
-                color="#64748b"
-              />
+              {expandedSection === 'request' ? (
+                <ChevronUp size={28} color="#64748b" strokeWidth={2} />
+              ) : (
+                <ChevronDown size={28} color="#64748b" strokeWidth={2} />
+              )}
             </TouchableOpacity>
 
             {expandedSection === 'request' && (
@@ -366,7 +359,7 @@ export default function NeighborhoodAccess() {
                       ]}
                     >
                       {confirmResidency && (
-                        <MaterialIcons name="check" size={16} color="#fff" />
+                        <Check size={16} color="#fff" strokeWidth={2} />
                       )}
                     </View>
                     <Text style={styles.checkboxLabel}>

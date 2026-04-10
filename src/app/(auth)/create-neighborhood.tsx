@@ -1,8 +1,11 @@
+import { ArrowLeft } from 'lucide-react-native';
+
+
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { insforge } from '../../lib/insforge';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -136,7 +139,7 @@ export default function CreateNeighborhoodScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+            <ArrowLeft size={24} color="#0f172a" strokeWidth={2} />
           </TouchableOpacity>
 
           <View style={styles.header}>

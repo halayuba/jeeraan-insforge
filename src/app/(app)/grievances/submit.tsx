@@ -1,10 +1,12 @@
+import { ArrowLeft, Camera, Info, Send, Shield, Trash2, Wrench, X } from 'lucide-react-native';
+
 import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
+  TextInput,
   Image,
   StyleSheet,
   ActivityIndicator,
@@ -12,7 +14,6 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
 import { insforge } from '../../../lib/insforge';
@@ -21,14 +22,14 @@ import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit } from '../../../lib/rateLimit';
 
 const CATEGORIES = [
-  { id: 'Maintenance', icon: 'home-work' },
-  { id: 'Security', icon: 'security' },
-  { id: 'Cleaning', icon: 'cleaning-services' },
+  { id: 'Maintenance', icon: Wrench },
+  { id: 'Security', icon: Shield },
+  { id: 'Cleaning', icon: Trash2 },
 ];
 
 export default function SubmitGrievance() {
   const router = useRouter();
-  const { handleAuthError } = useAuth();
+  const { handleAuthError, neighborhoodId } = useAuth();
   const { showToast } = useToast();
   
   const [category, setCategory] = useState(CATEGORIES[0].id);
@@ -36,6 +37,18 @@ export default function SubmitGrievance() {
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [submitting, setSubmitting] = useState(false);
+
+  const handleGamificationReward = (rewardData: any) => {
+    if (rewardData?.success && rewardData.points_added > 0) {
+      let message = `You earned ${rewardData.points_added} points!`;
+      if (rewardData.level_up) {
+        message += ` 🎉 You reached Level ${rewardData.new_level}!`;
+      } else if (rewardData.eligible_for_moderator) {
+        message += ` 🎖️ You are now eligible for Moderator role!`;
+      }
+      showToast(message, 'success');
+    }
+  };
 
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
@@ -113,7 +126,7 @@ export default function SubmitGrievance() {
       const uploadedImageUrls = await uploadImagesAndGetUrls();
 
       // 3. Insert record
-      const { error } = await insforge.database
+      const { data: newGrievance, error } = await insforge.database
         .from('grievances')
         .insert([{
           title: title.trim(),
@@ -122,10 +135,27 @@ export default function SubmitGrievance() {
           status: 'Pending',
           images: uploadedImageUrls,
           user_id: userData.user.id,
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
       
+      // 4. Award Points
+      try {
+        const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
+          body: {
+            userId: userData.user.id,
+            actionType: 'grievance_submission',
+            neighborhoodId: neighborhoodId,
+            entityId: newGrievance.id
+          }
+        });
+        handleGamificationReward(rewardData);
+      } catch (rewardErr) {
+        console.error('Failed to award grievance points:', rewardErr);
+      }
+
       showToast('Grievance reported successfully!');
       router.push('/(app)/grievances');
     } catch (err: any) {
@@ -145,11 +175,11 @@ export default function SubmitGrievance() {
       {/* Top App Bar */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Submit Grievance</Text>
         <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="info" size={24} color="#1193d4" />
+          <Info size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -158,29 +188,32 @@ export default function SubmitGrievance() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Category</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryContainer}>
-            {CATEGORIES.map((cat) => (
-              <TouchableOpacity
-                key={cat.id}
-                style={[
-                  styles.categoryChip,
-                  category === cat.id ? styles.categoryChipActive : styles.categoryChipInactive
-                ]}
-                onPress={() => setCategory(cat.id)}
-              >
-                <MaterialIcons 
-                  name={cat.icon as any} 
-                  size={16} 
-                  color={category === cat.id ? '#ffffff' : '#475569'} 
-                  style={styles.categoryIcon}
-                />
-                <Text style={[
-                  styles.categoryText,
-                  category === cat.id ? styles.categoryTextActive : styles.categoryTextInactive
-                ]}>
-                  {cat.id}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {CATEGORIES.map((cat) => {
+              const CategoryIcon = cat.icon;
+              return (
+                <TouchableOpacity 
+                  key={cat.id} 
+                  style={[
+                    styles.categoryChip,
+                    category === cat.id && styles.categoryChipActive
+                  ]}
+                  onPress={() => setCategory(cat.id)}
+                >
+                  <CategoryIcon 
+                    size={16} 
+                    color={category === cat.id ? '#ffffff' : '#475569'} 
+                    style={styles.categoryIcon}
+                    strokeWidth={2}
+                  />
+                  <Text style={[
+                    styles.categoryText,
+                    category === cat.id ? styles.categoryTextActive : styles.categoryTextInactive
+                  ]}>
+                    {cat.id}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -220,7 +253,7 @@ export default function SubmitGrievance() {
             {/* Add New Button */}
             {images.length < 3 && (
               <TouchableOpacity style={styles.addImageBtn} onPress={pickImage}>
-                <MaterialIcons name="add-a-photo" size={24} color="#94a3b8" />
+                <Camera size={24} color="#94a3b8" strokeWidth={2} />
                 <Text style={styles.addImageText}>Add Photo</Text>
               </TouchableOpacity>
             )}
@@ -233,7 +266,7 @@ export default function SubmitGrievance() {
                   style={styles.removeImageBtn}
                   onPress={() => removeImage(index)}
                 >
-                  <MaterialIcons name="close" size={16} color="#ffffff" />
+                  <X size={16} color="#ffffff" strokeWidth={2} />
                 </TouchableOpacity>
               </View>
             ))}
@@ -256,7 +289,7 @@ export default function SubmitGrievance() {
           ) : (
             <>
               <Text style={styles.submitButtonText}>Submit Grievance</Text>
-              <MaterialIcons name="send" size={20} color="#ffffff" />
+              <Send size={20} color="#ffffff" strokeWidth={2} />
             </>
           )}
         </TouchableOpacity>

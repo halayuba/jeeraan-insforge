@@ -1,19 +1,28 @@
+import { BarChart3, Bell, HelpCircle, Home, Menu, User } from 'lucide-react-native';
+
+
 import { Tabs, Redirect } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LevelBadge } from '../../components/LevelBadge';
 
 function CustomHeader() {
+  const { userLevel } = useAuth();
+
   return (
     <SafeAreaView edges={['top']} style={styles.headerContainer}>
       <View style={styles.header}>
         <TouchableOpacity>
-          <MaterialIcons name="menu" size={28} color="#0f172a" />
+          <Menu size={28} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Neighborhood Hub</Text>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Neighborhood Hub</Text>
+          <LevelBadge level={userLevel} size="small" />
+        </View>
         <TouchableOpacity>
-          <MaterialIcons name="notifications" size={28} color="#0f172a" />
+          <Bell size={28} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -62,21 +71,21 @@ export default function AppLayout() {
         name="index" 
         options={{ 
           title: 'Home',
-          tabBarIcon: ({ color }) => <MaterialIcons name="home" size={24} color={color} />
+          tabBarIcon: ({ color }) => <Home size={24} color={color} strokeWidth={2} />
         }} 
       />
       <Tabs.Screen 
         name="profile" 
         options={{ 
           title: 'Profile',
-          tabBarIcon: ({ color }) => <MaterialIcons name="person" size={24} color={color} />
+          tabBarIcon: ({ color }) => <User size={24} color={color} strokeWidth={2} />
         }} 
       />
       <Tabs.Screen 
         name="faq" 
         options={{ 
           title: 'FAQ',
-          tabBarIcon: ({ color }) => <MaterialIcons name="help" size={24} color={color} />
+          tabBarIcon: ({ color }) => <HelpCircle size={24} color={color} strokeWidth={2} />
         }} 
       />
       
@@ -99,7 +108,7 @@ export default function AppLayout() {
         name="admin" 
         options={{ 
           title: 'Analytics',
-          tabBarIcon: ({ color }) => <MaterialIcons name="analytics" size={24} color={color} />,
+          tabBarIcon: ({ color }) => <BarChart3 size={24} color={color} strokeWidth={2} />,
           href: ((userRole === 'admin' || userRole === 'super_admin') ? '/admin' : null) as any
         }} 
       />
@@ -122,5 +131,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Manrope-Bold',
     color: '#0f172a',
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   }
 });

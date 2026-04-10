@@ -1,3 +1,15 @@
+import {
+  ArrowLeft,
+  Calendar,
+  ChevronDown,
+  Megaphone,
+  PlusCircle,
+  Search,
+  Shield,
+  ShieldAlert,
+  Wrench,
+} from 'lucide-react-native';
+
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -11,7 +23,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -66,11 +78,11 @@ export default function AnnouncementsIndex() {
 
   const getCategoryIcon = (category: string) => {
     const cat = category?.toLowerCase() || '';
-    if (cat.includes('safety')) return 'admin-panel-settings';
-    if (cat.includes('security')) return 'security';
-    if (cat.includes('events')) return 'event';
-    if (cat.includes('maintenance')) return 'engineering';
-    return 'announcement';
+    if (cat.includes('safety')) return ShieldAlert;
+    if (cat.includes('security')) return Shield;
+    if (cat.includes('events')) return Calendar;
+    if (cat.includes('maintenance')) return Wrench;
+    return Megaphone;
   };
 
   const formatAnnouncementDate = (dateString: string) => {
@@ -103,21 +115,21 @@ export default function AnnouncementsIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Recent Announcements</Text>
         <TouchableOpacity 
           onPress={() => router.push('/(app)/announcements/create' as any)}
           style={styles.iconButton}
         >
-          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
+          <PlusCircle size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={24} color="#64748b" style={styles.searchIcon} />
+          <Search size={24} color="#64748b" style={styles.searchIcon} strokeWidth={2} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search announcements..."
@@ -134,7 +146,7 @@ export default function AnnouncementsIndex() {
           {FILTER_OPTIONS.map((filter) => (
             <TouchableOpacity key={filter} style={styles.filterChip}>
               <Text style={styles.filterChipText}>{filter}</Text>
-              <MaterialIcons name="expand-more" size={18} color="#0f172a" />
+              <ChevronDown size={18} color="#0f172a" strokeWidth={2} />
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -156,7 +168,7 @@ export default function AnnouncementsIndex() {
         ) : (
           filteredAnnouncements.map((announcement) => {
             const catStyles = getCategoryStyles(announcement.category);
-            const catIcon = getCategoryIcon(announcement.category);
+            const CategoryIcon = getCategoryIcon(announcement.category);
             
             return (
               <TouchableOpacity 
@@ -184,14 +196,14 @@ export default function AnnouncementsIndex() {
                     <Image source={{ uri: announcement.images[0] }} style={styles.imagePreview} />
                   </View>
                 )}
-
-                <View style={styles.cardFooter}>
-                  <View style={styles.authorContainer}>
-                    <View style={styles.authorIconContainer}>
-                      <MaterialIcons name={catIcon as any} size={14} color="#1193d4" />
-                    </View>
-                    <Text style={styles.authorName}>Admin / Board</Text>
-                  </View>
+<View style={styles.cardFooter}>
+  <View style={styles.authorContainer}>
+    <View style={styles.catIconContainer}>
+      <CategoryIcon size={14} color="#1193d4" strokeWidth={2} />
+    </View>
+    <Text style={styles.authorName}>Admin Team</Text>
+  </View>
+</View>
                   <Text style={styles.readMoreText}>Read More</Text>
                 </View>
               </TouchableOpacity>

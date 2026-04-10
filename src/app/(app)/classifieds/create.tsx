@@ -1,3 +1,6 @@
+import { ArrowLeft, CloudUpload } from 'lucide-react-native';
+
+
 import React, { useState } from 'react';
 import {
   View,
@@ -12,7 +15,7 @@ import {
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
 import { insforge } from '../../../lib/insforge';
@@ -23,7 +26,7 @@ import { checkDailyLimit } from '../../../lib/rateLimit';
 export default function CreateClassifiedAd() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { handleAuthError } = useAuth();
+  const { handleAuthError, neighborhoodId } = useAuth();
   const { refreshAuth } = useAuth();
 
   const [title, setTitle] = useState('');
@@ -35,6 +38,18 @@ export default function CreateClassifiedAd() {
   const [imageBase64, setImageBase64] = useState<string | null>(null);
   
   const [submitting, setSubmitting] = useState(false);
+
+  const handleGamificationReward = (rewardData: any) => {
+    if (rewardData?.success && rewardData.points_added > 0) {
+      let message = `You earned ${rewardData.points_added} points!`;
+      if (rewardData.level_up) {
+        message += ` 🎉 You reached Level ${rewardData.new_level}!`;
+      } else if (rewardData.eligible_for_moderator) {
+        message += ` 🎖️ You are now eligible for Moderator role!`;
+      }
+      showToast(message, 'success');
+    }
+  };
 
   const pickImage = async () => {
     try {
@@ -100,7 +115,7 @@ export default function CreateClassifiedAd() {
       }
 
       // Insert Row
-      const { error: dbError } = await insforge.database
+      const { data: newAd, error: dbError } = await insforge.database
         .from('classified_ads')
         .insert([{
           user_id: userData.user.id,
@@ -109,10 +124,27 @@ export default function CreateClassifiedAd() {
           description: description.trim(),
           contact_info: contactInfo.trim(),
           image_url: uploadedImageUrl,
-        }]);
+        }])
+        .select()
+        .single();
 
       if (dbError) throw dbError;
       
+      // Award Points
+      try {
+        const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
+          body: {
+            userId: userData.user.id,
+            actionType: 'classified_ad',
+            neighborhoodId: neighborhoodId,
+            entityId: newAd.id
+          }
+        });
+        handleGamificationReward(rewardData);
+      } catch (rewardErr) {
+        console.error('Failed to award classified points:', rewardErr);
+      }
+
       showToast('Ad posted successfully.');
       router.back();
     } catch (err: any) {
@@ -132,7 +164,7 @@ export default function CreateClassifiedAd() {
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Post New Ad</Text>
         <View style={styles.iconButton} />
@@ -199,7 +231,7 @@ export default function CreateClassifiedAd() {
               <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="cover" />
             ) : (
               <View style={styles.imagePlaceholder}>
-                <MaterialIcons name="cloud-upload" size={48} color="#94a3b8" />
+                <CloudUpload size={48} color="#94a3b8" strokeWidth={2} />
                 <Text style={styles.imagePickerText}>Tap to pick an image</Text>
                 <Text style={styles.imagePickerSubtext}>PNG, JPG</Text>
               </View>

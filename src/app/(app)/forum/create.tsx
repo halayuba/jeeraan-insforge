@@ -1,3 +1,6 @@
+import { ArrowLeft } from 'lucide-react-native';
+
+
 import React, { useState } from 'react';
 import {
   View,
@@ -11,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -27,12 +30,24 @@ const CATEGORIES = [
 export default function CreateForumPost() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth, handleAuthError } = useAuth();
+  const { refreshAuth, handleAuthError, neighborhoodId } = useAuth();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [submitting, setSubmitting] = useState(false);
+
+  const handleGamificationReward = (rewardData: any) => {
+    if (rewardData?.success && rewardData.points_added > 0) {
+      let message = `You earned ${rewardData.points_added} points!`;
+      if (rewardData.level_up) {
+        message += ` 🎉 You reached Level ${rewardData.new_level}!`;
+      } else if (rewardData.eligible_for_moderator) {
+        message += ` 🎖️ You are now eligible for Moderator role!`;
+      }
+      showToast(message, 'success');
+    }
+  };
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
@@ -49,17 +64,34 @@ export default function CreateForumPost() {
       if (!userData?.user) throw new Error('Not authenticated');
 
       // 2. Save Forum Post
-      const { error } = await insforge.database
+      const { data: newPost, error } = await insforge.database
         .from('forum_posts')
         .insert([{
           title: title.trim(),
           content: content.trim(),
           category,
           user_id: userData.user.id,
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
       
+      // 3. Award Points
+      try {
+        const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
+          body: {
+            userId: userData.user.id,
+            actionType: 'forum_topic',
+            neighborhoodId: neighborhoodId,
+            entityId: newPost.id
+          }
+        });
+        handleGamificationReward(rewardData);
+      } catch (rewardErr) {
+        console.error('Failed to award forum points:', rewardErr);
+      }
+
       showToast('Topic posted successfully.');
       router.replace('/forum');
     } catch (err: any) {
@@ -80,7 +112,7 @@ export default function CreateForumPost() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>New Post</Text>
         <View style={styles.iconButton} />

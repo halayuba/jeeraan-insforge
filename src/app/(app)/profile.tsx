@@ -1,3 +1,6 @@
+import { Briefcase, Cake, Camera, ChevronRight, Globe, Home, Mail, PauseCircle, Phone, Trash2, User, UserSquare2 } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -12,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../contexts/AuthContext';
 import { insforge } from '../../lib/insforge';
@@ -20,12 +23,13 @@ import { useToast } from '../../contexts/ToastContext';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { session, signOut } = useAuth();
+  const { session, signOut, neighborhoodId } = useAuth();
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [gamificationSettings, setGamificationSettings] = useState<any>(null);
 
   // Editable fields state
   const [gender, setGender] = useState('');
@@ -37,12 +41,37 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (session?.user?.id) {
-      fetchProfile();
+      fetchData();
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, neighborhoodId]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchProfile(),
+      fetchGamificationSettings(),
+    ]);
+    setLoading(false);
+  };
+
+  const fetchGamificationSettings = async () => {
+    if (!neighborhoodId) return;
+    try {
+      const { data, error } = await insforge.database
+        .from('gamification_settings')
+        .select('*')
+        .eq('neighborhood_id', neighborhoodId)
+        .maybeSingle();
+
+      if (data) {
+        setGamificationSettings(data);
+      }
+    } catch (err) {
+      console.error('Error fetching gamification settings:', err);
+    }
+  };
 
   const fetchProfile = async () => {
-    setLoading(true);
     try {
       const { data, error } = await insforge.database
         .from('user_profiles')
@@ -64,8 +93,6 @@ export default function ProfileScreen() {
     } catch (err) {
       console.error('Error fetching profile:', err);
       showToast('Failed to load profile', 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -221,7 +248,7 @@ export default function ProfileScreen() {
           {/* Profile Picture */}
           <TouchableOpacity style={styles.row} onPress={handlePickImage}>
             <View style={styles.rowLeft}>
-              <MaterialIcons name="camera-alt" size={22} color="#64748b" />
+              <Camera size={22} color="#64748b" strokeWidth={2} />
               <Text style={styles.label}>Profile picture</Text>
             </View>
             <View style={styles.avatarContainer}>
@@ -235,10 +262,52 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
+          {/* Gamification Stats */}
+          {gamificationSettings?.is_active && (
+            <View style={styles.gamificationSection}>
+              <View style={styles.levelBadgeContainer}>
+                <View style={styles.levelBadge}>
+                  <Text style={styles.levelBadgeText}>LVL {profile?.level || 1}</Text>
+                </View>
+                <Text style={styles.pointsText}>{profile?.points || 0} Points</Text>
+              </View>
+              
+              {(() => {
+                const currentPoints = profile?.points || 0;
+                const currentLevel = profile?.level || 1;
+                let nextLevelThreshold = 0;
+                let prevLevelThreshold = 0;
+
+                if (currentLevel === 1) {
+                  nextLevelThreshold = gamificationSettings.level_2_threshold;
+                  prevLevelThreshold = 0;
+                } else if (currentLevel === 2) {
+                  nextLevelThreshold = gamificationSettings.level_3_threshold;
+                  prevLevelThreshold = gamificationSettings.level_2_threshold;
+                } else {
+                  // Max level reached or custom levels
+                  return <Text style={styles.progressText}>Maximum Level Reached! 🏆</Text>;
+                }
+
+                const progress = Math.min(Math.max((currentPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold), 0), 1);
+                const pointsNeeded = nextLevelThreshold - currentPoints;
+
+                return (
+                  <View style={styles.progressContainer}>
+                    <View style={styles.progressBarBg}>
+                      <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
+                    </View>
+                    <Text style={styles.progressText}>{pointsNeeded} more points to Level {currentLevel + 1}</Text>
+                  </View>
+                );
+              })()}
+            </View>
+          )}
+
           {/* Name - Read Only */}
           <View style={[styles.row, styles.disabledRow]}>
             <View style={styles.rowLeft}>
-              <MaterialIcons name="account-box" size={22} color="#94a3b8" />
+              <UserSquare2 size={22} color="#94a3b8" strokeWidth={2} />
               <View>
                 <Text style={[styles.label, styles.disabledLabel]}>Name</Text>
                 <Text style={styles.value}>{profile?.full_name}</Text>
@@ -249,7 +318,7 @@ export default function ProfileScreen() {
           {/* Gender */}
           <View style={styles.row}>
             <View style={styles.rowLeft}>
-              <MaterialIcons name="person" size={22} color="#64748b" />
+              <User size={22} color="#64748b" strokeWidth={2} />
               <View style={styles.inputWrapper}>
                 <Text style={styles.label}>Gender</Text>
                 <TextInput
@@ -261,13 +330,13 @@ export default function ProfileScreen() {
                 />
               </View>
             </View>
-            <MaterialIcons name="chevron-right" size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
           </View>
 
           {/* Email */}
           <View style={styles.row}>
             <View style={styles.rowLeft}>
-              <MaterialIcons name="email" size={22} color="#64748b" />
+              <Mail size={22} color="#64748b" strokeWidth={2} />
               <View style={styles.inputWrapper}>
                 <Text style={styles.label}>Email</Text>
                 <TextInput
@@ -281,13 +350,13 @@ export default function ProfileScreen() {
                 />
               </View>
             </View>
-            <MaterialIcons name="chevron-right" size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
           </View>
 
           {/* Phone - Read Only */}
           <View style={[styles.row, styles.disabledRow]}>
             <View style={styles.rowLeft}>
-              <MaterialIcons name="phone" size={22} color="#94a3b8" />
+              <Phone size={22} color="#94a3b8" strokeWidth={2} />
               <View>
                 <Text style={[styles.label, styles.disabledLabel]}>Phone</Text>
                 <Text style={styles.value}>{profile?.phone}</Text>
@@ -298,7 +367,7 @@ export default function ProfileScreen() {
           {/* Birthday */}
           <View style={styles.row}>
             <View style={styles.rowLeft}>
-              <MaterialIcons name="cake" size={22} color="#64748b" />
+              <Cake size={22} color="#64748b" strokeWidth={2} />
               <View style={styles.inputWrapper}>
                 <Text style={styles.label}>Birthday</Text>
                 <TextInput
@@ -310,13 +379,13 @@ export default function ProfileScreen() {
                 />
               </View>
             </View>
-            <MaterialIcons name="chevron-right" size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
           </View>
 
           {/* Language */}
           <View style={styles.row}>
             <View style={styles.rowLeft}>
-              <MaterialIcons name="language" size={22} color="#64748b" />
+              <Globe size={22} color="#64748b" strokeWidth={2} />
               <View style={styles.inputWrapper}>
                 <Text style={styles.label}>Language</Text>
                 <TextInput
@@ -328,13 +397,13 @@ export default function ProfileScreen() {
                 />
               </View>
             </View>
-            <MaterialIcons name="chevron-right" size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
           </View>
 
           {/* Home Address - Read Only */}
           <View style={[styles.row, styles.disabledRow]}>
             <View style={styles.rowLeft}>
-              <MaterialIcons name="home" size={22} color="#94a3b8" />
+              <Home size={22} color="#94a3b8" strokeWidth={2} />
               <View>
                 <Text style={[styles.label, styles.disabledLabel]}>Home address</Text>
                 <Text style={styles.value}>{profile?.address || 'Verified neighborhood address'}</Text>
@@ -345,7 +414,7 @@ export default function ProfileScreen() {
           {/* Work and Job Title */}
           <View style={[styles.row, { borderBottomWidth: 0 }]}>
             <View style={styles.rowLeft}>
-              <MaterialIcons name="work" size={22} color="#64748b" />
+              <Briefcase size={22} color="#64748b" strokeWidth={2} />
               <View style={styles.inputWrapper}>
                 <Text style={styles.label}>Work address / Job Title</Text>
                 <TextInput
@@ -357,7 +426,7 @@ export default function ProfileScreen() {
                 />
               </View>
             </View>
-            <MaterialIcons name="chevron-right" size={20} color="#cbd5e1" />
+            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
           </View>
         </View>
 
@@ -365,12 +434,12 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Account Management</Text>
           
           <TouchableOpacity style={styles.managementButton} onPress={handleInactivate}>
-            <MaterialIcons name="pause-circle-filled" size={24} color="#f59e0b" />
+            <PauseCircle size={24} color="#f59e0b" strokeWidth={2} />
             <Text style={styles.managementButtonText}>Temporarily Inactivate Account</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.managementButton, styles.deleteButton]} onPress={handleDeleteRequest}>
-            <MaterialIcons name="delete-forever" size={24} color="#ef4444" />
+            <Trash2 size={24} color="#ef4444" strokeWidth={2} />
             <Text style={[styles.managementButtonText, styles.deleteButtonText]}>Request Removal / Delete Profile</Text>
           </TouchableOpacity>
         </View>
@@ -485,6 +554,52 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Manrope-Bold',
     color: '#1193d4',
+  },
+  gamificationSection: {
+    padding: 16,
+    backgroundColor: '#f8fafc',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  levelBadgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  levelBadge: {
+    backgroundColor: '#1193d4',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  levelBadgeText: {
+    color: '#fff',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  pointsText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: '#1e293b',
+  },
+  progressContainer: {
+    gap: 6,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: '#e2e8f0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#1193d4',
+  },
+  progressText: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#64748b',
   },
   managementSection: {
     gap: 12,

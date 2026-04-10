@@ -1,3 +1,6 @@
+import { ArrowLeft, MessageCircle, Search, UserPlus } from 'lucide-react-native';
+
+
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -12,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -102,11 +105,11 @@ export default function MembersIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Members</Text>
         <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="search" size={24} color="#1193d4" />
+          <Search size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -122,7 +125,7 @@ export default function MembersIndex() {
           style={styles.inviteButton}
           onPress={() => router.push('/(app)/invites/request' as any)}
         >
-          <MaterialIcons name="person-add" size={20} color="#ffffff" />
+          <UserPlus size={20} color="#ffffff" strokeWidth={2} />
           <Text style={styles.inviteButtonText}>Request Invite for a Neighbor</Text>
         </TouchableOpacity>
 
@@ -180,11 +183,7 @@ export default function MembersIndex() {
                   </View>
 
                   <TouchableOpacity style={styles.chatButton}>
-                    <MaterialIcons 
-                      name="chat-bubble" 
-                      size={20} 
-                      color="#1193d4" 
-                    />
+                    <MessageCircle size={20} color="#1193d4" strokeWidth={2} />
                   </TouchableOpacity>
                 </View>
               );

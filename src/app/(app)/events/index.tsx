@@ -1,3 +1,6 @@
+import { ArrowLeft, Calendar, Clock, MapPin, PlusCircle, Search } from 'lucide-react-native';
+
+
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -10,7 +13,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -96,14 +99,14 @@ export default function EventsIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Events</Text>
         <TouchableOpacity 
           onPress={() => router.push('/(app)/events/create' as any)}
           style={styles.iconButton}
         >
-          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
+          <PlusCircle size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -117,7 +120,7 @@ export default function EventsIndex() {
         
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={24} color="#94a3b8" style={styles.searchIcon} />
+          <Search size={24} color="#94a3b8" style={styles.searchIcon} strokeWidth={2} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search events..."
@@ -160,23 +163,23 @@ export default function EventsIndex() {
                 <Text style={styles.eventTitle}>{ev.title}</Text>
                 
                 <View style={styles.cardDetailRow}>
-                  <MaterialIcons name="calendar-today" size={18} color="#1193d4" style={styles.detailIcon} />
+                  <Calendar size={18} color="#1193d4" style={styles.detailIcon} strokeWidth={2} />
                   <Text style={styles.detailTextBold}>{formatEventDate(ev.event_datetime)}</Text>
                 </View>
 
                 <View style={styles.cardDetailRow}>
-                  <MaterialIcons name="schedule" size={18} color="#1193d4" style={styles.detailIcon} />
+                  <Clock size={18} color="#1193d4" style={styles.detailIcon} strokeWidth={2} />
                   <Text style={styles.detailTextBold}>{formatEventTime(ev.event_datetime)}</Text>
                 </View>
 
                 <View style={styles.cardDetailRow}>
-                  <MaterialIcons name="person-pin" size={18} color="#1193d4" style={styles.detailIcon} />
+                  <MapPin size={18} color="#1193d4" style={styles.detailIcon} strokeWidth={2} />
                   <Text style={styles.detailTextLight}>Organized by <Text style={{ color: '#0f172a', fontFamily: 'Manrope-Medium' }}>{ev.organizer}</Text></Text>
                 </View>
                 
                 {ev.venue ? (
                   <View style={styles.cardDetailRow}>
-                    <MaterialIcons name="location-on" size={18} color="#1193d4" style={styles.detailIcon} />
+                    <MapPin size={18} color="#1193d4" style={styles.detailIcon} strokeWidth={2} />
                     <Text style={styles.detailTextLight}>{ev.venue}</Text>
                   </View>
                 ) : null}

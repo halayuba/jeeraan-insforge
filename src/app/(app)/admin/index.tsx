@@ -1,7 +1,10 @@
+import { ChevronDown, CloudUpload, HelpCircle, Layout, MessageCircle, Plus, Trash2, Vote } from 'lucide-react-native';
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import * as ImagePicker from 'expo-image-picker';
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -52,6 +55,13 @@ export default function AdminDashboard() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [savingAd, setSavingAd] = useState(false);
 
+  // Gamification Management State
+  const [gamificationSettings, setGamificationSettings] = useState<any>(null);
+  const [activeGamificationTab, setActiveGamificationTab] = useState<'points' | 'levels' | 'moderation'>('points');
+  const [savingGamification, setSavingGamification] = useState(false);
+  const [loadingGamification, setLoadingGamification] = useState(true);
+  const [eligibleUsers, setEligibleUsers] = useState<any[]>([]);
+
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -77,6 +87,8 @@ export default function AdminDashboard() {
       if (neighborhoodId) {
         fetchQuestions();
         fetchNeighborhood();
+        fetchGamificationSettings();
+        fetchEligibleUsers();
       }
       if (globalRole === 'super_admin' && neighborhoodId) {
         fetchElectionInfo();
@@ -87,7 +99,378 @@ export default function AdminDashboard() {
     }, [globalRole, neighborhoodId])
   );
 
-  const fetchNeighborhood = async () => {
+  const fetchEligibleUsers = async () => {
+    if (!neighborhoodId) return;
+    try {
+      const { data, error } = await insforge.database
+        .from('user_profiles')
+        .select(`
+          user_id,
+          full_name,
+          points,
+          level,
+          eligible_for_moderator
+        `)
+        .eq('eligible_for_moderator', true);
+
+      if (error) throw error;
+
+      // Filter by neighborhood via a join or subquery if needed, 
+      // but for MVP we'll check if they are in the user_neighborhoods for this neighborhood
+      const { data: memberData } = await insforge.database
+        .from('user_neighborhoods')
+        .select('user_id, role')
+        .eq('neighborhood_id', neighborhoodId);
+      
+      const neighborhoodUserIds = (memberData || []).map(m => m.user_id);
+      const filteredEligible = (data || []).filter(u => 
+        neighborhoodUserIds.includes(u.user_id) && 
+        !(memberData || []).find(m => m.user_id === u.user_id && (m.role === 'admin' || m.role === 'moderator'))
+      );
+
+      setEligibleUsers(filteredEligible);
+    } catch (err) {
+      console.error('Failed to fetch eligible users:', err);
+    }
+  };
+
+  const promoteToModerator = async (userId: string) => {
+    try {
+      // 1. Update role in user_neighborhoods
+      const { error: roleError } = await insforge.database
+        .from('user_neighborhoods')
+        .update({ role: 'moderator' })
+        .eq('user_id', userId)
+        .eq('neighborhood_id', neighborhoodId);
+
+      if (roleError) throw roleError;
+
+      // 2. Clear eligibility flag
+      const { error: flagError } = await insforge.database
+        .from('user_profiles')
+        .update({ eligible_for_moderator: false })
+        .eq('user_id', userId);
+
+      if (flagError) throw flagError;
+
+      Alert.alert('Success', 'User promoted to Moderator successfully.');
+      fetchEligibleUsers();
+    } catch (err) {
+      console.error('Failed to promote user:', err);
+      Alert.alert('Error', 'Failed to promote user.');
+    }
+  };
+
+  const fetchGamificationSettings = async () => {
+    if (!neighborhoodId) return;
+    setLoadingGamification(true);
+    try {
+      const { data, error } = await insforge.database
+        .from('gamification_settings')
+        .select('*')
+        .eq('neighborhood_id', neighborhoodId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data) {
+        // Create default settings if they don't exist
+        const defaultSettings = {
+          neighborhood_id: neighborhoodId,
+          is_active: true,
+          points_announcement: 3,
+          points_invite_accepted: 5,
+          points_work_order_feedback: 2,
+          points_forum_topic: 2,
+          points_classified_ad: 2,
+          points_grievance_submission: 3,
+          points_event_qna_reply: 0,
+          level_1_threshold: 0,
+          level_2_threshold: 25,
+          level_3_threshold: 50,
+          max_levels: 3,
+          moderator_threshold: 25,
+        };
+
+        const { data: newData, error: createError } = await insforge.database
+          .from('gamification_settings')
+          .insert(defaultSettings)
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        setGamificationSettings(newData);
+      } else {
+        setGamificationSettings(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch gamification settings:', err);
+    } finally {
+      setLoadingGamification(false);
+    }
+  };
+
+  const saveGamificationSettings = async (updatedSettings: any) => {
+    if (!neighborhoodId || !gamificationSettings) return;
+    setSavingGamification(true);
+    try {
+      const { error } = await insforge.database
+        .from('gamification_settings')
+        .update({
+          ...updatedSettings,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', gamificationSettings.id);
+
+      if (error) throw error;
+      setGamificationSettings({ ...gamificationSettings, ...updatedSettings });
+      Alert.alert('Success', 'Gamification settings updated successfully.');
+    } catch (err) {
+      console.error('Failed to save gamification settings:', err);
+      Alert.alert('Error', 'Failed to save settings.');
+    } finally {
+      setSavingGamification(false);
+    }
+  };
+
+  const renderGamificationSettings = () => {
+    if (loadingGamification) {
+      return <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />;
+    }
+
+    if (!gamificationSettings) {
+      return <Text style={styles.emptyText}>Failed to load gamification settings.</Text>;
+    }
+
+    const renderPointsTab = () => (
+      <View style={styles.adminSection}>
+        <Text style={styles.adminLabel}>Points Awarded per Action</Text>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>New Announcement</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.points_announcement)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_announcement: parseInt(text) || 0 })}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Invite Accepted</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.points_invite_accepted)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_invite_accepted: parseInt(text) || 0 })}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Work Order Feedback</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.points_work_order_feedback)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_work_order_feedback: parseInt(text) || 0 })}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>New Forum Topic</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.points_forum_topic)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_forum_topic: parseInt(text) || 0 })}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>New Classified Ad</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.points_classified_ad)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_classified_ad: parseInt(text) || 0 })}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Grievance Submission</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.points_grievance_submission)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_grievance_submission: parseInt(text) || 0 })}
+          />
+        </View>
+
+        <TouchableOpacity 
+          style={[styles.saveResponseBtn, { marginTop: 16, height: 44, justifyContent: 'center' }]} 
+          onPress={() => saveGamificationSettings(gamificationSettings)}
+          disabled={savingGamification}
+        >
+          {savingGamification ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={[styles.saveBtnText, { textAlign: 'center' }]}>Save Points Configuration</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    );
+
+    const renderLevelsTab = () => (
+      <View style={styles.adminSection}>
+        <Text style={styles.adminLabel}>Level Thresholds (Points Required)</Text>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Level 2 Threshold</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.level_2_threshold)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, level_2_threshold: parseInt(text) || 0 })}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Level 3 Threshold</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.level_3_threshold)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, level_3_threshold: parseInt(text) || 0 })}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Maximum Levels</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.max_levels)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, max_levels: parseInt(text) || 1 })}
+          />
+        </View>
+
+        <TouchableOpacity 
+          style={[styles.saveResponseBtn, { marginTop: 16, height: 44, justifyContent: 'center' }]} 
+          onPress={() => saveGamificationSettings(gamificationSettings)}
+          disabled={savingGamification}
+        >
+          {savingGamification ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={[styles.saveBtnText, { textAlign: 'center' }]}>Save Level Configuration</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+    );
+
+    const renderModerationTab = () => (
+      <View style={styles.adminSection}>
+        <Text style={styles.adminLabel}>Moderation & Rules</Text>
+        
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Moderator Eligibility Threshold (Points)</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.moderator_threshold)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, moderator_threshold: parseInt(text) || 0 })}
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>Daily Points Cap (0 for No Cap)</Text>
+          <TextInput
+            style={styles.adminInput}
+            value={String(gamificationSettings.daily_points_cap || 0)}
+            keyboardType="number-pad"
+            onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, daily_points_cap: parseInt(text) || null })}
+          />
+        </View>
+
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+          <Text style={styles.inputLabel}>Gamification Engine Active</Text>
+          <TouchableOpacity 
+            onPress={() => {
+              const newVal = !gamificationSettings.is_active;
+              saveGamificationSettings({ is_active: newVal });
+            }}
+            style={[styles.qaBadge, gamificationSettings.is_active ? styles.publicBadge : styles.privateBadge, { paddingHorizontal: 16, paddingVertical: 8 }]}
+          >
+            <Text style={styles.qaBadgeText}>{gamificationSettings.is_active ? 'Active' : 'Disabled'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity 
+          style={[styles.saveResponseBtn, { marginTop: 8, height: 44, justifyContent: 'center' }]} 
+          onPress={() => saveGamificationSettings(gamificationSettings)}
+          disabled={savingGamification}
+        >
+          {savingGamification ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={[styles.saveBtnText, { textAlign: 'center' }]}>Save Moderation Rules</Text>
+          )}
+        </TouchableOpacity>
+
+        <Text style={[styles.adminLabel, { marginTop: 24 }]}>Moderator Eligibility Queue</Text>
+        {eligibleUsers.length === 0 ? (
+          <Text style={styles.emptyText}>No users eligible for promotion currently.</Text>
+        ) : (
+          eligibleUsers.map((user) => (
+            <View key={user.user_id} style={[styles.positionItem, { paddingVertical: 12 }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.positionTitle}>{user.full_name}</Text>
+                <Text style={styles.positionDesc}>Level {user.level} • {user.points} Points</Text>
+              </View>
+              <TouchableOpacity 
+                style={[styles.approveBtn, { height: 32, paddingVertical: 0, justifyContent: 'center' }]} 
+                onPress={() => promoteToModerator(user.user_id)}
+              >
+                <Text style={styles.approveText}>Promote</Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
+      </View>
+    );
+
+    return (
+      <View>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeGamificationTab === 'points' && styles.activeTabButton]}
+            onPress={() => setActiveGamificationTab('points')}
+          >
+            <Text style={[styles.tabText, activeGamificationTab === 'points' && styles.activeTabText]}>Points</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeGamificationTab === 'levels' && styles.activeTabButton]}
+            onPress={() => setActiveGamificationTab('levels')}
+          >
+            <Text style={[styles.tabText, activeGamificationTab === 'levels' && styles.activeTabText]}>Levels</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeGamificationTab === 'moderation' && styles.activeTabButton]}
+            onPress={() => setActiveGamificationTab('moderation')}
+          >
+            <Text style={[styles.tabText, activeGamificationTab === 'moderation' && styles.activeTabText]}>Moderation</Text>
+          </TouchableOpacity>
+        </View>
+
+        {activeGamificationTab === 'points' && renderPointsTab()}
+        {activeGamificationTab === 'levels' && renderLevelsTab()}
+        {activeGamificationTab === 'moderation' && renderModerationTab()}
+      </View>
+    );
+    };
+
+    const fetchNeighborhood = async () => {
+
     try {
       const { data, error } = await insforge.database
         .from('neighborhoods')
@@ -597,7 +980,7 @@ export default function AdminDashboard() {
           <Text style={styles.headerTitle}>Community Analytics</Text>
           <TouchableOpacity style={styles.filterButton}>
             <Text style={styles.filterText}>Last 30 Days</Text>
-            <MaterialIcons name="expand-more" size={16} color="#475569" />
+            <ChevronDown size={16} color="#475569" strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
@@ -674,14 +1057,24 @@ export default function AdminDashboard() {
           </View>
 
           {renderRequestsTab()}
-        </View>
+          </View>
 
-        {/* Election Management Section (Super Admin Only) */}
+          {/* Engagement & Gamification Settings */}
+          <View style={styles.card}>
+          <View style={styles.cardHeader}>
+           <Text style={styles.cardTitle}>Engagement & Gamification Settings</Text>
+           <HelpCircle size={20} color="#1193d4" strokeWidth={2} />
+          </View>
+          {renderGamificationSettings()}
+          </View>
+
+          {/* Election Management Section (Super Admin Only) */}
+
         {globalRole === 'super_admin' && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Election Management</Text>
-              <MaterialIcons name="how-to-vote" size={20} color="#1193d4" />
+              <Vote size={20} color="#1193d4" strokeWidth={2} />
             </View>
 
             {/* Voting Date */}
@@ -718,7 +1111,7 @@ export default function AdminDashboard() {
                     {pos.description ? <Text style={styles.positionDesc}>{pos.description}</Text> : null}
                   </View>
                   <TouchableOpacity onPress={() => handleDeletePosition(pos.id)}>
-                    <MaterialIcons name="delete-outline" size={20} color="#ef4444" />
+                    <Trash2 size={20} color="#ef4444" strokeWidth={2} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -738,7 +1131,7 @@ export default function AdminDashboard() {
                   multiline
                 />
                 <TouchableOpacity style={styles.addBtn} onPress={handleAddPosition}>
-                  <MaterialIcons name="add" size={20} color="#fff" />
+                  <Plus size={20} color="#fff" strokeWidth={2} />
                   <Text style={styles.addBtnText}>Add Position</Text>
                 </TouchableOpacity>
               </View>
@@ -750,7 +1143,7 @@ export default function AdminDashboard() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Q & A Management</Text>
-            <MaterialIcons name="help-outline" size={20} color="#1193d4" />
+            <HelpCircle size={20} color="#1193d4" strokeWidth={2} />
           </View>
 
           {loadingQuestions ? (
@@ -815,7 +1208,7 @@ export default function AdminDashboard() {
                       style={styles.qaResponseBtn} 
                       onPress={() => handlePromptResponse(item)}
                     >
-                      <MaterialIcons name="chat-bubble-outline" size={16} color="#1193d4" />
+                      <MessageCircle size={16} color="#1193d4" strokeWidth={2} />
                       <Text style={styles.qaResponseText}>{item.answer_text ? 'Edit' : 'Respond'}</Text>
                     </TouchableOpacity>
                   </View>
@@ -830,7 +1223,7 @@ export default function AdminDashboard() {
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>Advertisements Management</Text>
-              <MaterialIcons name="featured-play-list" size={20} color="#1193d4" />
+              <Layout size={20} color="#1193d4" strokeWidth={2} />
             </View>
 
             <View style={styles.adminSection}>
@@ -847,7 +1240,7 @@ export default function AdminDashboard() {
                       <Text style={styles.positionDesc}>{ad.industry} • {ad.website_url}</Text>
                     </View>
                     <TouchableOpacity onPress={() => handleDeleteAd(ad.id)}>
-                      <MaterialIcons name="delete-outline" size={20} color="#ef4444" />
+                      <Trash2 size={20} color="#ef4444" strokeWidth={2} />
                     </TouchableOpacity>
                   </View>
                 ))
@@ -892,7 +1285,7 @@ export default function AdminDashboard() {
                       <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="cover" />
                     ) : (
                       <View style={styles.imagePlaceholder}>
-                        <MaterialIcons name="cloud-upload" size={48} color="#94a3b8" />
+                        <CloudUpload size={48} color="#94a3b8" strokeWidth={2} />
                         <Text style={styles.imagePickerText}>Tap to pick an image</Text>
                         <Text style={styles.imagePickerSubtext}>300x600 recommended</Text>
                       </View>
@@ -909,7 +1302,7 @@ export default function AdminDashboard() {
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
                     <>
-                      <MaterialIcons name="add" size={20} color="#fff" />
+                      <Plus size={20} color="#fff" strokeWidth={2} />
                       <Text style={styles.addBtnText}>Create Advertisement</Text>
                     </>
                   )}
@@ -1165,6 +1558,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#475569',
     marginBottom: 8,
+  },
+  inputGroup: {
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#64748b',
+    marginBottom: 4,
   },
   inputRow: {
     flexDirection: 'row',

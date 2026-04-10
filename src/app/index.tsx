@@ -1,4 +1,7 @@
-import { MaterialIcons } from '@expo/vector-icons'
+import { Calendar, HeartHandshake, HelpCircle, MapPin, Megaphone, MessageSquare, MoveHorizontal, Users, Vote, X } from 'lucide-react-native';
+
+
+
 import { Redirect, useRouter } from 'expo-router'
 import React, { useState } from 'react'
 import {
@@ -68,12 +71,12 @@ export default function SplashScreen() {
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <View style={styles.logoIcon}>
-              <MaterialIcons name="share-location" size={20} color="#fff" />
+              <MapPin size={20} color="#fff" strokeWidth={2} />
             </View>
             <Text style={styles.logoText}>Jeeraan</Text>
           </View>
           <TouchableOpacity style={styles.helpButton}>
-            <MaterialIcons name="help-outline" size={24} color="#64748b" />
+            <HelpCircle size={24} color="#64748b" strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
@@ -108,57 +111,27 @@ export default function SplashScreen() {
           {/* Value Props */}
           <View style={styles.grid}>
             <View style={styles.gridItem}>
-              <MaterialIcons
-                name="groups"
-                size={32}
-                color="#1193d4"
-                style={styles.gridIcon}
-              />
+              <Users size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Meet Neighbors</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons
-                name="campaign"
-                size={32}
-                color="#1193d4"
-                style={styles.gridIcon}
-              />
+              <Megaphone size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Local News</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons
-                name="volunteer-activism"
-                size={32}
-                color="#1193d4"
-                style={styles.gridIcon}
-              />
+              <HeartHandshake size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Help Others</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons
-                name="how-to-vote"
-                size={32}
-                color="#1193d4"
-                style={styles.gridIcon}
-              />
+              <Vote size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Elections</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons
-                name="event"
-                size={32}
-                color="#1193d4"
-                style={styles.gridIcon}
-              />
+              <Calendar size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Events</Text>
             </View>
             <View style={styles.gridItem}>
-              <MaterialIcons
-                name="forum"
-                size={32}
-                color="#1193d4"
-                style={styles.gridIcon}
-              />
+              <MessageSquare size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Forum</Text>
             </View>
           </View>
@@ -229,7 +202,7 @@ export default function SplashScreen() {
               style={styles.closeButton}
               onPress={() => setModalVisible(false)}
             >
-              <MaterialIcons name="close" size={24} color="#334155" />
+              <X size={24} color="#334155" strokeWidth={2} />
             </TouchableOpacity>
 
             <ScrollView
@@ -250,7 +223,7 @@ export default function SplashScreen() {
             </ScrollView>
 
             <View style={styles.sliderIndicator}>
-              <MaterialIcons name="swipe" size={20} color="#94a3b8" />
+              <MoveHorizontal size={20} color="#94a3b8" strokeWidth={2} />
               <Text style={styles.sliderHint}>Swipe to read more</Text>
             </View>
           </View>

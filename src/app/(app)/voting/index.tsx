@@ -1,3 +1,6 @@
+import { ArrowLeft, Calendar, ChevronRight } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,7 +11,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -104,7 +107,7 @@ export default function VotingIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Election Information</Text>
         <View style={styles.headerRight} />
@@ -138,7 +141,7 @@ export default function VotingIndex() {
               {votingDate ? formatDate(votingDate) : 'Date to be announced'}
             </Text>
           )}
-          <MaterialIcons name="calendar-today" size={24} color="#1193d4" />
+          <Calendar size={24} color="#1193d4" strokeWidth={2} />
         </View>
 
         {/* Active Polls */}
@@ -165,7 +168,7 @@ export default function VotingIndex() {
                 </View>
                 <Text style={styles.pollDescription} numberOfLines={2}>{poll.description}</Text>
               </View>
-              <MaterialIcons name="chevron-right" size={24} color="#1193d4" />
+              <ChevronRight size={24} color="#1193d4" strokeWidth={2} />
             </TouchableOpacity>
           ))
         )}

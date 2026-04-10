@@ -1,4 +1,7 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ArrowLeft, ShieldAlert } from 'lucide-react-native';
+
+
+
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -62,12 +65,12 @@ export default function AdminSignInScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+            <ArrowLeft size={24} color="#0f172a" strokeWidth={2} />
           </TouchableOpacity>
 
           <View style={styles.header}>
             <View style={styles.iconContainer}>
-              <MaterialIcons name="admin-panel-settings" size={40} color="#1193d4" />
+              <ShieldAlert size={40} color="#1193d4" strokeWidth={2} />
             </View>
             <Text style={styles.title}>Super Admin Access</Text>
             <Text style={styles.subtitle}>

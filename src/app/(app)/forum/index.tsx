@@ -1,3 +1,15 @@
+import {
+  ArrowLeft,
+  Dog,
+  MessageSquare,
+  PartyPopper,
+  PlusCircle,
+  Search,
+  Trees,
+  Users,
+  Utensils,
+} from 'lucide-react-native';
+
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
@@ -9,10 +21,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
+import { LevelBadge } from '../../../components/LevelBadge';
 
 export default function ForumIndex() {
   const router = useRouter();
@@ -34,7 +47,7 @@ export default function ForumIndex() {
         .select(`
           *,
           forum_replies (count),
-          author:user_profiles(full_name, avatar_url)
+          author:user_profiles(full_name, avatar_url, level)
         `)
         .order('created_at', { ascending: false });
 
@@ -55,12 +68,19 @@ export default function ForumIndex() {
 
   const getCategoryIcon = (category: string) => {
     const cat = category?.toLowerCase() || '';
-    if (cat.includes('events') || cat.includes('group') || cat.includes('meeting')) return 'groups';
-    if (cat.includes('party') || cat.includes('celebration')) return 'celebration';
-    if (cat.includes('garden') || cat.includes('plant')) return 'park';
-    if (cat.includes('pet') || cat.includes('dog') || cat.includes('cat')) return 'pets';
-    if (cat.includes('food') || cat.includes('restaurant')) return 'restaurant';
-    return 'forum';
+    if (
+      cat.includes('events') ||
+      cat.includes('group') ||
+      cat.includes('meeting')
+    )
+      return Users;
+    if (cat.includes('party') || cat.includes('celebration'))
+      return PartyPopper;
+    if (cat.includes('garden') || cat.includes('plant')) return Trees;
+    if (cat.includes('pet') || cat.includes('dog') || cat.includes('cat'))
+      return Dog;
+    if (cat.includes('food') || cat.includes('restaurant')) return Utensils;
+    return MessageSquare;
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -96,6 +116,8 @@ export default function ForumIndex() {
   const renderPostRow = (post: any) => {
     const repliesCount = post.forum_replies?.[0]?.count || 0;
     const authorName = post.author?.full_name || 'Resident';
+    const authorLevel = post.author?.level || 1;
+    const CategoryIcon = getCategoryIcon(post.category);
     
     return (
       <TouchableOpacity 
@@ -104,13 +126,17 @@ export default function ForumIndex() {
         onPress={() => router.push(`/(app)/forum/${post.id}` as any)}
       >
         <View style={styles.iconContainer}>
-          <MaterialIcons name={getCategoryIcon(post.category)} size={24} color="#1193d4" />
+          <CategoryIcon size={24} color="#1193d4" strokeWidth={2} />
         </View>
         <View style={styles.postCardContent}>
           <Text style={styles.postTitle}>{post.title}</Text>
-          <Text style={styles.postMeta}>
-            by {authorName} • {repliesCount} {repliesCount === 1 ? 'reply' : 'replies'} • {formatTimeAgo(post.created_at)}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Text style={styles.postMeta}>by {authorName}</Text>
+            <LevelBadge level={authorLevel} />
+            <Text style={styles.postMeta}>
+              • {repliesCount} {repliesCount === 1 ? 'reply' : 'replies'} • {formatTimeAgo(post.created_at)}
+            </Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -121,14 +147,14 @@ export default function ForumIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Forum</Text>
         <TouchableOpacity 
           style={styles.iconButton}
           onPress={() => router.push('/(app)/forum/create' as any)}
         >
-          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
+          <PlusCircle size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -136,7 +162,7 @@ export default function ForumIndex() {
         
         {/* Search */}
         <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={24} color="#64748b" style={styles.searchIcon} />
+          <Search size={24} color="#64748b" style={styles.searchIcon} strokeWidth={2} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search forum"

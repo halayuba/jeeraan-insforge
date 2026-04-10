@@ -1,7 +1,10 @@
+import { ArrowLeft, Vote } from 'lucide-react-native';
+
+
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 
 export default function ConfirmationScreen() {
   const router = useRouter();
@@ -14,7 +17,7 @@ export default function ConfirmationScreen() {
           onPress={() => router.push('/(app)/voting' as any)}
           style={styles.backButton}
         >
-          <MaterialIcons name="arrow-back" size={24} color="#111618" />
+          <ArrowLeft size={24} color="#111618" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Board Election Ballot</Text>
         <View style={styles.headerRight} />
@@ -23,7 +26,7 @@ export default function ConfirmationScreen() {
       {/* Confirmation Content */}
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <MaterialIcons name="how-to-vote" size={56} color="#1193d4" />
+          <Vote size={56} color="#1193d4" strokeWidth={2} />
         </View>
 
         <Text style={styles.successTitle}>Your vote has been cast!</Text>

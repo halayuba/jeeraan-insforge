@@ -1,4 +1,6 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Shield } from 'lucide-react-native';
+
+
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Redirect, Slot } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -73,7 +75,7 @@ export default function AdminLayout() {
   if (!isAuthenticated) {
     return (
       <View style={styles.center}>
-        <MaterialIcons name="security" size={48} color="#ef4444" />
+        <Shield size={48} color="#ef4444" strokeWidth={2} />
         <Text style={styles.text}>Authentication Failed</Text>
         <Text style={styles.subText}>You must verify your identity to access the admin panel.</Text>
       </View>

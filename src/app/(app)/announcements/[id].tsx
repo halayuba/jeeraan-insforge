@@ -1,3 +1,13 @@
+import {
+  ArrowLeft,
+  Calendar,
+  Megaphone,
+  Share2,
+  Shield,
+  ShieldAlert,
+  Wrench,
+} from 'lucide-react-native';
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -9,7 +19,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -58,11 +68,11 @@ export default function AnnouncementDetails() {
 
   const getCategoryIcon = (category: string) => {
     const cat = category?.toLowerCase() || '';
-    if (cat.includes('safety')) return 'admin-panel-settings';
-    if (cat.includes('security')) return 'security';
-    if (cat.includes('events')) return 'event';
-    if (cat.includes('maintenance')) return 'engineering';
-    return 'announcement';
+    if (cat.includes('safety')) return ShieldAlert;
+    if (cat.includes('security')) return Shield;
+    if (cat.includes('events')) return Calendar;
+    if (cat.includes('maintenance')) return Wrench;
+    return Megaphone;
   };
 
   const formatDate = (dateString: string) => {
@@ -96,18 +106,18 @@ export default function AnnouncementDetails() {
   }
 
   const catStyles = getCategoryStyles(announcement.category);
-  const catIcon = getCategoryIcon(announcement.category);
+  const CategoryIcon = getCategoryIcon(announcement.category);
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Announcement</Text>
         <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="share" size={24} color="#1193d4" />
+          <Share2 size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -117,7 +127,7 @@ export default function AnnouncementDetails() {
         
         <View style={styles.metaContainer}>
           <View style={[styles.categoryBadge, { backgroundColor: catStyles.bg }]}>
-            <MaterialIcons name={catIcon as any} size={14} color={catStyles.text} style={styles.catIcon} />
+            <CategoryIcon size={14} color={catStyles.text} style={styles.catIcon} strokeWidth={2} />
             <Text style={[styles.categoryBadgeText, { color: catStyles.text }]}>
               {announcement.category}
             </Text>
@@ -128,7 +138,7 @@ export default function AnnouncementDetails() {
         {/* Author info */}
         <View style={styles.authorRow}>
           <View style={styles.authorIconContainer}>
-            <MaterialIcons name="admin-panel-settings" size={20} color="#1193d4" />
+            <ShieldAlert size={20} color="#1193d4" strokeWidth={2} />
           </View>
           <View>
             <Text style={styles.authorName}>Admin / Board</Text>

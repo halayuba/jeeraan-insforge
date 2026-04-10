@@ -1,3 +1,6 @@
+import { ArrowLeft, ChevronDown, PlusCircle, Search, Star } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -9,7 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -81,12 +84,7 @@ export default function ServiceOrdersIndex() {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
-        <MaterialIcons
-          key={i}
-          name="star"
-          size={18}
-          color={i <= rating ? '#eab308' : '#cbd5e1'}
-        />
+        <Star key={i} size={18} color={i <= rating ? '#eab308' : '#cbd5e1'} strokeWidth={2} />
       );
     }
     return (
@@ -102,21 +100,21 @@ export default function ServiceOrdersIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Service Orders</Text>
         <TouchableOpacity
           onPress={() => router.push('/(app)/service-orders/submit' as any)}
           style={styles.iconButton}
         >
-          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
+          <PlusCircle size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={24} color="#64748b" style={styles.searchIcon} />
+          <Search size={24} color="#64748b" style={styles.searchIcon} strokeWidth={2} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search unit or occupant"
@@ -133,7 +131,7 @@ export default function ServiceOrdersIndex() {
           {FILTER_OPTIONS.map((filter) => (
             <TouchableOpacity key={filter} style={styles.filterChip}>
               <Text style={styles.filterChipText}>{filter}</Text>
-              <MaterialIcons name="expand-more" size={20} color="#0f172a" />
+              <ChevronDown size={20} color="#0f172a" strokeWidth={2} />
             </TouchableOpacity>
           ))}
         </ScrollView>

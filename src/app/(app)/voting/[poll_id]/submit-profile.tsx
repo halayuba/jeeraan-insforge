@@ -1,3 +1,6 @@
+import { Camera, X } from 'lucide-react-native';
+
+
 import React, { useState } from 'react';
 import {
   View,
@@ -11,7 +14,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../../lib/insforge';
 import { useAuth } from '../../../../contexts/AuthContext';
 
@@ -66,7 +69,7 @@ export default function SubmitProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-          <MaterialIcons name="close" size={24} color="#0f172a" />
+          <X size={24} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Candidate Profile</Text>
         <View style={styles.headerRight} />
@@ -76,7 +79,7 @@ export default function SubmitProfileScreen() {
         {/* Photo Placeholder */}
         <View style={styles.photoSection}>
           <View style={styles.photoPlaceholder}>
-            <MaterialIcons name="add-a-photo" size={40} color="#64748b" />
+            <Camera size={40} color="#64748b" strokeWidth={2} />
           </View>
           <Text style={styles.photoLabel}>Upload Profile Picture</Text>
         </View>

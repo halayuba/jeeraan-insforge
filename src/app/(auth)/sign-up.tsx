@@ -68,9 +68,29 @@ export default function SignUp() {
         neighborhood_id: neighborhoodId,
         role: 'resident'
       }]);
-      await insforge.database.from('invites')
+
+      // 3. Mark invite as used and award points to inviter
+      const { data: inviteData } = await insforge.database.from('invites')
         .update({ used_at: new Date().toISOString() })
-        .eq('code', inviteCode);
+        .eq('code', inviteCode)
+        .select('created_by')
+        .single();
+
+      if (inviteData?.created_by) {
+        // Award points to the person who created the invite
+        try {
+          await insforge.functions.invoke('award-points-v1', {
+            body: {
+              userId: inviteData.created_by,
+              actionType: 'invite_accepted',
+              neighborhoodId: neighborhoodId,
+              entityId: userId // The new user's ID is the entity
+            }
+          });
+        } catch (rewardErr) {
+          console.error('Failed to award invite points:', rewardErr);
+        }
+      }
     } catch (err) {
       console.error('Failed to link neighborhood:', err);
     }

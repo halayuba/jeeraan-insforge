@@ -1,3 +1,6 @@
+import { ArrowLeft, ChevronRight, MessageSquare, Phone, Share2 } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -9,7 +12,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../../../lib/insforge';
 import { useAuth } from '../../../../../contexts/AuthContext';
 
@@ -88,11 +91,11 @@ export default function CandidateProfileScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#0f172a" />
+          <ArrowLeft size={24} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Candidate Profile</Text>
         <TouchableOpacity style={styles.shareButton}>
-          <MaterialIcons name="share" size={24} color="#0f172a" />
+          <Share2 size={24} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -109,18 +112,18 @@ export default function CandidateProfileScreen() {
           <Text style={styles.candidateName}>{userName}</Text>
           <Text style={styles.candidateRole}>Running for Board</Text>
           <View style={styles.contactRow}>
-            <MaterialIcons name="phone" size={14} color="#64748b" />
+            <Phone size={14} color="#64748b" strokeWidth={2} />
             <Text style={styles.contactText}>Contact candidate</Text>
           </View>
 
           {/* Action Buttons */}
           <View style={styles.actionRow}>
             <TouchableOpacity style={styles.messageButton}>
-              <MaterialIcons name="chat" size={20} color="#ffffff" />
+              <MessageSquare size={20} color="#ffffff" strokeWidth={2} />
               <Text style={styles.messageButtonText}>Message</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.phoneButton}>
-              <MaterialIcons name="phone" size={24} color="#1193d4" />
+              <Phone size={24} color="#1193d4" strokeWidth={2} />
             </TouchableOpacity>
           </View>
         </View>
@@ -160,7 +163,7 @@ export default function CandidateProfileScreen() {
           <View style={styles.qaPanel}>
             <View style={styles.qaPanelHeader}>
               <View style={styles.qaPanelTitleRow}>
-                <MaterialIcons name="forum" size={22} color="#1193d4" />
+                <MessageSquare size={22} color="#1193d4" strokeWidth={2} />
                 <Text style={styles.qaPanelTitle}>Candidate Q&A</Text>
               </View>
               <View style={styles.activeChip}>
@@ -179,7 +182,7 @@ export default function CandidateProfileScreen() {
               <Text style={styles.qaViewAllText}>View All Candidate Q&A</Text>
               <View style={styles.qaViewAllRight}>
                 <Text style={styles.qaAnswerCount}>{stats.questions} Answers</Text>
-                <MaterialIcons name="chevron-right" size={22} color="#1193d4" />
+                <ChevronRight size={22} color="#1193d4" strokeWidth={2} />
               </View>
             </TouchableOpacity>
           </View>

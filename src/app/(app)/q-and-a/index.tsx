@@ -1,3 +1,6 @@
+import { ArrowLeft, ChevronDown, ChevronUp, Clock, HelpCircle, Info, PlusCircle, ShieldAlert } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,7 +14,7 @@ import {
   UIManager,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -97,11 +100,7 @@ export default function QandAIndex() {
             <Text style={styles.questionText}>{item.question_text}</Text>
             <Text style={styles.dateText}>{formatTimeAgo(item.created_at)}</Text>
           </View>
-          <MaterialIcons 
-            name={isExpanded ? 'keyboard-arrow-up' : 'keyboard-arrow-down'} 
-            size={24} 
-            color="#64748b" 
-          />
+          {isExpanded ? <ChevronUp size={24} color="#64748b" strokeWidth={2} /> : <ChevronDown size={24} color="#64748b" strokeWidth={2} />}
         </TouchableOpacity>
 
         {isExpanded && (
@@ -110,14 +109,14 @@ export default function QandAIndex() {
             {isAnswered ? (
               <View>
                 <View style={styles.answerHeader}>
-                  <MaterialIcons name="admin-panel-settings" size={20} color="#1193d4" style={{ marginRight: 6 }} />
+                  <ShieldAlert size={20} color="#1193d4" style={{ marginRight: 6 }} strokeWidth={2} />
                   <Text style={styles.answerTitle}>Admin Response</Text>
                 </View>
                 <Text style={styles.answerText}>{item.answer_text}</Text>
               </View>
             ) : (
               <View style={styles.pendingContainer}>
-                <MaterialIcons name="schedule" size={20} color="#64748b" style={{ marginRight: 6 }} />
+                <Clock size={20} color="#64748b" style={{ marginRight: 6 }} strokeWidth={2} />
                 <Text style={styles.pendingText}>Awaiting admin response...</Text>
               </View>
             )}
@@ -132,20 +131,20 @@ export default function QandAIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Q & A</Text>
         <TouchableOpacity 
           onPress={() => router.push('/(app)/q-and-a/submit' as any)}
           style={styles.iconButton}
         >
-          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
+          <PlusCircle size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.introCard}>
-          <MaterialIcons name="info-outline" size={24} color="#1193d4" style={{ marginBottom: 8 }} />
+          <Info size={24} color="#1193d4" style={{ marginBottom: 8 }} strokeWidth={2} />
           <Text style={styles.introTitle}>Neighborhood Q & A</Text>
           <Text style={styles.introDescription}>
             Ask questions to your neighborhood admins. Public questions are visible to all members.
@@ -156,7 +155,7 @@ export default function QandAIndex() {
           <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 32 }} />
         ) : questions.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="help-outline" size={64} color="#e2e8f0" />
+            <HelpCircle size={64} color="#e2e8f0" strokeWidth={2} />
             <Text style={styles.emptyText}>No questions found.</Text>
             <Text style={styles.emptySubtext}>Be the first to ask a question!</Text>
           </View>

@@ -1,3 +1,6 @@
+import { Shield, X } from 'lucide-react-native';
+
+
 import React, { useState } from 'react';
 import {
   View,
@@ -11,7 +14,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -79,7 +82,7 @@ export default function QuestionSubmit() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="close" size={24} color="#0f172a" />
+          <X size={24} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Ask a Question</Text>
         <TouchableOpacity 
@@ -114,7 +117,7 @@ export default function QuestionSubmit() {
         </View>
 
         <View style={styles.infoCard}>
-          <MaterialIcons name="security" size={20} color="#64748b" style={{ marginRight: 8 }} />
+          <Shield size={20} color="#64748b" style={{ marginRight: 8 }} strokeWidth={2} />
           <Text style={styles.infoText}>
             Admins will be notified and will respond as soon as possible.
           </Text>

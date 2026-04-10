@@ -1,3 +1,6 @@
+import { ArrowLeft, Eye, MessageCircle, PlusCircle, Search } from 'lucide-react-native';
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -10,7 +13,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -79,21 +82,21 @@ export default function GrievancesIndex() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Grievances</Text>
         <TouchableOpacity 
           style={styles.iconButton}
           onPress={() => router.push('/(app)/grievances/submit' as any)}
         >
-          <MaterialIcons name="add-circle" size={24} color="#1193d4" />
+          <PlusCircle size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
       <View style={styles.actionContainer}>
         <View style={styles.searchBar}>
-          <MaterialIcons name="search" size={24} color="#64748b" style={styles.searchIcon} />
+          <Search size={24} color="#64748b" style={styles.searchIcon} strokeWidth={2} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search grievances..."
@@ -149,11 +152,11 @@ export default function GrievancesIndex() {
               <View style={styles.cardFooter}>
                 <View style={styles.cardStats}>
                   <TouchableOpacity style={styles.cardStat}>
-                    <MaterialIcons name="chat-bubble" size={20} color="#64748b" />
+                    <MessageCircle size={20} color="#64748b" strokeWidth={2} />
                     <Text style={styles.cardStatText}>Comments</Text>
                   </TouchableOpacity>
                   <View style={styles.cardStat}>
-                    <MaterialIcons name="visibility" size={20} color="#64748b" />
+                    <Eye size={20} color="#64748b" strokeWidth={2} />
                     <Text style={styles.cardStatText}>{grievance.views_count} Views</Text>
                   </View>
                 </View>

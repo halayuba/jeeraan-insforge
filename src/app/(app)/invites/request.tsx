@@ -1,3 +1,6 @@
+import { ArrowLeft, Check } from 'lucide-react-native';
+
+
 import React, { useState } from 'react';
 import {
   View,
@@ -12,7 +15,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -97,7 +100,7 @@ export default function InviteRequestForm() {
     >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Invite a Neighbor</Text>
         <View style={styles.iconButton} />
@@ -150,7 +153,7 @@ export default function InviteRequestForm() {
             activeOpacity={0.7}
           >
             <View style={[styles.checkbox, attested && styles.checkboxChecked]}>
-              {attested && <MaterialIcons name="check" size={16} color="#fff" />}
+              {attested && <Check size={16} color="#fff" strokeWidth={2} />}
             </View>
             <Text style={styles.checkboxLabel}>
               I attest that the person this invite is intended for is currently living in my neighborhood

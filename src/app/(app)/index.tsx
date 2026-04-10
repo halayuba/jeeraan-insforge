@@ -1,21 +1,35 @@
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { 
+  Megaphone, 
+  Users, 
+  UserPlus, 
+  HelpCircle, 
+  Calendar, 
+  Vote, 
+  Wrench, 
+  MessageSquare, 
+  Tag, 
+  Layout, 
+  AlertCircle,
+  MessageSquareText,
+  Trophy
+} from 'lucide-react-native';
 
 const GRID_ITEMS = [
-  { id: 'announcements', title: 'Announcements', icon: 'campaign' },
-  { id: 'members', title: 'Members', icon: 'groups' },
-  { id: 'invites', title: 'Invites', icon: 'person-add' },
-  { id: 'faq', title: 'FAQ', icon: 'help' },
-  { id: 'events', title: 'Events', icon: 'event' },
-  { id: 'voting', title: 'Voting', icon: 'how-to-vote' },
-  { id: 'service-orders', title: 'Service Orders', icon: 'construction' },
-  { id: 'forum', title: 'Forum', icon: 'forum' },
-  { id: 'classifieds', title: 'Classified Ads', icon: 'sell' },
-  { id: 'advertisements', title: 'Advertisements', icon: 'featured-play-list' },
-  { id: 'grievances', title: 'Grievances', icon: 'feedback' },
-  { id: 'q-and-a', title: 'Q & A', icon: 'help-outline' },
-  // { id: 'recent', title: 'Recent Activities', icon: 'history' },
+  { id: 'announcements', title: 'Announcements', icon: Megaphone },
+  { id: 'members', title: 'Members', icon: Users },
+  { id: 'invites', title: 'Invites', icon: UserPlus },
+  { id: 'faq', title: 'FAQ', icon: HelpCircle },
+  { id: 'events', title: 'Events', icon: Calendar },
+  { id: 'voting', title: 'Voting', icon: Vote },
+  { id: 'service-orders', title: 'Service Orders', icon: Wrench },
+  { id: 'forum', title: 'Forum', icon: MessageSquare },
+  { id: 'classifieds', title: 'Classified Ads', icon: Tag },
+  { id: 'advertisements', title: 'Advertisements', icon: Layout },
+  { id: 'grievances', title: 'Grievances', icon: AlertCircle },
+  { id: 'q-and-a', title: 'Q & A', icon: MessageSquareText },
+  { id: 'leaderboard', title: 'Leaderboard', icon: Trophy },
 ];
 
 export default function HomeIndex() {
@@ -46,6 +60,8 @@ export default function HomeIndex() {
       router.push('/(app)/advertisements' as any);
     } else if (id === 'q-and-a') {
       router.push('/(app)/q-and-a' as any);
+    } else if (id === 'leaderboard') {
+      router.push('/(app)/leaderboard' as any);
     } else {
       console.log(`Navigate to ${id}`);
     }
@@ -54,18 +70,21 @@ export default function HomeIndex() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.grid}>
-        {GRID_ITEMS.map((item) => (
-          <TouchableOpacity 
-            key={item.id} 
-            style={styles.gridItem}
-            onPress={() => handlePress(item.id)}
-          >
-            <View style={styles.iconContainer}>
-              <MaterialIcons name={item.icon as any} size={32} color="#1193d4" />
-            </View>
-            <Text style={styles.itemTitle}>{item.title}</Text>
-          </TouchableOpacity>
-        ))}
+        {GRID_ITEMS.map((item) => {
+          const IconComponent = item.icon;
+          return (
+            <TouchableOpacity 
+              key={item.id} 
+              style={styles.gridItem}
+              onPress={() => handlePress(item.id)}
+            >
+              <View style={styles.iconContainer}>
+                <IconComponent size={32} color="#1193d4" strokeWidth={2} />
+              </View>
+              <Text style={styles.itemTitle}>{item.title}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </ScrollView>
   );

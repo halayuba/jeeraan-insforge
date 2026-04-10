@@ -1,3 +1,6 @@
+import { ArrowLeft, Send } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -143,7 +146,7 @@ export default function ForumThread() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>Thread View</Text>
         <View style={styles.iconButton} />
@@ -222,7 +225,7 @@ export default function ForumThread() {
           {submitting ? (
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
-            <MaterialIcons name="send" size={20} color="#ffffff" />
+            <Send size={20} color="#ffffff" strokeWidth={2} />
           )}
         </TouchableOpacity>
       </View>

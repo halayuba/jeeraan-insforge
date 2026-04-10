@@ -1,3 +1,6 @@
+import { ArrowLeft, Send, Share2 } from 'lucide-react-native';
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -12,7 +15,7 @@ import {
   Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -196,11 +199,11 @@ export default function GrievanceDetails() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#1193d4" />
+          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Grievance Details</Text>
         <TouchableOpacity style={styles.iconButton}>
-          <MaterialIcons name="share" size={24} color="#1193d4" />
+          <Share2 size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -305,7 +308,7 @@ export default function GrievanceDetails() {
           {submitting ? (
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
-            <MaterialIcons name="send" size={20} color="#ffffff" />
+            <Send size={20} color="#ffffff" strokeWidth={2} />
           )}
         </TouchableOpacity>
       </View>
