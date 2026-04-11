@@ -19,6 +19,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Add DM settings to neighborhoods if not exists
+ALTER TABLE public.neighborhoods 
+    ADD COLUMN IF NOT EXISTS is_dm_enabled BOOLEAN DEFAULT TRUE,
+    ADD COLUMN IF NOT EXISTS max_daily_messages INTEGER DEFAULT 10;
+
 -- Conversations Table
 CREATE TABLE IF NOT EXISTS public.conversations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -96,11 +101,21 @@ CREATE POLICY "Users can insert messages in their conversations" ON public.messa
             AND (auth.uid() IN (participant_1_id, participant_2_id))
         )
         AND EXISTS (
-            -- Ensure daily limit hasn't been reached (max 10)
-            SELECT 1 FROM public.user_daily_usage
-            WHERE user_id = auth.uid() AND usage_date = CURRENT_DATE AND messages_sent_count < 10
+            -- Respect neighborhood-level DM activation
+            SELECT 1 FROM public.neighborhoods
+            WHERE id = messages.neighborhood_id AND is_dm_enabled = TRUE
+        )
+        AND EXISTS (
+            -- Ensure daily limit hasn't been reached (dynamic based on neighborhood setting)
+            SELECT 1 FROM public.user_daily_usage udu
+            JOIN public.neighborhoods n ON n.id = messages.neighborhood_id
+            WHERE udu.user_id = auth.uid() 
+            AND udu.usage_date = CURRENT_DATE 
+            AND udu.messages_sent_count < n.max_daily_messages
             UNION ALL
-            SELECT 1 WHERE NOT EXISTS (SELECT 1 FROM public.user_daily_usage WHERE user_id = auth.uid() AND usage_date = CURRENT_DATE)
+            SELECT 1 FROM public.neighborhoods n
+            WHERE n.id = messages.neighborhood_id
+            AND NOT EXISTS (SELECT 1 FROM public.user_daily_usage WHERE user_id = auth.uid() AND usage_date = CURRENT_DATE)
         )
     );
 
