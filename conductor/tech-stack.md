@@ -10,7 +10,7 @@
 ## Backend and Infrastructure
 - **SDK:** [@insforge/sdk](https://www.npmjs.com/package/@insforge/sdk)
 - **Database/Auth/Functions:** [InsForge](https://insforge.com)
-- **Native Modules:** [Expo SDK](https://docs.expo.dev/versions/latest/) (Camera, ImagePicker, LocalAuth)
+- **Native Modules:** [Expo SDK](https://docs.expo.dev/versions/latest/) (Camera, ImagePicker, DocumentPicker, LocalAuth)
 
 ## Architecture
 - **Structure:** Feature-based organization (src/app/(app)/feature_name).

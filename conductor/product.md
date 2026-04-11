@@ -22,6 +22,7 @@ Jeeraan is a SaaS web and mobile application designed to empower communities by 
 ### 2. Community Communication
 - **Announcements:** Neighborhood-wide updates for security, events, and maintenance.
 - **Forum:** Topic-based discussion boards (Security, Social, Gardening, etc.).
+- **Direct Messaging:** Private, asynchronous 1:1 messaging with attachment support for secure member communication.
 - **Q & A:** A dedicated section for members to ask questions to neighborhood admins and view community-wide responses.
 - **Events:** Calendar for community activities and gatherings.
 
