@@ -18,6 +18,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
+import { MemberName } from '../../../components/MemberName';
 
 export default function ForumThread() {
   const { id } = useLocalSearchParams();
@@ -42,7 +43,7 @@ export default function ForumThread() {
       // 1. Fetch Post Details
       const { data: postData, error: postErr } = await insforge.database
         .from('forum_posts')
-        .select(`*, author:user_profiles(full_name, avatar_url)`)
+        .select(`*, author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)`)
         .eq('id', id)
         .single();
       if (postErr) throw postErr;
@@ -57,7 +58,7 @@ export default function ForumThread() {
       // 2. Fetch Replies
       const { data: replyData, error: replyErr } = await insforge.database
         .from('forum_replies')
-        .select(`*, author:user_profiles(full_name, avatar_url)`)
+        .select(`*, author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)`)
         .eq('post_id', id)
         .order('created_at', { ascending: true });
       if (replyErr) throw replyErr;
@@ -166,11 +167,19 @@ export default function ForumThread() {
           <View style={styles.authorRow}>
             <View style={styles.avatarCircleOP}>
               <Text style={styles.avatarTextOP}>
-                {getInitials(thread.author?.full_name || 'U')}
+                {thread.author?.is_visible !== false 
+                  ? getInitials(thread.author?.full_name || 'U')
+                  : '?'
+                }
               </Text>
             </View>
             <View>
-              <Text style={styles.authorName}>{thread.author?.full_name || 'Unknown User'}</Text>
+              <MemberName 
+                name={thread.author?.full_name} 
+                isVisible={thread.author?.is_visible} 
+                anonymousId={thread.author?.anonymous_id}
+                textStyle={styles.authorName}
+              />
               <Text style={styles.timestamp}>{formatTimeAgo(thread.created_at)}</Text>
             </View>
           </View>
@@ -191,12 +200,20 @@ export default function ForumThread() {
               <View style={styles.authorRow}>
                 <View style={styles.replyAvatar}>
                   <Text style={styles.replyAvatarText}>
-                    {getInitials(reply.author?.full_name || 'R')}
+                    {reply.author?.is_visible !== false 
+                      ? getInitials(reply.author?.full_name || 'R')
+                      : '?'
+                    }
                   </Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={styles.replyAuthorName}>{reply.author?.full_name || 'Resident'}</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <MemberName 
+                      name={reply.author?.full_name} 
+                      isVisible={reply.author?.is_visible} 
+                      anonymousId={reply.author?.anonymous_id}
+                      textStyle={styles.replyAuthorName}
+                    />
                     <Text style={styles.timestamp}>{formatTimeAgo(reply.created_at)}</Text>
                   </View>
                   <Text style={styles.replyBodyText}>{reply.content}</Text>

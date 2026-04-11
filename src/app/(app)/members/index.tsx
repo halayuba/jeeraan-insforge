@@ -1,7 +1,7 @@
-import { ArrowLeft, MessageCircle, Search, UserPlus } from 'lucide-react-native';
+import { ArrowLeft, Mail, MessageCircle, Phone, Search } from 'lucide-react-native';
 
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,94 +11,63 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
-  RefreshControl,
-  Platform,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-type Member = {
-  user_id: string;
-  role: string;
-  profiles: {
-    full_name: string | null;
-    avatar_url: string | null;
-    global_role?: string;
-  };
-};
+import { MemberName } from '../../../components/MemberName';
 
 export default function MembersIndex() {
   const router = useRouter();
-  const { neighborhoodId, refreshAuth, handleAuthError } = useAuth();
-  const [members, setMembers] = useState<Member[]>([]);
+  const { neighborhoodId, handleAuthError } = useAuth();
+  const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'online'>('all');
 
-  const fetchMembers = async (isRefreshing = false) => {
-    if (!neighborhoodId) return;
-    
-    if (isRefreshing) setRefreshing(true);
-    else setLoading(true);
-    
+  useEffect(() => {
+    if (neighborhoodId) {
+      fetchMembers();
+    }
+  }, [neighborhoodId]);
+
+  const fetchMembers = async () => {
+    setLoading(true);
     try {
       const { data, error } = await insforge.database
         .from('user_neighborhoods')
         .select(`
           user_id,
           role,
-          profiles:user_id (
-            full_name,
-            avatar_url,
-            global_role
-          )
+          profiles:user_profiles(full_name, avatar_url, is_visible, anonymous_id)
         `)
         .eq('neighborhood_id', neighborhoodId);
 
-      if (error) {
-        handleAuthError(error);
-        throw error;
-      }
+      if (error) throw error;
       
-      // Ensure profiles is not an array and filter out admins
-      const formattedData = (data || [])
-        .map((item: any) => ({
-          ...item,
-          profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
-        }))
-        .filter((member: any) => 
-          member.role !== 'admin' && 
-          member.role !== 'super_admin' && 
-          member.profiles?.global_role !== 'super_admin'
-        );
-      
+      const formattedData = (data || []).map((m: any) => ({
+        ...m,
+        profiles: Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+      }));
       setMembers(formattedData);
     } catch (err) {
       console.error('Error fetching members:', err);
       handleAuthError(err);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchMembers();
-    }, [neighborhoodId])
-  );
-
   const filteredMembers = members.filter(member => {
-    const fullName = member.profiles?.full_name || 'Unknown Member';
-    return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+    const fullName = member.profiles?.full_name || '';
+    const anonymousId = member.profiles?.anonymous_id || '';
+    const query = searchQuery.toLowerCase();
+    
+    if (member.profiles?.is_visible === false) {
+      return anonymousId.toLowerCase().includes(query);
+    }
+    return fullName.toLowerCase().includes(query);
   });
-
-  // Mock online status for now since we don't have a real-time presence system yet
-  const onlineMembersCount = Math.floor(members.length * 0.3); // Mock 30% online
 
   return (
     <View style={styles.container}>
@@ -107,84 +76,67 @@ export default function MembersIndex() {
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
           <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Members</Text>
-        <TouchableOpacity style={styles.iconButton}>
-          <Search size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Neighborhood Members</Text>
+        <View style={styles.iconButton} />
       </View>
 
-      <ScrollView 
-        style={styles.scrollContainer} 
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => fetchMembers(true)} />
-        }
-      >
-        {/* Invite Button */}
-        <TouchableOpacity 
-          style={styles.inviteButton}
-          onPress={() => router.push('/(app)/invites/request' as any)}
-        >
-          <UserPlus size={20} color="#ffffff" strokeWidth={2} />
-          <Text style={styles.inviteButtonText}>Request Invite for a Neighbor</Text>
-        </TouchableOpacity>
-
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'all' && styles.activeTab]}
-            onPress={() => setActiveTab('all')}
-          >
-            <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>All Neighbors</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.tab, activeTab === 'online' && styles.activeTab]}
-            onPress={() => setActiveTab('online')}
-          >
-            <Text style={[styles.tabText, activeTab === 'online' && styles.activeTabText]}>
-              Online ({onlineMembersCount})
-            </Text>
-          </TouchableOpacity>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        
+        {/* Search */}
+        <View style={styles.searchContainer}>
+          <Search size={24} color="#64748b" style={styles.searchIcon} strokeWidth={2} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search members"
+            placeholderTextColor="#64748b"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
 
-        {/* Members List */}
         {loading ? (
-          <ActivityIndicator size="large" color="#1193d4" style={styles.loader} />
+          <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 32 }} />
         ) : filteredMembers.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No neighbors found.</Text>
-          </View>
+          <Text style={styles.emptyText}>No members found.</Text>
         ) : (
-          <View style={styles.membersList}>
-            {filteredMembers.map((member, index) => {
-              const fullName = member.profiles?.full_name || 'Unknown Member';
-              const isOnline = index < onlineMembersCount; // Mock logic
+          <View style={styles.memberList}>
+            {filteredMembers.map((member) => {
+              const profile = member.profiles;
+              const isVisible = profile?.is_visible !== false;
               
               return (
-                <View key={member.user_id} style={styles.memberItem}>
-                  <View style={styles.avatarContainer}>
-                    <Image 
-                      source={{ uri: member.profiles?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=1193d4&color=fff` }} 
-                      style={styles.avatar} 
-                    />
-                    {isOnline && <View style={styles.onlineDot} />}
+                <View key={member.user_id} style={styles.memberCard}>
+                  <View style={styles.memberInfo}>
+                    {profile?.avatar_url && isVisible ? (
+                      <Image source={{ uri: profile.avatar_url }} style={styles.memberAvatar} />
+                    ) : (
+                      <View style={styles.memberAvatarPlaceholder}>
+                        <Text style={styles.memberAvatarInitial}>
+                          {isVisible ? (profile?.full_name || 'U').charAt(0) : '?'}
+                        </Text>
+                      </View>
+                    )}
+                    <View style={{flex: 1}}>
+                      <MemberName 
+                        name={profile?.full_name} 
+                        isVisible={profile?.is_visible} 
+                        anonymousId={profile?.anonymous_id}
+                        textStyle={styles.memberName}
+                      />
+                      <Text style={styles.memberRole}>{member.role.toUpperCase()}</Text>
+                    </View>
                   </View>
                   
-                  <View style={styles.memberInfo}>
-                    <Text style={styles.memberName}>{fullName}</Text>
-                    {isOnline ? (
-                      <View style={styles.statusRow}>
-                        <View style={styles.statusDot} />
-                        <Text style={styles.statusTextOnline}>Online</Text>
-                      </View>
-                    ) : (
-                      <Text style={styles.statusTextOffline}>Last seen 2h ago</Text>
-                    )}
-                  </View>
-
-                  <TouchableOpacity style={styles.chatButton}>
-                    <MessageCircle size={20} color="#1193d4" strokeWidth={2} />
-                  </TouchableOpacity>
+                  {isVisible && (
+                    <View style={styles.memberActions}>
+                      <TouchableOpacity style={styles.actionIcon}>
+                        <MessageCircle size={20} color="#1193d4" strokeWidth={2} />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.actionIcon}>
+                        <Phone size={20} color="#1193d4" strokeWidth={2} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               );
             })}
@@ -198,24 +150,22 @@ export default function MembersIndex() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f6f7f8',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
     backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingTop: Platform.OS === 'ios' ? 50 : 16,
   },
   iconButton: {
     width: 40,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
   },
   headerTitle: {
     fontFamily: 'Manrope-Bold',
@@ -224,140 +174,96 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
-  scrollContainer: {
+  scrollView: {
     flex: 1,
   },
   scrollContent: {
+    padding: 16,
     paddingBottom: 40,
   },
-  inviteButton: {
+  searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#1193d4',
-    margin: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  inviteButtonText: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 15,
-    color: '#ffffff',
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    gap: 32,
-  },
-  tab: {
-    paddingVertical: 12,
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
-  },
-  activeTab: {
-    borderBottomColor: '#1193d4',
-  },
-  tabText: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 14,
-    color: '#64748b',
-  },
-  activeTabText: {
-    color: '#1193d4',
-  },
-  membersList: {
     backgroundColor: '#ffffff',
+    borderRadius: 24,
+    height: 48,
+    paddingHorizontal: 16,
+    marginBottom: 24,
   },
-  memberItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f8fafc',
-    gap: 16,
+  searchIcon: {
+    marginRight: 8,
   },
-  avatarContainer: {
-    position: 'relative',
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    borderWidth: 2,
-    borderColor: '#ffffff',
-  },
-  onlineDot: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#22c55e',
-    borderWidth: 2,
-    borderColor: '#ffffff',
-  },
-  memberInfo: {
+  searchInput: {
     flex: 1,
-    justifyContent: 'center',
-  },
-  memberName: {
-    fontFamily: 'Manrope-Bold',
+    fontFamily: 'Manrope-Medium',
     fontSize: 16,
     color: '#0f172a',
-    marginBottom: 2,
   },
-  statusRow: {
+  memberList: {
+    gap: 12,
+  },
+  memberCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'space-between',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
   },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#22c55e',
+  memberInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
   },
-  statusTextOnline: {
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 12,
-    color: '#22c55e',
+  memberAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
-  statusTextOffline: {
-    fontFamily: 'Manrope-Regular',
-    fontSize: 12,
-    color: '#64748b',
-  },
-  chatButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  memberAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(17, 147, 212, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  filledIcon: {
-    // Note: React Native Vector Icons don't have a direct 'filled' property like Material Symbols
-    // but many have separate filled versions or we can use the default.
+  memberAvatarInitial: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+    color: '#1193d4',
   },
-  loader: {
-    marginTop: 40,
+  memberName: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: '#1e293b',
   },
-  emptyContainer: {
-    padding: 40,
+  memberRole: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  memberActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(17, 147, 212, 0.05)',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyText: {
     fontFamily: 'Manrope-Medium',
-    fontSize: 14,
+    fontSize: 15,
     color: '#64748b',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

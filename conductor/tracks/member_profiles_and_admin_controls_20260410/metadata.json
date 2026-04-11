@@ -1,0 +1,8 @@
+{
+  "track_id": "member_profiles_and_admin_controls_20260410",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-04-10T15:30:00Z",
+  "updated_at": "2026-04-10T15:30:00Z",
+  "description": "Enhanced member profiles with anonymity, social links, and account management, plus admin tools for blocking and duplicate detection."
+}

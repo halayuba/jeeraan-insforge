@@ -1,7 +1,7 @@
 import { Camera, X } from 'lucide-react-native';
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -25,6 +27,37 @@ export default function SubmitProfileScreen() {
   const [bio, setBio] = useState('');
   const [assets, setAssets] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const { data, error } = await insforge.database
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', session?.user?.id)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+
+      if (data && data.is_visible === false) {
+        Alert.alert(
+          'Ineligible for Board',
+          'Anonymous members are not eligible for board positions. Please make your profile visible in settings to continue.',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!bio.trim() || !assets.trim()) {
@@ -39,7 +72,7 @@ export default function SubmitProfileScreen() {
         user_id: session?.user?.id,
         bio: bio.trim(),
         assets: assets.trim(),
-        image_url: session?.user?.user_metadata?.avatar_url || null,
+        image_url: profile?.avatar_url || null,
       }]);
 
       if (error) {
@@ -61,6 +94,14 @@ export default function SubmitProfileScreen() {
     }
   };
 
+  if (loadingProfile) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#1193d4" />
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -76,12 +117,23 @@ export default function SubmitProfileScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Photo Placeholder */}
+        {/* Photo Section */}
         <View style={styles.photoSection}>
           <View style={styles.photoPlaceholder}>
-            <Camera size={40} color="#64748b" strokeWidth={2} />
+            {profile?.avatar_url ? (
+              <Image source={{ uri: profile.avatar_url }} style={styles.photoImage} />
+            ) : (
+              <Camera size={40} color="#64748b" strokeWidth={2} />
+            )}
           </View>
-          <Text style={styles.photoLabel}>Upload Profile Picture</Text>
+          <Text style={styles.photoLabel}>
+            {profile?.avatar_url ? 'Existing Profile Picture' : 'No profile picture found'}
+          </Text>
+          {!profile?.avatar_url && (
+            <TouchableOpacity onPress={() => router.push('/profile' as any)}>
+              <Text style={styles.linkText}>Upload photo in Profile Settings</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Bio Field */}
@@ -136,6 +188,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f6f7f8',
   },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -179,17 +235,27 @@ const styles = StyleSheet.create({
     width: 128,
     height: 128,
     borderRadius: 64,
-    backgroundColor: '#f6f7f8',
+    backgroundColor: '#fff',
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: '#e2e8f0',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
   },
   photoLabel: {
     fontSize: 13,
     fontFamily: 'Manrope-Regular',
     color: '#64748b',
+  },
+  linkText: {
+    fontSize: 13,
+    fontFamily: 'Manrope-SemiBold',
+    color: '#1193d4',
   },
   fieldGroup: {
     gap: 8,

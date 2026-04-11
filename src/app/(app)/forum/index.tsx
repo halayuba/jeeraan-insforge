@@ -26,6 +26,7 @@ import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { LevelBadge } from '../../../components/LevelBadge';
+import { MemberName } from '../../../components/MemberName';
 
 export default function ForumIndex() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function ForumIndex() {
         .select(`
           *,
           forum_replies (count),
-          author:user_profiles(full_name, avatar_url, level)
+          author:user_profiles(full_name, avatar_url, level, is_visible, anonymous_id)
         `)
         .order('created_at', { ascending: false });
 
@@ -115,7 +116,6 @@ export default function ForumIndex() {
 
   const renderPostRow = (post: any) => {
     const repliesCount = post.forum_replies?.[0]?.count || 0;
-    const authorName = post.author?.full_name || 'Resident';
     const authorLevel = post.author?.level || 1;
     const CategoryIcon = getCategoryIcon(post.category);
     
@@ -130,8 +130,14 @@ export default function ForumIndex() {
         </View>
         <View style={styles.postCardContent}>
           <Text style={styles.postTitle}>{post.title}</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={styles.postMeta}>by {authorName}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <Text style={styles.postMeta}>by </Text>
+            <MemberName 
+              name={post.author?.full_name} 
+              isVisible={post.author?.is_visible} 
+              anonymousId={post.author?.anonymous_id}
+              textStyle={styles.postMeta}
+            />
             <LevelBadge level={authorLevel} />
             <Text style={styles.postMeta}>
               • {repliesCount} {repliesCount === 1 ? 'reply' : 'replies'} • {formatTimeAgo(post.created_at)}

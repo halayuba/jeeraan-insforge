@@ -9,6 +9,7 @@ type UserContextType = {
   userRole: string | null;
   userLevel: number;
   neighborhoodId: string | null;
+  isBlocked: boolean;
   refreshAuth: () => Promise<void>;
   signOut: () => Promise<void>;
   handleAuthError: (err: any) => void;
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userLevel, setUserLevel] = useState<number>(1);
   const [neighborhoodId, setNeighborhoodId] = useState<string | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   const handleAuthError = (err: any) => {
     // Specifically handle session/auth errors by clearing state
@@ -34,20 +36,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       err.error === 'unauthorized'
     ) {
       console.log('Session expired or invalid, clearing auth state');
-      setSession(null);
-      setUser(null);
-      setUserRole(null);
-      setUserLevel(1);
-      setNeighborhoodId(null);
-      setGlobalRole(null);
+      clearAuthState();
     }
+  };
+
+  const clearAuthState = () => {
+    setSession(null);
+    setUser(null);
+    setUserRole(null);
+    setUserLevel(1);
+    setNeighborhoodId(null);
+    setGlobalRole(null);
+    setIsBlocked(false);
   };
 
   const fetchNeighborhoodInfo = async (userId: string) => {
     try {
       const { data, error } = await insforge.database
         .from('user_neighborhoods')
-        .select('role, neighborhood_id')
+        .select('role, neighborhood_id, is_blocked')
         .eq('user_id', userId)
         .single();
       
@@ -59,6 +66,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data) {
         setUserRole(data.role);
         setNeighborhoodId(data.neighborhood_id);
+        setIsBlocked(data.is_blocked || false);
+        
+        if (data.is_blocked) {
+          console.log('User is blocked from this neighborhood');
+        }
       }
     } catch (err) {
       console.error('Error fetching neighborhood context', err);
@@ -120,11 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await insforge.auth.signOut();
     } finally {
-      setSession(null);
-      setUser(null);
-      setUserRole(null);
-      setNeighborhoodId(null);
-      setGlobalRole(null);
+      clearAuthState();
     }
   };
 
@@ -164,7 +172,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading, 
       globalRole, 
       userRole, 
+      userLevel,
       neighborhoodId, 
+      isBlocked,
       refreshAuth,
       signOut,
       handleAuthError

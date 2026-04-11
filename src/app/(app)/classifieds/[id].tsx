@@ -1,4 +1,4 @@
-import { ArrowLeft, Contact, MessageSquare, Share2, Store } from 'lucide-react-native';
+import { ArrowLeft, MessageCircle, Share2, Tag } from 'lucide-react-native';
 
 
 import React, { useState, useEffect } from 'react';
@@ -7,18 +7,20 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  Image,
   StyleSheet,
   ActivityIndicator,
-  Image,
-  Platform,
-  Share,
+  Dimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
+import { MemberName } from '../../../components/MemberName';
 
-export default function ClassifiedAdDetail() {
+const { width } = Dimensions.get('window');
+
+export default function AdDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { handleAuthError } = useAuth();
@@ -26,9 +28,7 @@ export default function ClassifiedAdDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (id) {
-      fetchAdDetail();
-    }
+    fetchAdDetail();
   }, [id]);
 
   const fetchAdDetail = async () => {
@@ -38,7 +38,7 @@ export default function ClassifiedAdDetail() {
         .from('classified_ads')
         .select(`
           *,
-          author:user_profiles(full_name, avatar_url)
+          author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)
         `)
         .eq('id', id)
         .single();
@@ -51,27 +51,16 @@ export default function ClassifiedAdDetail() {
       };
       setAd(formattedAd);
     } catch (err) {
-      console.error('Error fetching classified ad details:', err);
+      console.error('Error fetching ad details:', err);
       handleAuthError(err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleShare = async () => {
-    if (!ad) return;
-    try {
-      await Share.share({
-        message: `Check out this classified ad on Jeeraan: ${ad.title} for $${ad.price}. Contact: ${ad.contact_info}`,
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  if (loading) {
+  if (loading && !ad) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.centered}>
         <ActivityIndicator size="large" color="#1193d4" />
       </View>
     );
@@ -79,10 +68,10 @@ export default function ClassifiedAdDetail() {
 
   if (!ad) {
     return (
-      <View style={styles.errorContainer}>
+      <View style={styles.centered}>
         <Text style={styles.errorText}>Ad not found.</Text>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
-          <Text style={styles.backLinkText}>Go Back</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -90,76 +79,84 @@ export default function ClassifiedAdDetail() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ad Details</Text>
-        <TouchableOpacity onPress={handleShare} style={styles.iconButton}>
-          <Share2 size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+            <ArrowLeft size={24} color="#ffffff" strokeWidth={2} />
+          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Share2 size={24} color="#ffffff" strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+        </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        
-        {/* Image Section */}
-        <View style={styles.imageSection}>
-          {ad.image_url ? (
-            <Image source={{ uri: ad.image_url }} style={styles.mainImage} resizeMode="contain" />
+        {/* Image Gallery */}
+        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.imageGallery}>
+          {ad.images && ad.images.length > 0 ? (
+            ad.images.map((img: string, idx: number) => (
+              <Image key={idx} source={{ uri: img }} style={styles.galleryImage} />
+            ))
           ) : (
-            <View style={styles.placeholderContainer}>
-              <Store size={80} color="#cbd5e1" strokeWidth={2} />
-              <Text style={styles.placeholderText}>No Image Available</Text>
+            <View style={styles.placeholderGallery}>
+              <Tag size={64} color="#cbd5e1" strokeWidth={1.5} />
             </View>
           )}
-        </View>
+        </ScrollView>
 
-        {/* Pricing & Title */}
-        <View style={styles.infoCard}>
+        <View style={styles.content}>
           <View style={styles.priceRow}>
-            <Text style={styles.priceText}>${ad.price}</Text>
+            <Text style={styles.price}>${ad.price}</Text>
             <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>Classified</Text>
+              <Text style={styles.categoryText}>{ad.category}</Text>
             </View>
           </View>
-          <Text style={styles.adTitle}>{ad.title}</Text>
-          <Text style={styles.dateText}>Posted on {new Date(ad.created_at).toLocaleDateString()}</Text>
-        </View>
 
-        {/* Description */}
-        <View style={styles.section}>
+          <Text style={styles.title}>{ad.title}</Text>
+          <Text style={styles.timestamp}>Posted on {new Date(ad.created_at).toLocaleDateString()}</Text>
+
+          <View style={styles.divider} />
+
           <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.descriptionText}>{ad.description || 'No description provided.'}</Text>
-        </View>
+          <Text style={styles.description}>{ad.description}</Text>
 
-        {/* Seller Info */}
-        <View style={styles.section}>
+          <View style={styles.divider} />
+
           <Text style={styles.sectionTitle}>Seller Information</Text>
-          <View style={styles.sellerRow}>
-            <Image 
-              source={{ uri: ad.author?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(ad.author?.full_name || 'Resident')}&background=1193d4&color=fff` }} 
-              style={styles.sellerAvatar} 
-            />
-            <View style={styles.sellerDetails}>
-              <Text style={styles.sellerName}>{ad.author?.full_name || 'Resident'}</Text>
-              <Text style={styles.sellerRole}>Neighborhood Member</Text>
+          <View style={styles.sellerCard}>
+            <View style={styles.sellerInfo}>
+              {ad.author?.avatar_url && ad.author?.is_visible !== false ? (
+                <Image source={{ uri: ad.author.avatar_url }} style={styles.sellerAvatar} />
+              ) : (
+                <View style={styles.sellerAvatarPlaceholder}>
+                  <Text style={styles.sellerAvatarInitial}>
+                    {ad.author?.is_visible !== false 
+                      ? (ad.author?.full_name || 'U').charAt(0)
+                      : '?'
+                    }
+                  </Text>
+                </View>
+              )}
+              <View>
+                <MemberName 
+                  name={ad.author?.full_name} 
+                  isVisible={ad.author?.is_visible} 
+                  anonymousId={ad.author?.anonymous_id}
+                  textStyle={styles.sellerName}
+                />
+                <Text style={styles.sellerMeta}>Verified Resident</Text>
+              </View>
             </View>
           </View>
-          
-          <View style={styles.contactCard}>
-            <Contact size={20} color="#1193d4" strokeWidth={2} />
-            <Text style={styles.contactInfo}>{ad.contact_info}</Text>
-          </View>
         </View>
-
       </ScrollView>
 
-      {/* Bottom Action */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.contactButton} onPress={() => {}}>
-          <MessageSquare size={20} color="#ffffff" strokeWidth={2} />
-          <Text style={styles.contactButtonText}>Message Seller</Text>
+      {/* Footer CTA */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.messageButton}>
+          <MessageCircle size={20} color="#ffffff" strokeWidth={2} />
+          <Text style={styles.messageButtonText}>Contact Seller</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -171,85 +168,53 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  loadingContainer: {
+  centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    fontFamily: 'Manrope-Medium',
-    fontSize: 16,
-    color: '#64748b',
-    marginBottom: 16,
-  },
-  backLink: {
-    padding: 10,
-  },
-  backLinkText: {
-    color: '#1193d4',
-    fontFamily: 'Manrope-Bold',
+    backgroundColor: '#f6f7f8',
   },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    paddingTop: Platform.OS === 'ios' ? 50 : 16,
+    paddingHorizontal: 16,
+    paddingTop: 48,
   },
   iconButton: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: '#f6f7f8',
-  },
-  scrollContent: {
-    paddingBottom: 100,
-  },
-  imageSection: {
-    width: '100%',
-    height: 300,
-    backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mainImage: {
-    width: '100%',
-    height: '100%',
-  },
-  placeholderContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  headerRight: {
+    flexDirection: 'row',
     gap: 12,
   },
-  placeholderText: {
-    fontFamily: 'Manrope-Medium',
-    color: '#cbd5e1',
-    fontSize: 16,
+  imageGallery: {
+    height: 300,
+    backgroundColor: '#f1f5f9',
   },
-  infoCard: {
-    backgroundColor: '#ffffff',
+  galleryImage: {
+    width: width,
+    height: 300,
+    resizeMode: 'cover',
+  },
+  placeholderGallery: {
+    width: width,
+    height: 300,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
     padding: 20,
-    marginBottom: 12,
+    paddingBottom: 100,
   },
   priceRow: {
     flexDirection: 'row',
@@ -257,38 +222,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  priceText: {
-    fontFamily: 'Manrope-ExtraBold',
+  price: {
+    fontFamily: 'Manrope-Bold',
     fontSize: 28,
     color: '#1193d4',
   },
   categoryBadge: {
-    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    backgroundColor: '#f1f5f9',
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   categoryText: {
     fontFamily: 'Manrope-Bold',
     fontSize: 12,
-    color: '#1193d4',
+    color: '#475569',
     textTransform: 'uppercase',
   },
-  adTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 20,
+  title: {
+    fontFamily: 'Manrope-ExtraBold',
+    fontSize: 22,
     color: '#0f172a',
     marginBottom: 8,
   },
-  dateText: {
-    fontFamily: 'Manrope-Regular',
-    fontSize: 12,
+  timestamp: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 14,
     color: '#94a3b8',
   },
-  section: {
-    backgroundColor: '#ffffff',
-    padding: 20,
-    marginBottom: 12,
+  divider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginVertical: 20,
   },
   sectionTitle: {
     fontFamily: 'Manrope-Bold',
@@ -296,74 +261,91 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     marginBottom: 12,
   },
-  descriptionText: {
+  description: {
     fontFamily: 'Manrope-Regular',
-    fontSize: 15,
-    color: '#475569',
+    fontSize: 16,
+    color: '#334155',
     lineHeight: 24,
   },
-  sellerRow: {
+  sellerCard: {
+    backgroundColor: '#f8fafc',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+  },
+  sellerInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 16,
   },
   sellerAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
   },
-  sellerDetails: {
-    flex: 1,
+  sellerAvatarPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#e2e8f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sellerAvatarInitial: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 18,
+    color: '#64748b',
   },
   sellerName: {
     fontFamily: 'Manrope-Bold',
     fontSize: 16,
-    color: '#0f172a',
+    color: '#1e293b',
   },
-  sellerRole: {
+  sellerMeta: {
     fontFamily: 'Manrope-Medium',
     fontSize: 12,
-    color: '#94a3b8',
+    color: '#64748b',
   },
-  contactCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#f8fafc',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  contactInfo: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 16,
-    color: '#0f172a',
-  },
-  bottomBar: {
+  footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 16,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+    padding: 20,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#f1f5f9',
+    paddingBottom: 32,
   },
-  contactButton: {
+  messageButton: {
     backgroundColor: '#1193d4',
-    height: 56,
-    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
     gap: 8,
   },
-  contactButtonText: {
+  messageButtonText: {
     fontFamily: 'Manrope-Bold',
     fontSize: 16,
+    color: '#ffffff',
+  },
+  errorText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: '#0f172a',
+    marginBottom: 16,
+  },
+  backButton: {
+    backgroundColor: '#1193d4',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    fontFamily: 'Manrope-Bold',
     color: '#ffffff',
   },
 });

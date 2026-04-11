@@ -1,8 +1,8 @@
-import { ChevronDown, CloudUpload, HelpCircle, Layout, MessageCircle, Plus, Trash2, Vote } from 'lucide-react-native';
+import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, HelpCircle, Layout, MessageCircle, Plus, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle } from 'lucide-react-native';
 
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image, Switch } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 
 import * as ImagePicker from 'expo-image-picker';
@@ -17,9 +17,14 @@ export default function AdminDashboard() {
   const [rejectedRequests, setRejectedRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeMembersCount, setActiveMembersCount] = useState(0);
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'members' | 'rejected'>('pending');
   const [neighborhood, setNeighborhood] = useState<any>(null);
   
+  // Member Management State
+  const [allMembers, setAllMembers] = useState<any[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [existingUserPhones, setExistingUserPhones] = useState<Set<string>>(new Set());
+
   // Election Management State
   const [votingDate, setVotingDate] = useState('');
   const [boardPositions, setBoardPositions] = useState<any[]>([]);
@@ -89,6 +94,7 @@ export default function AdminDashboard() {
         fetchNeighborhood();
         fetchGamificationSettings();
         fetchEligibleUsers();
+        fetchMembers();
       }
       if (globalRole === 'super_admin' && neighborhoodId) {
         fetchElectionInfo();
@@ -98,6 +104,74 @@ export default function AdminDashboard() {
       }
     }, [globalRole, neighborhoodId])
   );
+
+  const fetchMembers = async () => {
+    if (!neighborhoodId) return;
+    setLoadingMembers(true);
+    try {
+      const { data, error } = await insforge.database
+        .from('user_neighborhoods')
+        .select(`
+          user_id,
+          role,
+          is_blocked,
+          joined_at,
+          profile:user_profiles(full_name, phone, avatar_url, is_visible, anonymous_id)
+        `)
+        .eq('neighborhood_id', neighborhoodId)
+        .order('joined_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formatted = (data || []).map((m: any) => ({
+        ...m,
+        profile: Array.isArray(m.profile) ? m.profile[0] : m.profile
+      }));
+      setAllMembers(formatted);
+
+      // Collect all phones for duplicate detection
+      const phones = new Set<string>();
+      formatted.forEach((m: any) => {
+        if (m.profile?.phone) phones.add(m.profile.phone);
+      });
+      setExistingUserPhones(phones);
+    } catch (err) {
+      console.error('Failed to fetch members:', err);
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
+
+  const handleToggleBlock = async (userId: string, currentBlocked: boolean) => {
+    const action = currentBlocked ? 'Unblock' : 'Block';
+    Alert.alert(
+      `${action} Member`,
+      `Are you sure you want to ${action.toLowerCase()} this member? ${currentBlocked ? 'They will regain access to neighborhood features.' : 'They will be restricted from participating in the community.'}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: action, 
+          style: currentBlocked ? 'default' : 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await insforge.database
+                .from('user_neighborhoods')
+                .update({ is_blocked: !currentBlocked })
+                .eq('user_id', userId)
+                .eq('neighborhood_id', neighborhoodId);
+
+              if (error) throw error;
+              setAllMembers(allMembers.map(m => m.user_id === userId ? { ...m, is_blocked: !currentBlocked } : m));
+              Alert.alert('Success', `Member ${action.toLowerCase()}ed.`);
+            } catch (err) {
+              console.error('Failed to toggle block:', err);
+              Alert.alert('Error', 'Failed to update member status.');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const fetchEligibleUsers = async () => {
     if (!neighborhoodId) return;
@@ -591,7 +665,7 @@ export default function AdminDashboard() {
         .from('questions')
         .select(`
           *,
-          author:user_profiles(full_name)
+          author:user_profiles(full_name, is_visible, anonymous_id)
         `)
         .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
@@ -925,37 +999,36 @@ export default function AdminDashboard() {
   };
 
   const renderRequestsTab = () => {
-    let data = [];
-    if (activeTab === 'pending') data = requests;
-    else if (activeTab === 'approved') data = approvedRequests;
-    else data = rejectedRequests;
-
+    let data = requests;
     if (loading) {
       return <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />;
     }
 
     if (data.length === 0) {
-      return <Text style={styles.emptyText}>No {activeTab} requests found.</Text>;
+      return <Text style={styles.emptyText}>No pending requests found.</Text>;
     }
 
     return (
       <View style={styles.requestsContainer}>
-        {data.map((req) => (
-          <View key={req.id} style={styles.requestRowExtended}>
-            <View style={styles.requestInfo}>
-              <View style={styles.requestMainInfo}>
-                <Text style={styles.requestName}>{req.name}</Text>
-                <Text style={styles.requestNeighborhood}>{neighborhood?.name || 'Loading...'}</Text>
+        {data.map((req) => {
+          const isDuplicate = existingUserPhones.has(req.phone);
+          return (
+            <View key={req.id} style={styles.requestRowExtended}>
+              <View style={styles.requestInfo}>
+                <View style={styles.requestMainInfo}>
+                  <Text style={styles.requestName}>{req.name}</Text>
+                  {isDuplicate && (
+                    <View style={styles.duplicateBadge}>
+                      <AlertCircle size={12} color="#ef4444" style={{marginRight: 4}} />
+                      <Text style={styles.duplicateBadgeText}>Duplicate Phone</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.requestDetail}>Phone: {req.phone}</Text>
+                <Text style={styles.requestDetail}>Address: {req.address || 'N/A'}</Text>
+                <Text style={styles.requestDetail}>Submitted: {new Date(req.created_at).toLocaleDateString()}</Text>
               </View>
-              <Text style={styles.requestDetail}>Phone: {req.phone}</Text>
-              <Text style={styles.requestDetail}>Address: {req.address || 'N/A'}</Text>
-              <Text style={styles.requestDetail}>
-                {activeTab === 'pending' ? 'Submitted on: ' : activeTab === 'approved' ? 'Joined on: ' : 'Rejected on: '}
-                {new Date(activeTab === 'pending' ? req.created_at : req.updated_at).toLocaleDateString()}
-              </Text>
-            </View>
-            
-            {activeTab === 'pending' && (
+              
               <View style={styles.actionGroupVertical}>
                 <TouchableOpacity style={styles.approveBtn} onPress={() => handleApprove(req)}>
                   <Text style={styles.approveText}>Approve</Text>
@@ -964,7 +1037,85 @@ export default function AdminDashboard() {
                   <Text style={styles.declineText}>Decline</Text>
                 </TouchableOpacity>
               </View>
-            )}
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
+  const renderMembersTab = () => {
+    if (loadingMembers) {
+      return <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />;
+    }
+
+    if (allMembers.length === 0) {
+      return <Text style={styles.emptyText}>No members found.</Text>;
+    }
+
+    return (
+      <View style={styles.requestsContainer}>
+        {allMembers.map((member) => (
+          <View key={member.user_id} style={[styles.requestRowExtended, member.is_blocked && styles.blockedRow]}>
+            <View style={styles.requestInfo}>
+              <View style={styles.requestMainInfo}>
+                <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+                  {member.profile?.avatar_url ? (
+                    <Image source={{ uri: member.profile.avatar_url }} style={styles.memberAvatar} />
+                  ) : (
+                    <View style={styles.memberAvatarPlaceholder}>
+                      <Text style={styles.memberAvatarInitial}>
+                        {(member.profile?.full_name || 'U').charAt(0)}
+                      </Text>
+                    </View>
+                  )}
+                  <View>
+                    <Text style={[styles.requestName, member.is_blocked && styles.blockedText]}>
+                      {member.profile?.is_visible !== false ? member.profile?.full_name : `${member.profile?.anonymous_id} (?)`}
+                    </Text>
+                    <Text style={styles.requestDetail}>{member.role.toUpperCase()}</Text>
+                  </View>
+                </View>
+                {member.is_blocked && (
+                  <View style={styles.privateBadge}>
+                    <Text style={styles.qaBadgeText}>BLOCKED</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.requestDetail}>Phone: {member.profile?.phone || 'N/A'}</Text>
+              <Text style={styles.requestDetail}>Joined: {new Date(member.joined_at).toLocaleDateString()}</Text>
+            </View>
+            
+            <TouchableOpacity 
+              style={[styles.declineBtn, {borderColor: member.is_blocked ? '#10b981' : '#ef4444'}]} 
+              onPress={() => handleToggleBlock(member.user_id, member.is_blocked)}
+            >
+              {member.is_blocked ? (
+                <UserPlus size={18} color="#10b981" strokeWidth={2} />
+              ) : (
+                <UserMinus size={18} color="#ef4444" strokeWidth={2} />
+              )}
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
+  const renderRejectedTab = () => {
+    if (rejectedRequests.length === 0) {
+      return <Text style={styles.emptyText}>No rejected requests found.</Text>;
+    }
+
+    return (
+      <View style={styles.requestsContainer}>
+        {rejectedRequests.map((req) => (
+          <View key={req.id} style={styles.requestRowExtended}>
+            <View style={styles.requestInfo}>
+              <Text style={styles.requestName}>{req.name}</Text>
+              <Text style={styles.requestDetail}>Phone: {req.phone}</Text>
+              <Text style={styles.requestDetail}>Rejected on: {new Date(req.updated_at).toLocaleDateString()}</Text>
+            </View>
           </View>
         ))}
       </View>
@@ -977,10 +1128,9 @@ export default function AdminDashboard() {
 
         {/* Top Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Community Analytics</Text>
+          <Text style={styles.headerTitle}>Community Management</Text>
           <TouchableOpacity style={styles.filterButton}>
-            <Text style={styles.filterText}>Last 30 Days</Text>
-            <ChevronDown size={16} color="#475569" strokeWidth={2} />
+            <Text style={styles.filterText}>Loma Vista West</Text>
           </TouchableOpacity>
         </View>
 
@@ -989,49 +1139,17 @@ export default function AdminDashboard() {
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Active Members</Text>
             <Text style={styles.statValue}>{activeMembersCount.toLocaleString()}</Text>
-            <Text style={styles.statTrendPos}>+5.2%</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statLabel}>New Sign-ups</Text>
-            <Text style={styles.statValue}>58</Text>
-            <Text style={styles.statTrendPos}>+12%</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Announcements</Text>
-            <Text style={styles.statValue}>23</Text>
-            <Text style={styles.statTrendNeg}>-3%</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Service Orders</Text>
-            <Text style={styles.statValue}>16</Text>
-            <Text style={styles.statTrendPos}>+8%</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Events</Text>
-            <Text style={styles.statValue}>12</Text>
-            <Text style={styles.statTrendPos}>+15%</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Grievances</Text>
-            <Text style={styles.statValue}>5</Text>
-            <Text style={styles.statTrendNeg}>-20%</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Classified Ads</Text>
-            <Text style={styles.statValue}>35</Text>
-            <Text style={styles.statTrendPos}>+5%</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Voting Participation</Text>
-            <Text style={styles.statValue}>72%</Text>
-            <Text style={styles.statTrendPos}>+10%</Text>
+            <Text style={styles.statLabel}>Pending Joins</Text>
+            <Text style={styles.statValue}>{requests.length}</Text>
           </View>
         </View>
 
-        {/* Pending Requests Section */}
+        {/* Membership Management Section */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Invite Requests Management</Text>
+            <Text style={styles.cardTitle}>Members & Requests</Text>
           </View>
 
           {/* Tab Selector */}
@@ -1040,23 +1158,25 @@ export default function AdminDashboard() {
               style={[styles.tabButton, activeTab === 'pending' && styles.activeTabButton]} 
               onPress={() => setActiveTab('pending')}
             >
-              <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>Pending ({requests.length})</Text>
+              <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>Pending</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              style={[styles.tabButton, activeTab === 'approved' && styles.activeTabButton]} 
-              onPress={() => setActiveTab('approved')}
+              style={[styles.tabButton, activeTab === 'members' && styles.activeTabButton]} 
+              onPress={() => setActiveTab('members')}
             >
-              <Text style={[styles.tabText, activeTab === 'approved' && styles.activeTabText]}>Members ({approvedRequests.length})</Text>
+              <Text style={[styles.tabText, activeTab === 'members' && styles.activeTabText]}>Members</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.tabButton, activeTab === 'rejected' && styles.activeTabButton]} 
               onPress={() => setActiveTab('rejected')}
             >
-              <Text style={[styles.tabText, activeTab === 'rejected' && styles.activeTabText]}>Rejected ({rejectedRequests.length})</Text>
+              <Text style={[styles.tabText, activeTab === 'rejected' && styles.activeTabText]}>Rejected</Text>
             </TouchableOpacity>
           </View>
 
-          {renderRequestsTab()}
+          {activeTab === 'pending' && renderRequestsTab()}
+          {activeTab === 'members' && renderMembersTab()}
+          {activeTab === 'rejected' && renderRejectedTab()}
           </View>
 
           {/* Engagement & Gamification Settings */}
@@ -1155,7 +1275,9 @@ export default function AdminDashboard() {
               {questions.map((item) => (
                 <View key={item.id} style={styles.qaItem}>
                   <View style={styles.qaHeader}>
-                    <Text style={styles.qaMember}>{item.author?.full_name || 'Resident'}</Text>
+                    <Text style={styles.qaMember}>
+                      {item.author?.is_visible !== false ? item.author?.full_name : `${item.author?.anonymous_id} (?)`}
+                    </Text>
                     <Text style={styles.qaDate}>{new Date(item.created_at).toLocaleDateString()}</Text>
                   </View>
                   <Text style={styles.qaText}>{item.question_text}</Text>
@@ -1349,7 +1471,7 @@ const styles = StyleSheet.create({
   filterText: {
     fontFamily: 'Manrope-SemiBold',
     fontSize: 12,
-    color: '#475569',
+    color: '#1193d4',
   },
   statsGrid: {
     flexDirection: 'row',
@@ -1797,5 +1919,42 @@ const styles = StyleSheet.create({
   previewImage: {
     width: '100%',
     height: 150,
+  },
+  duplicateBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fee2e2',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  duplicateBadgeText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    color: '#ef4444',
+  },
+  memberAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+  },
+  memberAvatarPlaceholder: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  memberAvatarInitial: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    color: '#1193d4',
+  },
+  blockedRow: {
+    backgroundColor: '#fff1f2',
+  },
+  blockedText: {
+    color: '#ef4444',
   }
 });

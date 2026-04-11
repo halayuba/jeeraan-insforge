@@ -1,5 +1,26 @@
-import { Briefcase, Cake, Camera, ChevronRight, Globe, Home, Mail, PauseCircle, Phone, Trash2, User, UserSquare2 } from 'lucide-react-native';
-
+import { 
+  ArrowLeft,
+  Briefcase, 
+  Cake, 
+  Camera, 
+  ChevronRight, 
+  Eye, 
+  EyeOff, 
+  Facebook, 
+  Globe, 
+  Home, 
+  Instagram, 
+  Linkedin, 
+  Lock, 
+  Mail, 
+  PauseCircle, 
+  Phone, 
+  ShieldCheck,
+  Twitter, 
+  Trash2, 
+  User, 
+  UserSquare2 
+} from 'lucide-react-native';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -13,6 +34,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
@@ -21,9 +43,17 @@ import { useAuth } from '../../contexts/AuthContext';
 import { insforge } from '../../lib/insforge';
 import { useToast } from '../../contexts/ToastContext';
 
+type SocialLinks = {
+  instagram?: string;
+  twitter?: string;
+  linkedin?: string;
+  facebook?: string;
+  website?: string;
+};
+
 export default function ProfileScreen() {
   const router = useRouter();
-  const { session, signOut, neighborhoodId } = useAuth();
+  const { session, signOut, neighborhoodId, userRole } = useAuth();
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -34,10 +64,13 @@ export default function ProfileScreen() {
   // Editable fields state
   const [gender, setGender] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [birthday, setBirthday] = useState('');
   const [language, setLanguage] = useState('');
   const [workTitle, setWorkTitle] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [isVisible, setIsVisible] = useState(true);
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -85,10 +118,13 @@ export default function ProfileScreen() {
         setProfile(data);
         setGender(data.gender || '');
         setEmail(data.email || '');
+        setPhone(data.phone || '');
         setBirthday(data.birthday || '');
         setLanguage(data.language || '');
         setWorkTitle(data.work_title || '');
         setAvatarUrl(data.avatar_url || '');
+        setIsVisible(data.is_visible ?? true);
+        setSocialLinks(data.social_links || {});
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -97,6 +133,12 @@ export default function ProfileScreen() {
   };
 
   const handlePickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      showToast('Permission to access gallery was denied', 'error');
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
@@ -130,7 +172,6 @@ export default function ProfileScreen() {
 
       const newAvatarUrl = publicUrlData as unknown as string;
       
-      // Update profile with new avatar URL
       const { error: updateError } = await insforge.database
         .from('user_profiles')
         .update({ avatar_url: newAvatarUrl })
@@ -156,9 +197,12 @@ export default function ProfileScreen() {
         .update({
           gender,
           email,
+          phone,
           birthday: birthday || null,
           language,
           work_title: workTitle,
+          is_visible: isVisible,
+          social_links: socialLinks,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', session?.user?.id);
@@ -170,6 +214,41 @@ export default function ProfileScreen() {
       showToast('Failed to update profile', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const toggleVisibility = (value: boolean) => {
+    setIsVisible(value);
+    if (!value) {
+      Alert.alert(
+        'Identity Hidden',
+        'Your profile and real name will be hidden from other members. You will appear as an anonymous ID (e.g., ' + profile?.anonymous_id + ' (?)) and will not be eligible for board positions.',
+        [{ text: 'OK' }]
+      );
+    } else {
+      Alert.alert(
+        'Identity Visible',
+        'Your profile information and real name will now be shown for all your activities on the app.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const updateSocialLink = (platform: keyof SocialLinks, value: string) => {
+    setSocialLinks(prev => ({ ...prev, [platform]: value }));
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      showToast('Please provide your email first', 'error');
+      return;
+    }
+    try {
+      const { error } = await insforge.auth.resetPassword(email);
+      if (error) throw error;
+      showToast('Password reset code sent to your email');
+    } catch (err) {
+      showToast('Failed to send reset code', 'error');
     }
   };
 
@@ -200,25 +279,29 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleDeleteRequest = () => {
+  const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete Profile',
-      'This will send a request to the neighborhood admin to remove you from the community. Your account will be permanently deleted once processed.',
+      'Delete Account Permanently',
+      'This will permanently delete your account and all associated data. This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { 
-          text: 'Request Removal', 
+          text: 'Delete Permanently', 
           style: 'destructive',
           onPress: async () => {
             try {
-              const { error } = await insforge.database
-                .from('user_profiles')
-                .update({ deletion_requested: true })
-                .eq('user_id', session?.user?.id);
+              setSaving(true);
+              const { error } = await insforge.auth.deleteAccount();
               if (error) throw error;
-              showToast('Removal request sent to admin');
+              
+              await signOut();
+              router.replace('/(auth)/sign-in');
+              showToast('Account deleted successfully');
             } catch (err) {
-              showToast('Action failed', 'error');
+              console.error('Delete error:', err);
+              showToast('Action failed. You may need to re-authenticate.', 'error');
+            } finally {
+              setSaving(false);
             }
           }
         }
@@ -237,216 +320,250 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Personal info</Text>
-        <TouchableOpacity onPress={handleSave} disabled={saving}>
-          {saving ? <ActivityIndicator size="small" color="#1193d4" /> : <Text style={styles.saveText}>Save</Text>}
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <ArrowLeft size={24} color="#1e293b" strokeWidth={2} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>My Profile</Text>
+        <TouchableOpacity onPress={handleSave} disabled={saving} style={styles.saveButton}>
+          {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.saveText}>Save</Text>}
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.card}>
-          {/* Profile Picture */}
-          <TouchableOpacity style={styles.row} onPress={handlePickImage}>
-            <View style={styles.rowLeft}>
-              <Camera size={22} color="#64748b" strokeWidth={2} />
-              <Text style={styles.label}>Profile picture</Text>
-            </View>
-            <View style={styles.avatarContainer}>
-              {avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-              ) : (
-                <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                  <Text style={styles.avatarInitial}>{profile?.full_name?.charAt(0).toUpperCase()}</Text>
-                </View>
-              )}
+        {/* Top Profile Card */}
+        <View style={styles.profileHeaderCard}>
+          <TouchableOpacity onPress={handlePickImage} style={styles.avatarWrapper}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.mainAvatar} />
+            ) : (
+              <View style={[styles.mainAvatar, styles.avatarPlaceholder]}>
+                <Text style={styles.avatarInitial}>{profile?.full_name?.charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
+            <View style={styles.cameraIconBadge}>
+              <Camera size={14} color="#fff" strokeWidth={2.5} />
             </View>
           </TouchableOpacity>
-
-          {/* Gamification Stats */}
+          <Text style={styles.profileName}>{profile?.full_name}</Text>
+          <Text style={styles.profileRole}>{userRole === 'admin' ? 'Neighborhood Admin' : 'Resident'}</Text>
+          
           {gamificationSettings?.is_active && (
-            <View style={styles.gamificationSection}>
-              <View style={styles.levelBadgeContainer}>
-                <View style={styles.levelBadge}>
-                  <Text style={styles.levelBadgeText}>LVL {profile?.level || 1}</Text>
-                </View>
-                <Text style={styles.pointsText}>{profile?.points || 0} Points</Text>
+            <View style={styles.gamificationRow}>
+              <View style={styles.badge}>
+                <ShieldCheck size={14} color="#1193d4" style={{marginRight: 4}} strokeWidth={2} />
+                <Text style={styles.badgeText}>Level {profile?.level || 1}</Text>
               </View>
-              
-              {(() => {
-                const currentPoints = profile?.points || 0;
-                const currentLevel = profile?.level || 1;
-                let nextLevelThreshold = 0;
-                let prevLevelThreshold = 0;
-
-                if (currentLevel === 1) {
-                  nextLevelThreshold = gamificationSettings.level_2_threshold;
-                  prevLevelThreshold = 0;
-                } else if (currentLevel === 2) {
-                  nextLevelThreshold = gamificationSettings.level_3_threshold;
-                  prevLevelThreshold = gamificationSettings.level_2_threshold;
-                } else {
-                  // Max level reached or custom levels
-                  return <Text style={styles.progressText}>Maximum Level Reached! 🏆</Text>;
-                }
-
-                const progress = Math.min(Math.max((currentPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold), 0), 1);
-                const pointsNeeded = nextLevelThreshold - currentPoints;
-
-                return (
-                  <View style={styles.progressContainer}>
-                    <View style={styles.progressBarBg}>
-                      <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
-                    </View>
-                    <Text style={styles.progressText}>{pointsNeeded} more points to Level {currentLevel + 1}</Text>
-                  </View>
-                );
-              })()}
+              <Text style={styles.pointsLabel}>{profile?.points || 0} Points</Text>
             </View>
           )}
+        </View>
 
-          {/* Name - Read Only */}
-          <View style={[styles.row, styles.disabledRow]}>
-            <View style={styles.rowLeft}>
-              <UserSquare2 size={22} color="#94a3b8" strokeWidth={2} />
-              <View>
-                <Text style={[styles.label, styles.disabledLabel]}>Name</Text>
-                <Text style={styles.value}>{profile?.full_name}</Text>
+        {/* Anonymity Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Privacy & Visibility</Text>
+          </View>
+          <View style={styles.card}>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                {isVisible ? <Eye size={22} color="#1193d4" strokeWidth={2} /> : <EyeOff size={22} color="#64748b" strokeWidth={2} />}
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.label}>Profile Visibility</Text>
+                  <Text style={styles.description}>
+                    {isVisible ? 'Your name and identity are visible.' : 'You are currently anonymous.'}
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={isVisible}
+                onValueChange={toggleVisibility}
+                trackColor={{ false: '#cbd5e1', true: '#1193d4' }}
+                thumbColor="#fff"
+              />
+            </View>
+            {!isVisible && (
+              <View style={styles.anonymousInfo}>
+                <Text style={styles.anonymousIdLabel}>Anonymous ID:</Text>
+                <Text style={styles.anonymousIdValue}>{profile?.anonymous_id} (?)</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Personal Info Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Personal Information</Text>
+          </View>
+          <View style={styles.card}>
+            <View style={styles.inputRow}>
+              <UserSquare2 size={22} color="#94a3b8" style={styles.inputIcon} strokeWidth={2} />
+              <View style={styles.inputContent}>
+                <Text style={styles.inputLabel}>Full Name</Text>
+                <Text style={styles.readOnlyValue}>{profile?.full_name}</Text>
               </View>
             </View>
-          </View>
-
-          {/* Gender */}
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <User size={22} color="#64748b" strokeWidth={2} />
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>Gender</Text>
+            
+            <View style={styles.inputRow}>
+              <Mail size={22} color="#94a3b8" style={styles.inputIcon} strokeWidth={2} />
+              <View style={styles.inputContent}>
+                <Text style={styles.inputLabel}>Email Address</Text>
                 <TextInput
-                  style={styles.input}
-                  value={gender}
-                  onChangeText={setGender}
-                  placeholder="Not specified"
-                  placeholderTextColor="#cbd5e1"
-                />
-              </View>
-            </View>
-            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
-          </View>
-
-          {/* Email */}
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <Mail size={22} color="#64748b" strokeWidth={2} />
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                  style={styles.input}
+                  style={styles.textInput}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="Add email address"
-                  placeholderTextColor="#cbd5e1"
+                  placeholder="Enter email"
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
               </View>
             </View>
-            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
-          </View>
 
-          {/* Phone - Read Only */}
-          <View style={[styles.row, styles.disabledRow]}>
-            <View style={styles.rowLeft}>
-              <Phone size={22} color="#94a3b8" strokeWidth={2} />
-              <View>
-                <Text style={[styles.label, styles.disabledLabel]}>Phone</Text>
-                <Text style={styles.value}>{profile?.phone}</Text>
+            <View style={styles.inputRow}>
+              <Phone size={22} color="#94a3b8" style={styles.inputIcon} strokeWidth={2} />
+              <View style={styles.inputContent}>
+                <Text style={styles.inputLabel}>Phone Number</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="Enter phone"
+                  keyboardType="phone-pad"
+                />
               </View>
             </View>
-          </View>
 
-          {/* Birthday */}
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <Cake size={22} color="#64748b" strokeWidth={2} />
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>Birthday</Text>
+            <View style={styles.inputRow}>
+              <Cake size={22} color="#94a3b8" style={styles.inputIcon} strokeWidth={2} />
+              <View style={styles.inputContent}>
+                <Text style={styles.inputLabel}>Birthday</Text>
                 <TextInput
-                  style={styles.input}
+                  style={styles.textInput}
                   value={birthday}
                   onChangeText={setBirthday}
                   placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#cbd5e1"
                 />
               </View>
             </View>
-            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
-          </View>
 
-          {/* Language */}
-          <View style={styles.row}>
-            <View style={styles.rowLeft}>
-              <Globe size={22} color="#64748b" strokeWidth={2} />
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>Language</Text>
-                <TextInput
-                  style={styles.input}
-                  value={language}
-                  onChangeText={setLanguage}
-                  placeholder="e.g. English (US)"
-                  placeholderTextColor="#cbd5e1"
-                />
+            <View style={styles.inputRow}>
+              <Home size={22} color="#94a3b8" style={styles.inputIcon} strokeWidth={2} />
+              <View style={styles.inputContent}>
+                <Text style={styles.inputLabel}>Neighborhood Address</Text>
+                <Text style={styles.readOnlyValue}>{profile?.address || 'Loma Vista West'}</Text>
               </View>
             </View>
-            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
-          </View>
 
-          {/* Home Address - Read Only */}
-          <View style={[styles.row, styles.disabledRow]}>
-            <View style={styles.rowLeft}>
-              <Home size={22} color="#94a3b8" strokeWidth={2} />
-              <View>
-                <Text style={[styles.label, styles.disabledLabel]}>Home address</Text>
-                <Text style={styles.value}>{profile?.address || 'Verified neighborhood address'}</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Work and Job Title */}
-          <View style={[styles.row, { borderBottomWidth: 0 }]}>
-            <View style={styles.rowLeft}>
-              <Briefcase size={22} color="#64748b" strokeWidth={2} />
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>Work address / Job Title</Text>
+            <View style={[styles.inputRow, { borderBottomWidth: 0 }]}>
+              <Briefcase size={22} color="#94a3b8" style={styles.inputIcon} strokeWidth={2} />
+              <View style={styles.inputContent}>
+                <Text style={styles.inputLabel}>Job Title / Profession</Text>
                 <TextInput
-                  style={styles.input}
+                  style={styles.textInput}
                   value={workTitle}
                   onChangeText={setWorkTitle}
-                  placeholder="Add your profession or workplace"
-                  placeholderTextColor="#cbd5e1"
+                  placeholder="e.g. Software Engineer"
                 />
               </View>
             </View>
-            <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
           </View>
         </View>
 
-        <View style={styles.managementSection}>
-          <Text style={styles.sectionTitle}>Account Management</Text>
-          
-          <TouchableOpacity style={styles.managementButton} onPress={handleInactivate}>
-            <PauseCircle size={24} color="#f59e0b" strokeWidth={2} />
-            <Text style={styles.managementButtonText}>Temporarily Inactivate Account</Text>
-          </TouchableOpacity>
+        {/* Social Links Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Social Links</Text>
+          </View>
+          <View style={styles.card}>
+            <View style={styles.inputRow}>
+              <Instagram size={22} color="#E1306C" style={styles.inputIcon} strokeWidth={2} />
+              <TextInput
+                style={[styles.textInput, { paddingTop: 12 }]}
+                value={socialLinks.instagram}
+                onChangeText={(val) => updateSocialLink('instagram', val)}
+                placeholder="Instagram username"
+                autoCapitalize="none"
+              />
+            </View>
+            <View style={styles.inputRow}>
+              <Twitter size={22} color="#1DA1F2" style={styles.inputIcon} strokeWidth={2} />
+              <TextInput
+                style={[styles.textInput, { paddingTop: 12 }]}
+                value={socialLinks.twitter}
+                onChangeText={(val) => updateSocialLink('twitter', val)}
+                placeholder="Twitter handle"
+                autoCapitalize="none"
+              />
+            </View>
+            <View style={styles.inputRow}>
+              <Linkedin size={22} color="#0077B5" style={styles.inputIcon} strokeWidth={2} />
+              <TextInput
+                style={[styles.textInput, { paddingTop: 12 }]}
+                value={socialLinks.linkedin}
+                onChangeText={(val) => updateSocialLink('linkedin', val)}
+                placeholder="LinkedIn profile URL"
+                autoCapitalize="none"
+              />
+            </View>
+            <View style={styles.inputRow}>
+              <Facebook size={22} color="#1877F2" style={styles.inputIcon} strokeWidth={2} />
+              <TextInput
+                style={[styles.textInput, { paddingTop: 12 }]}
+                value={socialLinks.facebook}
+                onChangeText={(val) => updateSocialLink('facebook', val)}
+                placeholder="Facebook profile URL"
+                autoCapitalize="none"
+              />
+            </View>
+            <View style={[styles.inputRow, { borderBottomWidth: 0 }]}>
+              <Globe size={22} color="#64748b" style={styles.inputIcon} strokeWidth={2} />
+              <TextInput
+                style={[styles.textInput, { paddingTop: 12 }]}
+                value={socialLinks.website}
+                onChangeText={(val) => updateSocialLink('website', val)}
+                placeholder="Personal website URL"
+                autoCapitalize="none"
+                keyboardType="url"
+              />
+            </View>
+          </View>
+        </View>
 
-          <TouchableOpacity style={[styles.managementButton, styles.deleteButton]} onPress={handleDeleteRequest}>
-            <Trash2 size={24} color="#ef4444" strokeWidth={2} />
-            <Text style={[styles.managementButtonText, styles.deleteButtonText]}>Request Removal / Delete Profile</Text>
-          </TouchableOpacity>
+        {/* Account Security & Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account & Security</Text>
+          <View style={styles.card}>
+            <TouchableOpacity style={styles.row} onPress={handleResetPassword}>
+              <View style={styles.rowLeft}>
+                <Lock size={22} color="#64748b" strokeWidth={2} />
+                <Text style={styles.managementText}>Reset Password</Text>
+              </View>
+              <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.row} onPress={handleInactivate}>
+              <View style={styles.rowLeft}>
+                <PauseCircle size={22} color="#f59e0b" strokeWidth={2} />
+                <Text style={[styles.managementText, { color: '#f59e0b' }]}>Inactivate Account Temporarily</Text>
+              </View>
+              <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.row, { borderBottomWidth: 0 }]} onPress={handleDeleteAccount}>
+              <View style={styles.rowLeft}>
+                <Trash2 size={22} color="#ef4444" strokeWidth={2} />
+                <Text style={[styles.managementText, { color: '#ef4444' }]}>Delete Account Permanently</Text>
+              </View>
+              <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <TouchableOpacity style={styles.signOutButton} onPress={signOut}>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
+
+        <Text style={styles.versionText}>Jeeraan v1.2.0 • Neighbors App</Text>
       </ScrollView>
     </View>
   );
@@ -466,32 +583,138 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: Platform.OS === 'ios' ? 60 : 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
     backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  backButton: {
+    padding: 8,
+    marginLeft: -8,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontFamily: 'Manrope-Bold',
-    color: '#1e293b',
+    color: '#0f172a',
+  },
+  saveButton: {
+    backgroundColor: '#1193d4',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
   saveText: {
-    fontSize: 16,
+    fontSize: 14,
+    fontFamily: 'Manrope-Bold',
+    color: '#fff',
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  profileHeaderCard: {
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    paddingVertical: 32,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  avatarWrapper: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  mainAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: '#f1f5f9',
+  },
+  avatarPlaceholder: {
+    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitial: {
+    fontSize: 40,
     fontFamily: 'Manrope-Bold',
     color: '#1193d4',
   },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+  cameraIconBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#1193d4',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#fff',
+  },
+  profileName: {
+    fontSize: 22,
+    fontFamily: 'Manrope-Bold',
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  profileRole: {
+    fontSize: 14,
+    fontFamily: 'Manrope-SemiBold',
+    color: '#64748b',
+    marginBottom: 12,
+  },
+  gamificationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  badgeText: {
+    color: '#1193d4',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+  },
+  pointsLabel: {
+    fontSize: 14,
+    fontFamily: 'Manrope-Bold',
+    color: '#334155',
+  },
+  section: {
+    marginTop: 24,
+    paddingHorizontal: 16,
+  },
+  sectionHeader: {
+    marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontFamily: 'Manrope-Bold',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   row: {
     flexDirection: 'row',
@@ -501,9 +724,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
-  disabledRow: {
-    backgroundColor: '#fcfcfc',
-  },
   rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -511,135 +731,90 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   label: {
-    fontSize: 12,
+    fontSize: 15,
     fontFamily: 'Manrope-Bold',
-    color: '#64748b',
-    marginBottom: 2,
-  },
-  disabledLabel: {
-    color: '#94a3b8',
-  },
-  value: {
-    fontSize: 15,
-    fontFamily: 'Manrope-Medium',
-    color: '#475569',
-  },
-  inputWrapper: {
-    flex: 1,
-  },
-  input: {
-    fontSize: 15,
-    fontFamily: 'Manrope-Medium',
     color: '#1e293b',
-    padding: 0,
-    height: 20,
   },
-  avatarContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    overflow: 'hidden',
+  description: {
+    fontSize: 13,
+    fontFamily: 'Manrope-Medium',
+    color: '#64748b',
+    marginTop: 2,
   },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  avatarPlaceholder: {
-    backgroundColor: 'rgba(17, 147, 212, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarInitial: {
-    fontSize: 20,
-    fontFamily: 'Manrope-Bold',
-    color: '#1193d4',
-  },
-  gamificationSection: {
-    padding: 16,
+  anonymousInfo: {
     backgroundColor: '#f8fafc',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  levelBadgeContainer: {
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
   },
-  levelBadge: {
-    backgroundColor: '#1193d4',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  levelBadgeText: {
-    color: '#fff',
-    fontFamily: 'Manrope-Bold',
-    fontSize: 12,
-  },
-  pointsText: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 16,
-    color: '#1e293b',
-  },
-  progressContainer: {
-    gap: 6,
-  },
-  progressBarBg: {
-    height: 8,
-    backgroundColor: '#e2e8f0',
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#1193d4',
-  },
-  progressText: {
-    fontFamily: 'Manrope-Medium',
-    fontSize: 12,
+  anonymousIdLabel: {
+    fontSize: 14,
+    fontFamily: 'Manrope-SemiBold',
     color: '#64748b',
   },
-  managementSection: {
-    gap: 12,
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 16,
+  anonymousIdValue: {
+    fontSize: 14,
     fontFamily: 'Manrope-Bold',
-    color: '#475569',
-    marginBottom: 4,
-    paddingHorizontal: 4,
+    color: '#1e293b',
   },
-  managementButton: {
+  inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
   },
-  managementButtonText: {
+  inputIcon: {
+    marginRight: 16,
+  },
+  inputContent: {
+    flex: 1,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontFamily: 'Manrope-Bold',
+    color: '#94a3b8',
+    marginBottom: 2,
+  },
+  readOnlyValue: {
     fontSize: 15,
     fontFamily: 'Manrope-SemiBold',
-    color: '#f59e0b',
+    color: '#475569',
   },
-  deleteButton: {
-    borderColor: '#fee2e2',
+  textInput: {
+    fontSize: 15,
+    fontFamily: 'Manrope-SemiBold',
+    color: '#1e293b',
+    padding: 0,
+    height: 24,
   },
-  deleteButtonText: {
-    color: '#ef4444',
+  managementText: {
+    fontSize: 15,
+    fontFamily: 'Manrope-SemiBold',
+    color: '#1e293b',
   },
   signOutButton: {
+    marginTop: 32,
+    marginHorizontal: 16,
     padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#fee2e2',
     alignItems: 'center',
   },
   signOutText: {
     fontSize: 16,
     fontFamily: 'Manrope-Bold',
-    color: '#64748b',
+    color: '#ef4444',
+  },
+  versionText: {
+    textAlign: 'center',
+    marginTop: 24,
+    fontSize: 12,
+    fontFamily: 'Manrope-Medium',
+    color: '#94a3b8',
   },
 });

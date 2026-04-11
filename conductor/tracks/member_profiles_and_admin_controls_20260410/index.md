@@ -1,4 +1,4 @@
-# Track gamified_engagement_engine_20260410 Context
+# Track member_profiles_and_admin_controls_20260410 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

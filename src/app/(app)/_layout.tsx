@@ -30,7 +30,7 @@ function CustomHeader() {
 }
 
 export default function AppLayout() {
-  const { session, loading, userRole, globalRole, neighborhoodId } = useAuth();
+  const { session, loading, userRole, globalRole, neighborhoodId, isBlocked } = useAuth();
 
   if (loading) {
     return (
@@ -42,6 +42,10 @@ export default function AppLayout() {
 
   if (!session) {
     return <Redirect href="/(auth)/sign-in" />;
+  }
+
+  if (isBlocked) {
+    return <Redirect href="/blocked" />;
   }
 
   // If super admin has no neighborhood, they must create or join one
@@ -102,6 +106,7 @@ export default function AppLayout() {
       <Tabs.Screen name="classifieds" options={{ href: null }} />
       <Tabs.Screen name="members" options={{ href: null }} />
       <Tabs.Screen name="invites" options={{ href: null }} />
+      <Tabs.Screen name="blocked" options={{ href: null }} />
       
       {/* Admin Screen (Conditional) */}
       <Tabs.Screen 
