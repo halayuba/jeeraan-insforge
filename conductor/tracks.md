@@ -4,11 +4,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Member Profiles, Admin Controls, and Voting Enhancements**
-  *Link: [./tracks/member_profiles_and_admin_controls_20260410/](./tracks/member_profiles_and_admin_controls_20260410/)*
-
----
-
 ## Archived Tracks
 - [x] **Track: Voting and Polls Management**
   *Link: [./archive/voting_and_polls_management_20260317/](./archive/voting_and_polls_management_20260317/)*
