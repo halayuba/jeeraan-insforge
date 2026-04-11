@@ -67,6 +67,33 @@ export default function AdminDashboard() {
   const [loadingGamification, setLoadingGamification] = useState(true);
   const [eligibleUsers, setEligibleUsers] = useState<any[]>([]);
 
+  // Direct Messaging Management State
+  const [isDmEnabled, setIsDmEnabled] = useState(true);
+  const [maxDailyMessages, setMaxDailyMessages] = useState(10);
+  const [savingDmSettings, setSavingDmSettings] = useState(false);
+
+  const saveDmSettings = async () => {
+    if (!neighborhoodId) return;
+    setSavingDmSettings(true);
+    try {
+      const { error } = await insforge.database
+        .from('neighborhoods')
+        .update({
+          is_dm_enabled: isDmEnabled,
+          max_daily_messages: maxDailyMessages,
+        })
+        .eq('id', neighborhoodId);
+
+      if (error) throw error;
+      Alert.alert('Success', 'Direct Messaging settings updated.');
+    } catch (err) {
+      console.error('Failed to save DM settings:', err);
+      Alert.alert('Error', 'Failed to save DM settings.');
+    } finally {
+      setSavingDmSettings(false);
+    }
+  };
+
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -554,6 +581,8 @@ export default function AdminDashboard() {
       
       if (data) {
         setNeighborhood(data);
+        setIsDmEnabled(data.is_dm_enabled ?? true);
+        setMaxDailyMessages(data.max_daily_messages ?? 10);
       }
     } catch (err) {
       console.error('Failed to load neighborhood', err);
@@ -1186,6 +1215,47 @@ export default function AdminDashboard() {
            <HelpCircle size={20} color="#1193d4" strokeWidth={2} />
           </View>
           {renderGamificationSettings()}
+          </View>
+
+          {/* Direct Messaging Settings */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Direct Messaging Settings</Text>
+              <MessageCircle size={20} color="#1193d4" strokeWidth={2} />
+            </View>
+            
+            <View style={styles.adminSection}>
+              <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+                <Text style={styles.inputLabel}>Enable Direct Messaging</Text>
+                <Switch 
+                  value={isDmEnabled}
+                  onValueChange={setIsDmEnabled}
+                  trackColor={{ false: '#cbd5e1', true: '#1193d4' }}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Max Daily Messages per User</Text>
+                <TextInput
+                  style={styles.adminInput}
+                  value={String(maxDailyMessages)}
+                  keyboardType="number-pad"
+                  onChangeText={(text) => setMaxDailyMessages(parseInt(text) || 0)}
+                />
+              </View>
+
+              <TouchableOpacity 
+                style={[styles.saveBtn, { height: 44, width: '100%' }, savingDmSettings && styles.disabledBtn]} 
+                onPress={saveDmSettings}
+                disabled={savingDmSettings}
+              >
+                {savingDmSettings ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.saveBtnText}>Save Messaging Settings</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Election Management Section (Super Admin Only) */}
