@@ -13,11 +13,13 @@ import {
   Layout, 
   AlertCircle,
   MessageSquareText,
-  Trophy
+  Trophy,
+  Mail
 } from 'lucide-react-native';
 
 const GRID_ITEMS = [
   { id: 'announcements', title: 'Announcements', icon: Megaphone },
+  { id: 'messages', title: 'Direct Messages', icon: Mail },
   { id: 'members', title: 'Members', icon: Users },
   { id: 'invites', title: 'Invites', icon: UserPlus },
   { id: 'faq', title: 'FAQ', icon: HelpCircle },
@@ -38,6 +40,8 @@ export default function HomeIndex() {
   const handlePress = (id: string) => {
     if (id === 'voting') {
       router.push('/(app)/voting' as any);
+    } else if (id === 'messages') {
+      router.push('/(app)/messages' as any);
     } else if (id === 'grievances') {
       router.push('/(app)/grievances' as any);
     } else if (id === 'faq') {
