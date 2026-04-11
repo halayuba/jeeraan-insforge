@@ -9,6 +9,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+- [ ] **Track: Jeeraan Direct Messaging (DM) Feature**
+  *Link: [./tracks/direct_messaging_20260411/](./tracks/direct_messaging_20260411/)*
+
 ## Archived Tracks
 - [x] **Track: Voting and Polls Management**
   *Link: [./archive/voting_and_polls_management_20260317/](./archive/voting_and_polls_management_20260317/)*
