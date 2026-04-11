@@ -1,16 +1,16 @@
 # Implementation Plan: Jeeraan Direct Messaging (DM)
 
 ## Phase 1: Database & Backend Setup
-- [ ] Task: Define Schema and RLS Policies for Messages
-    - [ ] Write tests for database schema definitions (Conversations, Messages, UserDailyUsage) and RLS.
-    - [ ] Create `conversations`, `messages`, and `user_daily_usage` tables in InsForge.
-    - [ ] Implement Row Level Security (RLS) ensuring members only access their own neighborhood conversations.
-- [ ] Task: Implement Daily Message Limit Logic
-    - [ ] Write unit tests for daily message limit logic.
-    - [ ] Implement backend validation to reject messages if user exceeds 10 per day.
-- [ ] Task: Configure Cloud Storage for Attachments
-    - [ ] Create storage bucket for message attachments with proper RLS.
-- [ ] Task: Conductor - User Manual Verification 'Database & Backend Setup' (Protocol in workflow.md)
+- [x] Task: Define Schema and RLS Policies for Messages
+    - [x] Write tests for database schema definitions (Conversations, Messages, UserDailyUsage) and RLS.
+    - [x] Create `conversations`, `messages`, and `user_daily_usage` tables in InsForge.
+    - [x] Implement Row Level Security (RLS) ensuring members only access their own neighborhood conversations.
+- [x] Task: Implement Daily Message Limit Logic
+    - [x] Write unit tests for daily message limit logic.
+    - [x] Implement backend validation to reject messages if user exceeds 10 per day.
+- [x] Task: Configure Cloud Storage for Attachments
+    - [x] Create storage bucket for message attachments with proper RLS.
+- [x] Task: Conductor - User Manual Verification 'Database & Backend Setup' (Protocol in workflow.md)
 
 ## Phase 2: Navigation & Inbox Structure
 - [ ] Task: Add "Direct Messages" Card to Neighborhood Hub
