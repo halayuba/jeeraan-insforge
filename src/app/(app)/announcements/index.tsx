@@ -8,117 +8,121 @@ import {
   Shield,
   ShieldAlert,
   Wrench,
-} from 'lucide-react-native';
+} from 'lucide-react-native'
 
-import React, { useState, useCallback } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router'
+import React, { useCallback, useState } from 'react'
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Image,
-  StyleSheet,
   ActivityIndicator,
+  Image,
   RefreshControl,
-} from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 
-import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuth } from '../../../contexts/AuthContext'
+import { insforge } from '../../../lib/insforge'
 
-const FILTER_OPTIONS = ['Year', 'Month', 'Category', 'Status'];
+const FILTER_OPTIONS = ['Year', 'Month', 'Category', 'Status']
 
 export default function AnnouncementsIndex() {
-  const router = useRouter();
-  const { handleAuthError } = useAuth();
-  const [announcements, setAnnouncements] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter()
+  const { handleAuthError } = useAuth()
+  const [announcements, setAnnouncements] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const fetchAnnouncements = async (isRefreshing = false) => {
-    if (isRefreshing) setRefreshing(true);
-    else setLoading(true);
-    
+    if (isRefreshing) setRefreshing(true)
+    else setLoading(true)
+
     try {
       const { data, error } = await insforge.database
         .from('announcements')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
 
       if (error) {
-        handleAuthError(error);
-        return;
+        handleAuthError(error)
+        return
       }
-      setAnnouncements(data || []);
+      setAnnouncements(data || [])
     } catch (err) {
-      console.error('Error fetching announcements:', err);
-      handleAuthError(err);
+      console.error('Error fetching announcements:', err)
+      handleAuthError(err)
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      setLoading(false)
+      setRefreshing(false)
     }
-  };
+  }
 
   useFocusEffect(
     useCallback(() => {
-      fetchAnnouncements();
-    }, [])
-  );
+      fetchAnnouncements()
+    }, []),
+  )
 
   const getCategoryStyles = (category: string) => {
-    const cat = category?.toLowerCase() || '';
-    if (cat.includes('safety')) return { bg: '#ffedd5', text: '#ea580c' }; // orange
-    if (cat.includes('security')) return { bg: '#dbeafe', text: '#2563eb' }; // blue
-    if (cat.includes('events')) return { bg: '#dcfce7', text: '#16a34a' }; // green
-    if (cat.includes('maintenance')) return { bg: '#f3e8ff', text: '#9333ea' }; // purple
-    return { bg: '#f1f5f9', text: '#475569' }; // default slate
-  };
+    const cat = category?.toLowerCase() || ''
+    if (cat.includes('safety')) return { bg: '#ffedd5', text: '#ea580c' } // orange
+    if (cat.includes('security')) return { bg: '#dbeafe', text: '#2563eb' } // blue
+    if (cat.includes('events')) return { bg: '#dcfce7', text: '#16a34a' } // green
+    if (cat.includes('maintenance')) return { bg: '#f3e8ff', text: '#9333ea' } // purple
+    return { bg: '#f1f5f9', text: '#475569' } // default slate
+  }
 
   const getCategoryIcon = (category: string) => {
-    const cat = category?.toLowerCase() || '';
-    if (cat.includes('safety')) return ShieldAlert;
-    if (cat.includes('security')) return Shield;
-    if (cat.includes('events')) return Calendar;
-    if (cat.includes('maintenance')) return Wrench;
-    return Megaphone;
-  };
+    const cat = category?.toLowerCase() || ''
+    if (cat.includes('safety')) return ShieldAlert
+    if (cat.includes('security')) return Shield
+    if (cat.includes('events')) return Calendar
+    if (cat.includes('maintenance')) return Wrench
+    return Megaphone
+  }
 
   const formatAnnouncementDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    
+    const date = new Date(dateString)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+
     // Within last 24 hours
     if (diff < 24 * 60 * 60 * 1000 && now.getDate() === date.getDate()) {
-      return `Today, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+      return `Today, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
     }
-    
+
     // Yesterday
     if (diff < 48 * 60 * 60 * 1000 && now.getDate() - 1 === date.getDate()) {
-      return `Yesterday, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+      return `Yesterday, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
     }
-    
+
     // Older
-    return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
-  };
+    return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+  }
 
   // Filter based on search query
-  const filteredAnnouncements = announcements.filter(a => 
-    (a.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (a.content || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredAnnouncements = announcements.filter(
+    (a) =>
+      (a.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (a.content || '').toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.iconButton}
+        >
           <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Recent Announcements</Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.push('/(app)/announcements/create' as any)}
           style={styles.iconButton}
         >
@@ -129,7 +133,12 @@ export default function AnnouncementsIndex() {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
-          <Search size={24} color="#64748b" style={styles.searchIcon} strokeWidth={2} />
+          <Search
+            size={24}
+            color="#64748b"
+            style={styles.searchIcon}
+            strokeWidth={2}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder="Search announcements..."
@@ -142,7 +151,11 @@ export default function AnnouncementsIndex() {
 
       {/* Filter Chips */}
       <View style={styles.filtersWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersContainer}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersContainer}
+        >
           {FILTER_OPTIONS.map((filter) => (
             <TouchableOpacity key={filter} style={styles.filterChip}>
               <Text style={styles.filterChipText}>{filter}</Text>
@@ -152,37 +165,58 @@ export default function AnnouncementsIndex() {
         </ScrollView>
       </View>
 
-      <ScrollView 
-        style={styles.scrollContainer} 
+      <ScrollView
+        style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => fetchAnnouncements(true)} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => fetchAnnouncements(true)}
+          />
         }
       >
         <Text style={styles.sectionHeading}>Current Month</Text>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#1193d4" style={styles.loader} />
+          <ActivityIndicator
+            size="large"
+            color="#1193d4"
+            style={styles.loader}
+          />
         ) : filteredAnnouncements.length === 0 ? (
           <Text style={styles.emptyText}>No announcements found.</Text>
         ) : (
           filteredAnnouncements.map((announcement) => {
-            const catStyles = getCategoryStyles(announcement.category);
-            const CategoryIcon = getCategoryIcon(announcement.category);
-            
+            const catStyles = getCategoryStyles(announcement.category)
+            const CategoryIcon = getCategoryIcon(announcement.category)
+
             return (
-              <TouchableOpacity 
-                key={announcement.id} 
+              <TouchableOpacity
+                key={announcement.id}
                 style={styles.card}
-                onPress={() => router.push(`/(app)/announcements/${announcement.id}` as any)}
+                onPress={() =>
+                  router.push(`/(app)/announcements/${announcement.id}` as any)
+                }
               >
                 <View style={styles.cardHeader}>
-                  <View style={[styles.categoryBadge, { backgroundColor: catStyles.bg }]}>
-                    <Text style={[styles.categoryBadgeText, { color: catStyles.text }]}>
+                  <View
+                    style={[
+                      styles.categoryBadge,
+                      { backgroundColor: catStyles.bg },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryBadgeText,
+                        { color: catStyles.text },
+                      ]}
+                    >
                       {announcement.category}
                     </Text>
                   </View>
-                  <Text style={styles.timeText}>{formatAnnouncementDate(announcement.created_at)}</Text>
+                  <Text style={styles.timeText}>
+                    {formatAnnouncementDate(announcement.created_at)}
+                  </Text>
                 </View>
 
                 <Text style={styles.cardTitle}>{announcement.title}</Text>
@@ -193,26 +227,28 @@ export default function AnnouncementsIndex() {
                 {/* If the announcement has images, show the first one as a cover */}
                 {announcement.images && announcement.images.length > 0 && (
                   <View style={styles.imagePreviewContainer}>
-                    <Image source={{ uri: announcement.images[0] }} style={styles.imagePreview} />
+                    <Image
+                      source={{ uri: announcement.images[0] }}
+                      style={styles.imagePreview}
+                    />
                   </View>
                 )}
-<View style={styles.cardFooter}>
-  <View style={styles.authorContainer}>
-    <View style={styles.catIconContainer}>
-      <CategoryIcon size={14} color="#1193d4" strokeWidth={2} />
-    </View>
-    <Text style={styles.authorName}>Admin Team</Text>
-  </View>
-</View>
-                  <Text style={styles.readMoreText}>Read More</Text>
+                <View style={styles.cardFooter}>
+                  <View style={styles.authorContainer}>
+                    <View style={styles.catIconContainer}>
+                      <CategoryIcon size={14} color="#1193d4" strokeWidth={2} />
+                    </View>
+                    <Text style={styles.authorName}>Admin Team</Text>
+                  </View>
                 </View>
+                <Text style={styles.readMoreText}>Read More</Text>
               </TouchableOpacity>
-            );
+            )
           })
         )}
       </ScrollView>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -392,4 +428,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1193d4',
   },
-});
+})

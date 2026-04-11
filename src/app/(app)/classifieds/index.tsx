@@ -20,7 +20,7 @@ import { MemberName } from '../../../components/MemberName';
 
 export default function ClassifiedsIndex() {
   const router = useRouter();
-  const { handleAuthError } = useAuth();
+  const { handleAuthError, neighborhoodId } = useAuth();
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,6 +38,7 @@ export default function ClassifiedsIndex() {
           *,
           author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)
         `)
+        .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -103,8 +104,8 @@ export default function ClassifiedsIndex() {
                 onPress={() => router.push(`/(app)/classifieds/${ad.id}` as any)}
               >
                 <View style={styles.imageContainer}>
-                  {ad.images && ad.images.length > 0 ? (
-                    <Image source={{ uri: ad.images[0] }} style={styles.adImage} />
+                  {ad.image_url ? (
+                    <Image source={{ uri: ad.image_url }} style={styles.adImage} />
                   ) : (
                     <View style={styles.placeholderImage}>
                       <Tag size={32} color="#94a3b8" strokeWidth={1.5} />

@@ -16,11 +16,26 @@
 ## 2. Respect Established UI Conventions
 
 - Some screens may display different navigation bar styles — **do not alter the navigation structure** that was established in a prior step (originally adapted from `home.html`).
+- **CRITICAL: DO NOT add new tabs** to the bottom navigation bar in `src/app/(app)/_layout.tsx` unless explicitly requested. All new feature screens must be added to the "Hidden Screens" section with `options={{ href: null }}`.
 - When in doubt about any UI element, refer to existing implemented screens before introducing something new.
 
 ---
 
-## 3. Backend & Infrastructure
+## 3. Role-Based Access Control (RBAC) & Business Rules
+
+### Role Definitions
+- **Super Admin (`global_role = 'super_admin'`)**: The app owner and system-wide administrators.
+- **Neighborhood Administrator (`user_neighborhoods.role = 'admin'`)**: The person who purchases a subscription for a neighborhood. They create the profile, send invites, and manage the neighborhood.
+- **Moderator (`user_neighborhoods.role = 'moderator'`)**: Regular members promoted by Admins to help manage community standards.
+- **Member (`user_neighborhoods.role = 'resident'`)**: Regular residents of the neighborhood.
+
+### Visibility Rules
+- **Member List**: The members list (e.g., in `src/app/(app)/members/index.tsx`) must **EXCLUDE** Super Admins and Neighborhood Administrators. It is intended for regular members (residents and potentially moderators) only.
+- **Multi-Tenancy**: The system is designed to scale to multiple neighborhoods. All data must be scoped to the `neighborhood_id`.
+
+---
+
+## 4. Backend & Infrastructure
 
 - Use the **InsForge MCP server** to connect to the project backend and configure AI coding assistance.
 - **Always verify the connection** to the InsForge MCP server before performing any backend operations (database queries, authentication, file uploads, edge functions, etc.).

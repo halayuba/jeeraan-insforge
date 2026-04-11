@@ -28,7 +28,6 @@ export default function SubmitServiceOrder() {
   const [occupantName, setOccupantName] = useState('');
   const [issueDescription, setIssueDescription] = useState('');
   const [maintenancePerson, setMaintenancePerson] = useState('');
-  const [dateSubmitted, setDateSubmitted] = useState(new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
   const [completeOn, setCompleteOn] = useState('');
   const [feedback, setFeedback] = useState('');
   const [satisfaction, setSatisfaction] = useState(0);
@@ -63,6 +62,15 @@ export default function SubmitServiceOrder() {
         return;
       }
 
+      // Convert completeOn if present (expecting Oct 25, 2023 or similar from placeholder/manual)
+      let formattedCompleteOn = null;
+      if (completeOn.trim()) {
+        const d = new Date(completeOn.trim());
+        if (!isNaN(d.getTime())) {
+          formattedCompleteOn = d.toISOString().split('T')[0];
+        }
+      }
+
       const { data: newOrder, error } = await insforge.database
         .from('service_orders')
         .insert([{
@@ -71,11 +79,10 @@ export default function SubmitServiceOrder() {
           occupant_name: occupantName.trim(),
           issue_description: issueDescription.trim(),
           maintenance_person: maintenancePerson || null,
-          complete_on: completeOn || null,
+          complete_on: formattedCompleteOn,
           feedback: feedback.trim() || null,
           satisfaction_rating: satisfaction > 0 ? satisfaction : null,
           status: 'Pending',
-          created_at: new Date(dateSubmitted).toISOString(),
         }])
         .select()
         .single();
@@ -199,19 +206,6 @@ export default function SubmitServiceOrder() {
         </View>
 
         <View style={[styles.inputGroupRow, { marginTop: 24 }]}>
-          <View style={[styles.inputContainer, { flex: 1 }]}>
-            <Text style={styles.label}>Date Submitted</Text>
-            <View style={styles.inputWithIconContainer}>
-              <Calendar size={20} color="#1193d4" style={styles.inputIcon} strokeWidth={2} />
-              <TextInput
-                style={styles.inputWithIcon}
-                value={dateSubmitted}
-                onChangeText={setDateSubmitted}
-                placeholder="Oct 25, 2023"
-              />
-            </View>
-          </View>
-
           <View style={[styles.inputContainer, { flex: 1 }]}>
             <Text style={styles.label}>Complete on <Text style={styles.optional}>(Optional)</Text></Text>
             <View style={styles.inputWithIconContainer}>

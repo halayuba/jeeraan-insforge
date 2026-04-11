@@ -48,7 +48,8 @@ export default function ForumIndex() {
         .select(`
           *,
           forum_replies (count),
-          author:user_profiles(full_name, avatar_url, level, is_visible, anonymous_id)
+          author:user_profiles(full_name, avatar_url, level, is_visible, anonymous_id, global_role),
+          membership:user_neighborhoods!user_id(role)
         `)
         .order('created_at', { ascending: false });
 
@@ -56,7 +57,8 @@ export default function ForumIndex() {
       
       const formattedData = (data || []).map((post: any) => ({
         ...post,
-        author: Array.isArray(post.author) ? post.author[0] : post.author
+        author: Array.isArray(post.author) ? post.author[0] : post.author,
+        authorNeighborhoodRole: Array.isArray(post.membership) ? post.membership[0]?.role : post.membership?.role
       }));
       setPosts(formattedData);
     } catch (err: any) {
@@ -138,7 +140,9 @@ export default function ForumIndex() {
               anonymousId={post.author?.anonymous_id}
               textStyle={styles.postMeta}
             />
-            <LevelBadge level={authorLevel} />
+            {post.author?.global_role !== 'super_admin' && post.authorNeighborhoodRole !== 'admin' && (
+              <LevelBadge level={authorLevel} />
+            )}
             <Text style={styles.postMeta}>
               • {repliesCount} {repliesCount === 1 ? 'reply' : 'replies'} • {formatTimeAgo(post.created_at)}
             </Text>

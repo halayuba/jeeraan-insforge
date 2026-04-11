@@ -39,16 +39,22 @@ export default function MembersIndex() {
         .select(`
           user_id,
           role,
-          profiles:user_profiles(full_name, avatar_url, is_visible, anonymous_id)
+          profiles:user_profiles(full_name, avatar_url, is_visible, anonymous_id, global_role)
         `)
-        .eq('neighborhood_id', neighborhoodId);
+        .eq('neighborhood_id', neighborhoodId)
+        .in('role', ['resident', 'moderator']); // Only regular members and moderators
 
       if (error) throw error;
       
-      const formattedData = (data || []).map((m: any) => ({
-        ...m,
-        profiles: Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
-      }));
+      const formattedData = (data || [])
+        .map((m: any) => ({
+          ...m,
+          profiles: Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+        }))
+        // Explicitly exclude any profile with global_role = 'super_admin' 
+        // regardless of their local neighborhood role
+        .filter((m: any) => m.profiles?.global_role !== 'super_admin');
+
       setMembers(formattedData);
     } catch (err) {
       console.error('Error fetching members:', err);

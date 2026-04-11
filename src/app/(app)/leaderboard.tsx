@@ -38,14 +38,17 @@ export default function Leaderboard() {
         .from('user_neighborhoods')
         .select(`
           user_id,
+          role,
           profiles:user_id (
             full_name,
             avatar_url,
             points,
-            level
+            level,
+            global_role
           )
         `)
-        .eq('neighborhood_id', neighborhoodId);
+        .eq('neighborhood_id', neighborhoodId)
+        .in('role', ['resident', 'moderator']); // Exclude neighborhood admins
 
       if (error) {
         handleAuthError(error);
@@ -55,8 +58,11 @@ export default function Leaderboard() {
       const formattedData = (data || [])
         .map((item: any) => ({
           user_id: item.user_id,
+          role: item.role,
           ...(Array.isArray(item.profiles) ? item.profiles[0] : item.profiles)
         }))
+        // Exclude global super admins
+        .filter((m: any) => m.global_role !== 'super_admin')
         .sort((a: any, b: any) => (b.points || 0) - (a.points || 0));
       
       setMembers(formattedData);

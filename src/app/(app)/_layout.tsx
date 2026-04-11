@@ -7,9 +7,8 @@ import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'rea
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LevelBadge } from '../../components/LevelBadge';
-
 function CustomHeader() {
-  const { userLevel } = useAuth();
+  const { userLevel, userRole, globalRole } = useAuth();
 
   return (
     <SafeAreaView edges={['top']} style={styles.headerContainer}>
@@ -19,7 +18,10 @@ function CustomHeader() {
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Neighborhood Hub</Text>
-          <LevelBadge level={userLevel} size="small" />
+          {/* LevelBadge is only for residents and moderators */}
+          {(userRole === 'resident' || userRole === 'moderator') && globalRole !== 'super_admin' && (
+            <LevelBadge level={userLevel} size="small" />
+          )}
         </View>
         <TouchableOpacity>
           <Bell size={28} color="#0f172a" strokeWidth={2} />
@@ -95,6 +97,7 @@ export default function AppLayout() {
       
       {/* Hidden Screens */}
       <Tabs.Screen name="messages" options={{ href: null }} />
+      <Tabs.Screen name="leaderboard" options={{ href: null }} />
       <Tabs.Screen name="events" options={{ href: null }} />
       <Tabs.Screen name="q-and-a" options={{ href: null }} />
       <Tabs.Screen name="advertisements" options={{ href: null }} />

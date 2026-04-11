@@ -94,10 +94,8 @@ export default function AdDetail() {
 
         {/* Image Gallery */}
         <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.imageGallery}>
-          {ad.images && ad.images.length > 0 ? (
-            ad.images.map((img: string, idx: number) => (
-              <Image key={idx} source={{ uri: img }} style={styles.galleryImage} />
-            ))
+          {ad.image_url ? (
+            <Image source={{ uri: ad.image_url }} style={styles.galleryImage} />
           ) : (
             <View style={styles.placeholderGallery}>
               <Tag size={64} color="#cbd5e1" strokeWidth={1.5} />

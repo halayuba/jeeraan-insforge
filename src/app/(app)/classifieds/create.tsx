@@ -119,11 +119,13 @@ export default function CreateClassifiedAd() {
         .from('classified_ads')
         .insert([{
           user_id: userData.user.id,
+          neighborhood_id: neighborhoodId,
           title: title.trim(),
           price: price.trim(), 
           description: description.trim(),
           contact_info: contactInfo.trim(),
           image_url: uploadedImageUrl,
+          category: 'General',
         }])
         .select()
         .single();

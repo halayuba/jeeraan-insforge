@@ -68,7 +68,20 @@ export default function ServiceOrdersIndex() {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -171,7 +184,7 @@ export default function ServiceOrdersIndex() {
 
                 <View style={styles.cardBottomRow}>
                   <View>{renderStars(order.satisfaction_rating)}</View>
-                  <Text style={styles.dateText}>{formatDate(order.created_at)}</Text>
+                  <Text style={styles.dateText}>{formatDateTime(order.created_at)}</Text>
                 </View>
 
                 {order.status === 'Cancelled' && (

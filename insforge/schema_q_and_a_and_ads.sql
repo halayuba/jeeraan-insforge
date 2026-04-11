@@ -23,9 +23,24 @@ CREATE TABLE IF NOT EXISTS public.advertisements (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
+-- Classified Ads Table
+CREATE TABLE IF NOT EXISTS public.classified_ads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    neighborhood_id UUID NOT NULL REFERENCES public.neighborhoods(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.user_profiles(user_id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    price TEXT NOT NULL,
+    description TEXT NOT NULL,
+    contact_info TEXT NOT NULL,
+    image_url TEXT,
+    category TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Enable RLS
 ALTER TABLE public.questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.advertisements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.classified_ads ENABLE ROW LEVEL SECURITY;
 
 -- Questions Policies
 CREATE POLICY "Members can read public questions or their own" ON public.questions
@@ -69,6 +84,34 @@ CREATE POLICY "Members can read advertisements for their neighborhood" ON public
 CREATE POLICY "Super admins can manage advertisements" ON public.advertisements
     FOR ALL USING (
         public.is_super_admin()
+    );
+
+-- Classified Ads Policies
+CREATE POLICY "Members can read neighborhood classified ads" ON public.classified_ads
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM public.user_neighborhoods
+            WHERE user_id = auth.uid() AND neighborhood_id = classified_ads.neighborhood_id
+        ) OR public.is_super_admin()
+    );
+
+CREATE POLICY "Authenticated members can insert classified ads" ON public.classified_ads
+    FOR INSERT WITH CHECK (
+        auth.uid() = user_id
+        AND EXISTS (
+            SELECT 1 FROM public.user_neighborhoods
+            WHERE user_id = auth.uid() AND neighborhood_id = classified_ads.neighborhood_id
+        )
+    );
+
+CREATE POLICY "Owners can update their classified ads" ON public.classified_ads
+    FOR UPDATE USING (
+        auth.uid() = user_id OR public.is_super_admin()
+    );
+
+CREATE POLICY "Owners can delete their classified ads" ON public.classified_ads
+    FOR DELETE USING (
+        auth.uid() = user_id OR public.is_super_admin()
     );
 
 -- Updated at trigger for questions

@@ -64,6 +64,18 @@ export default function ServiceOrderDetail() {
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
     return date.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
@@ -161,11 +173,11 @@ export default function ServiceOrderDetail() {
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Date Submitted</Text>
-            <Text style={styles.detailValue}>{formatDate(order.created_at)}</Text>
+            <Text style={styles.detailValue}>{formatDateTime(order.created_at)}</Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Complete on</Text>
-            <Text style={styles.detailValue}>{order.complete_on || 'Not Scheduled'}</Text>
+            <Text style={styles.detailValue}>{formatDate(order.complete_on) || 'Not Scheduled'}</Text>
           </View>
         </View>
 
