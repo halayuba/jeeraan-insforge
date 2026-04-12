@@ -50,6 +50,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsBlocked(false);
   };
 
+  const checkSessionExpiry = (sessionData: any) => {
+    if (sessionData?.expiresAt) {
+      const expiresAt = new Date(sessionData.expiresAt);
+      if (expiresAt < new Date()) {
+        console.log('Session expired (client-side check), signing out');
+        signOut();
+        return true;
+      }
+    }
+    return false;
+  };
+
   const fetchNeighborhoodInfo = async (userId: string) => {
     try {
       const { data, error } = await insforge.database
@@ -112,6 +124,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      if (data.session && checkSessionExpiry(data.session)) {
+        setLoading(false);
+        return;
+      }
+
       setSession(data.session);
       setUser(data.session?.user ?? null);
       
@@ -143,6 +160,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (error) {
           handleAuthError(error);
+          setLoading(false);
+          return;
+        }
+
+        if (data.session && checkSessionExpiry(data.session)) {
           setLoading(false);
           return;
         }

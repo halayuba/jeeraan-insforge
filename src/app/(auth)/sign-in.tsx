@@ -6,19 +6,20 @@ import { useAuth } from '../../contexts/AuthContext';
 
 export default function SignIn() {
   const { refreshAuth } = useAuth();
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSignIn = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password.');
+    if (!phone || !password) {
+      Alert.alert('Error', 'Please enter both phone number and password.');
       return;
     }
 
     setLoading(true);
+    // Passing phone number to the email field as InsForge treats it as an identifier
     const { error } = await insforge.auth.signInWithPassword({
-      email,
+      email: phone,
       password,
     });
     setLoading(false);
@@ -46,14 +47,14 @@ export default function SignIn() {
       <Text style={styles.title}>Welcome Back</Text>
       
       <View style={styles.inputContainer}>
-        <Text style={styles.label}>Email</Text>
+        <Text style={styles.label}>Phone Number</Text>
         <TextInput
           style={styles.input}
-          placeholder="you@example.com"
+          placeholder="(555) 000-0000"
           autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
         />
       </View>
 
