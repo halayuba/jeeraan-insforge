@@ -16,5 +16,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Neighborhood Access & Resident Onboarding**
+- [x] **Track: Neighborhood Access & Resident Onboarding**
 *Link: [./tracks/neighborhood_access_20260412/](./tracks/neighborhood_access_20260412/)*
