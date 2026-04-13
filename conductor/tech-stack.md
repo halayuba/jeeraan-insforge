@@ -9,7 +9,7 @@
 
 ## Backend and Infrastructure
 - **SDK:** [@insforge/sdk](https://www.npmjs.com/package/@insforge/sdk)
-- **Database/Auth/Functions:** [InsForge](https://insforge.com)
+- **Database/Auth/Functions:** [InsForge](https://insforge.com) (Edge Functions: `validate-invite`, `send-invite-sms`).
 - **Native Modules:** [Expo SDK](https://docs.expo.dev/versions/latest/) (Camera, ImagePicker, DocumentPicker, LocalAuth)
 
 ## Architecture
@@ -17,4 +17,5 @@
 - **Global Roles:** `user_profiles` table in InsForge for platform-wide roles (e.g., `super_admin`).
 - **State Management:** [React Context API](https://react.dev/reference/react/useContext) for global state (e.g., AuthContext).
 - **Security:** Biometric authentication with `expo-local-authentication`, featuring a secure bypass for the Web platform.
+- **Session Management:** Proactive 24-hour session expiry enforcement in `AuthContext`.
 - **Utilities:** Centralized lib (src/lib) and contexts (src/contexts).
