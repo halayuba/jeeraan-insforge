@@ -13,8 +13,5 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./archive/admin_auth_neighborhood_access_20260314/](./archive/admin_auth_neighborhood_access_20260314/)*
 - [x] **Track: Gamified Engagement Engine**
   *Link: [./archive/gamified_engagement_engine_20260410/](./archive/gamified_engagement_engine_20260410/)*
-
----
-
 - [x] **Track: Neighborhood Access & Resident Onboarding**
-*Link: [./tracks/neighborhood_access_20260412/](./tracks/neighborhood_access_20260412/)*
+  *Link: [./archive/neighborhood_access_20260412/](./archive/neighborhood_access_20260412/)*
