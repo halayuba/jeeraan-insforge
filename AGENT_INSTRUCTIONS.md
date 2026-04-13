@@ -15,6 +15,7 @@
 
 ## 2. Respect Established UI Conventions
 
+- **CRITICAL: DO NOT remove any previously implemented functionality from the Homepage (the Neighborhood Hub)** unless specifically requested. While updates and refinements to the layout are permitted to accommodate new features, the core set of existing tools and links must remain accessible.
 - Some screens may display different navigation bar styles — **do not alter the navigation structure** that was established in a prior step (originally adapted from `home.html`).
 - **CRITICAL: DO NOT add new tabs** to the bottom navigation bar in `src/app/(app)/_layout.tsx` unless explicitly requested. All new feature screens must be added to the "Hidden Screens" section with `options={{ href: null }}`.
 - When in doubt about any UI element, refer to existing implemented screens before introducing something new.
@@ -44,7 +45,7 @@
 
 ---
 
-## 4. Progress Tracking (Required for Every Work Segment)
+## 5. Progress Tracking (Required for Every Work Segment)
 
 Every distinct segment of work **must** be documented in the following folder:
 
@@ -62,7 +63,7 @@ For each feature or work segment, maintain and keep up-to-date the following thr
 
 ---
 
-## 5. Project Tech Stack & Packages
+## 6. Project Tech Stack & Packages
 
 This section lists the core technologies and all packages currently used in the project. **Update this list whenever a new package is installed or an existing one is removed.**
 
@@ -127,7 +128,30 @@ This section lists the core technologies and all packages currently used in the 
 
 ---
 
-## 6. General Principles
+## 7. Lessons & Best Practices
+
+### Expo Web & Frontend Deployment
+- **Build Command:** Use `npx expo export --platform web --output-dir dist` to generate a production-ready static bundle.
+- **Environment Variables:** Variables prefixed with `EXPO_PUBLIC_` are automatically bundled into the JavaScript assets during the `expo export` process. They do not need to be provided as server-side secrets for static hosting.
+- **Verification:** Before deploying, use `grep -r "KEY_NAME" dist` to verify that the correct environment variables (like `INSFORGE_URL`) are actually baked into the bundle.
+- **Deployment:** Use `npx --yes @insforge/cli deployments deploy ./dist` to push the static site to InsForge.
+
+### InsForge Edge Functions
+- **SDK Imports:** Within the Deno environment of InsForge edge functions, always use the `npm:` prefix for the SDK: `import { createClient } from 'npm:@insforge/sdk'`.
+- **CORS Handling:** Every edge function **must** explicitly handle the `OPTIONS` method and return appropriate `Access-Control-Allow-Origin` headers to prevent cross-origin blocks from the web frontend.
+- **Deployment:** Deploy functions individually using `npx --yes @insforge/cli functions deploy [function-slug]`.
+
+### General Workflow
+- **Verification First:** Always run `insforge whoami` and `insforge current` before deployment to ensure you are targeting the intended project and environment.
+- **Clean Builds:** Ensure the `dist` directory is empty or deleted before running a new `expo export` to avoid stale assets.
+
+### Troubleshooting & Resolutions
+- **Package Dependency Conflicts:** If `npm install` or `expo install` fails due to peer dependency conflicts (common with React 19/React Native 0.83), use the `--legacy-peer-deps` flag or manually align versions in `package.json` to ensure stability.
+- **Icon Rendering Issues:** If icons (Lucide or Tabler) fail to appear or show as boxes, verify that `react-native-svg` is correctly installed and that the icon package version is compatible with the current React Native version. For web, ensure the SVG transformer is correctly configured in the Metro/Expo config.
+
+---
+
+## 8. General Principles
 
 - **Plan before you code.** Always produce an implementation plan and get acknowledgement before making significant changes.
 - **Ask, don't assume.** If requirements are ambiguous, ask for clarification rather than making silent assumptions.
