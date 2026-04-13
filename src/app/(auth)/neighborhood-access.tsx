@@ -121,6 +121,27 @@ export default function NeighborhoodAccess() {
 
     setSubmittingRequest(true)
     try {
+      // Check if already a member before allowing request submission
+      const { data: profile } = await insforge.database
+        .from('user_profiles')
+        .select('user_id')
+        .eq('phone', phone)
+        .single();
+
+      if (profile) {
+        const { data: membership } = await insforge.database
+          .from('user_neighborhoods')
+          .select('id')
+          .eq('user_id', profile.user_id)
+          .single();
+        
+        if (membership) {
+          Alert.alert('Already a Member', 'A user with this phone number already belongs to a neighborhood. Please sign in instead.');
+          setSubmittingRequest(false);
+          return;
+        }
+      }
+
       const { error } = await insforge.database.from('join_requests').insert([
         {
           name: fullName,
@@ -136,13 +157,14 @@ export default function NeighborhoodAccess() {
         console.error(error)
       } else {
         Alert.alert(
-          'Success',
-          'Your request has been submitted. The neighborhood admin will review it.',
+          'Request Submitted',
+          'Thank you! Your request to join ' + neighborhood.name + ' has been submitted for admin review. You will receive an SMS with an invite code once approved.',
         )
         setFullName('')
         setPhone('')
         setAddress('')
         setConfirmResidency(false)
+        setExpandedSection(null) // Close accordion on success
       }
     } catch (err) {
       Alert.alert('Error', 'An unexpected error occurred.')
