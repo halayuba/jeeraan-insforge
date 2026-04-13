@@ -26,6 +26,7 @@ export default function NeighborhoodAccess() {
   >(null)
 
   // Section 1 State
+  const [invitePhone, setInvitePhone] = useState('')
   const [inviteCode, setInviteCode] = useState('')
   const [validatingCode, setValidatingCode] = useState(false)
 
@@ -65,31 +66,32 @@ export default function NeighborhoodAccess() {
   }
 
   const handleJoinViaCode = async () => {
-    if (!inviteCode || inviteCode.length !== 6) {
-      Alert.alert('Invalid Code', 'Please enter a valid 6-digit invite code.')
+    if (!invitePhone || !inviteCode || inviteCode.length !== 6) {
+      Alert.alert('Invalid Input', 'Please enter both your phone number and the 6-digit invite code.')
       return
     }
 
     setValidatingCode(true)
-    // TODO: Connect edge function or validate directly from DB when invite code validation logic is fully specified
-    // For now, allow mocked validation or direct DB check if policy allows it.
     try {
-      const { data, error } = await insforge.database
-        .from('invites')
-        .select('*')
-        .eq('code', inviteCode.toUpperCase())
-        .single()
+      // Call the Edge Function to validate the invite
+      const { data, error } = await insforge.functions.invoke('validate-invite', {
+        body: { 
+          code: inviteCode.toUpperCase(),
+          phone: invitePhone
+        }
+      })
 
-      if (error || !data) {
-        Alert.alert('Error', 'Invalid or expired invite code.')
+      if (error || !data || !data.success) {
+        Alert.alert('Error', error?.message || data?.error || 'Invalid or expired invite code.')
       } else {
         // Invite is valid! Direct to sign-up and pass the code
-        // For MVP we just navigate to sign-up
+        Alert.alert('Success', 'Invite code verified. Please set your password to continue.')
         router.push({
           pathname: '/(auth)/sign-up',
           params: {
-            inviteCode: data.code,
-            neighborhoodId: data.neighborhood_id,
+            inviteCode: data.invite.code || inviteCode.toUpperCase(),
+            phone: invitePhone,
+            neighborhoodId: data.invite.neighborhood_id,
           },
         })
       }
@@ -221,11 +223,20 @@ export default function NeighborhoodAccess() {
                   If you received a one-time invitation code from your
                   neighborhood administrator at the phone number you provided,
                   please enter it below to proceed with joining your
-                  neighborhood. This code is valid for one-time use only and
-                  will expire in 10 minutes. If you encounter an error after
-                  entering the code, you will need to submit a new request to
-                  join (see the section below).
+                  neighborhood.
                 </Text>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Phone Number</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="(555) 000-0000"
+                    placeholderTextColor="#94a3b8"
+                    keyboardType="phone-pad"
+                    value={invitePhone}
+                    onChangeText={setInvitePhone}
+                  />
+                </View>
 
                 <View style={styles.inputContainer}>
                   <Text style={styles.label}>Invite Code</Text>
@@ -243,10 +254,10 @@ export default function NeighborhoodAccess() {
                 <TouchableOpacity
                   style={[
                     styles.primaryButton,
-                    (!inviteCode || validatingCode) && styles.disabledButton,
+                    (!inviteCode || !invitePhone || validatingCode) && styles.disabledButton,
                   ]}
                   onPress={handleJoinViaCode}
-                  disabled={!inviteCode || validatingCode}
+                  disabled={!inviteCode || !invitePhone || validatingCode}
                 >
                   {validatingCode ? (
                     <ActivityIndicator color="#fff" />
