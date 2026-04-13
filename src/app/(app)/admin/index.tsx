@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, HelpCircle, Layout, MessageCircle, Plus, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle } from 'lucide-react-native';
+import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, HelpCircle, Layout, MessageCircle, Plus, Shield, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle } from 'lucide-react-native';
 
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -72,6 +72,88 @@ export default function AdminDashboard() {
   const [maxDailyMessages, setMaxDailyMessages] = useState(10);
   const [savingDmSettings, setSavingDmSettings] = useState(false);
 
+  // Proactive Invite State
+  const [proactiveName, setProactiveName] = useState('');
+  const [proactivePhone, setProactivePhone] = useState('');
+  const [sendingProactiveInvite, setSendingProactiveInvite] = useState(false);
+
+  // Announcement Management State
+  const [pendingAnnouncements, setPendingAnnouncements] = useState<any[]>([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(false);
+
+  const fetchPendingAnnouncements = async () => {
+    if (!neighborhoodId) return;
+    setLoadingAnnouncements(true);
+    try {
+      const { data, error } = await insforge.database
+        .from('announcements')
+        .select(`
+          *,
+          author:user_profiles(full_name, avatar_url)
+        `)
+        .eq('neighborhood_id', neighborhoodId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formatted = (data || []).map((a: any) => ({
+        ...a,
+        author: Array.isArray(a.author) ? a.author[0] : a.author
+      }));
+      setPendingAnnouncements(formatted);
+    } catch (err) {
+      console.error('Failed to load pending announcements', err);
+    } finally {
+      setLoadingAnnouncements(false);
+    }
+  };
+
+  const handleApproveAnnouncement = async (id: string) => {
+    try {
+      const { error } = await insforge.database
+        .from('announcements')
+        .update({ status: 'approved' })
+        .eq('id', id);
+
+      if (error) throw error;
+      setPendingAnnouncements(pendingAnnouncements.filter(a => a.id !== id));
+      Alert.alert('Success', 'Announcement approved and posted.');
+    } catch (err) {
+      console.error('Failed to approve announcement', err);
+      Alert.alert('Error', 'Failed to approve announcement.');
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    Alert.alert(
+      'Delete Announcement',
+      'Are you sure you want to delete this announcement?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await insforge.database
+                .from('announcements')
+                .delete()
+                .eq('id', id);
+
+              if (error) throw error;
+              setPendingAnnouncements(pendingAnnouncements.filter(a => a.id !== id));
+              Alert.alert('Success', 'Announcement deleted.');
+            } catch (err) {
+              console.error('Failed to delete announcement', err);
+              Alert.alert('Error', 'Failed to delete announcement.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const saveDmSettings = async () => {
     if (!neighborhoodId) return;
     setSavingDmSettings(true);
@@ -122,6 +204,7 @@ export default function AdminDashboard() {
         fetchGamificationSettings();
         fetchEligibleUsers();
         fetchMembers();
+        fetchPendingAnnouncements();
       }
       if (globalRole === 'super_admin' && neighborhoodId) {
         fetchElectionInfo();
@@ -977,19 +1060,21 @@ export default function AdminDashboard() {
   const handleApprove = async (request: any) => {
     try {
       // 1. Mark request as approved
-      await insforge.database
+      const { error: updateError } = await insforge.database
         .from('join_requests')
         .update({ status: 'approved', updated_at: new Date().toISOString() })
         .eq('id', request.id);
+      
+      if (updateError) throw updateError;
         
-      // 2. We generate an invite code for them natively
+      // 2. We generate an invite code
       const inviteCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // 3. Insert invite
+      // 3. Insert invite into database
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
       
-      await insforge.database
+      const { error: inviteError } = await insforge.database
         .from('invites')
         .insert([{
           code: inviteCode,
@@ -997,18 +1082,36 @@ export default function AdminDashboard() {
           phone: request.phone,
           expires_at: expiresAt.toISOString()
         }]);
+
+      if (inviteError) throw inviteError;
         
-      // 5. Present the 6-digit code to the admin for manual sending
-      Alert.alert(
-        'Invite Approved',
-        `The invite has been approved. Please manually send the following message to ${request.name} at ${request.phone}:\n\n"You have been invited to join the neighborhood on Jeeraan! Your invite code is: ${inviteCode}. It is valid for one-time use and will expire in 24 hours."`,
-        [{ text: 'OK' }]
-      );
+      // 4. Call Edge Function to send SMS
+      const { data: smsData, error: smsError } = await insforge.functions.invoke('send-invite-sms', {
+        body: {
+          phone: request.phone,
+          inviteCode: inviteCode,
+          neighborhoodName: neighborhood?.name || 'your neighborhood'
+        }
+      });
+
+      if (smsError || (smsData && !smsData.success)) {
+        console.error('Failed to send SMS:', smsError || smsData?.error);
+        Alert.alert(
+          'Request Approved (SMS Failed)',
+          `The request was approved and code ${inviteCode} was generated, but the SMS notification failed to send. Please inform the resident manually if possible.`
+        );
+      } else {
+        Alert.alert(
+          'Invite Approved & Sent',
+          `The invite has been approved and an SMS with code ${inviteCode} has been sent to ${request.name}.`
+        );
+      }
       
       // Refresh requests
       fetchRequests();
     } catch (err) {
       console.error('Failed to approve request:', err);
+      Alert.alert('Error', 'Failed to approve request. Please try again.');
       handleAuthError(err);
     }
   };
@@ -1024,6 +1127,64 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Failed to decline request:', err);
       handleAuthError(err);
+    }
+  };
+
+  const handleSendProactiveInvite = async () => {
+    if (!proactiveName || !proactivePhone) {
+      Alert.alert('Error', 'Please enter both name and phone number.');
+      return;
+    }
+
+    if (!neighborhoodId) {
+      Alert.alert('Error', 'Neighborhood context missing.');
+      return;
+    }
+
+    setSendingProactiveInvite(true);
+    try {
+      // 1. Generate invite code
+      const inviteCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 2. Persist invite (Active by default, bypasses pending requests)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+      
+      const { error: inviteError } = await insforge.database
+        .from('invites')
+        .insert([{
+          code: inviteCode,
+          neighborhood_id: neighborhoodId,
+          phone: proactivePhone,
+          expires_at: expiresAt.toISOString()
+        }]);
+
+      if (inviteError) throw inviteError;
+
+      // 3. Send SMS via Edge Function
+      const { data: smsData, error: smsError } = await insforge.functions.invoke('send-invite-sms', {
+        body: {
+          phone: proactivePhone,
+          inviteCode: inviteCode,
+          neighborhoodName: neighborhood?.name || 'your neighborhood'
+        }
+      });
+
+      if (smsError || (smsData && !smsData.success)) {
+        Alert.alert(
+          'Invite Created (SMS Failed)',
+          `Invite code ${inviteCode} was created, but the SMS failed to send. You can still provide the code to ${proactiveName} manually.`
+        );
+      } else {
+        Alert.alert('Success', `Invite sent to ${proactiveName} with code ${inviteCode}.`);
+        setProactiveName('');
+        setProactivePhone('');
+      }
+    } catch (err) {
+      console.error('Failed to send proactive invite:', err);
+      Alert.alert('Error', 'Failed to generate invite. Please try again.');
+    } finally {
+      setSendingProactiveInvite(false);
     }
   };
 
@@ -1175,11 +1336,53 @@ export default function AdminDashboard() {
           </View>
         </View>
 
-        {/* Membership Management Section */}
+        {/* Send Invites Section */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Members & Requests</Text>
+            <Text style={styles.cardTitle}>Send Proactive Invites</Text>
+            <UserPlus size={20} color="#1193d4" strokeWidth={2} />
           </View>
+          <Text style={styles.sectionSubtitle}>
+            Bypass the approval process by sending an invite code directly to a resident's phone number.
+          </Text>
+
+          <View style={styles.adminSection}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Resident Name</Text>
+              <TextInput
+                style={styles.adminInput}
+                placeholder="Jane Doe"
+                value={proactiveName}
+                onChangeText={setProactiveName}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Phone Number</Text>
+              <TextInput
+                style={styles.adminInput}
+                placeholder="(555) 000-0000"
+                keyboardType="phone-pad"
+                value={proactivePhone}
+                onChangeText={setProactivePhone}
+              />
+            </View>
+
+            <TouchableOpacity 
+              style={[styles.saveBtn, { height: 44, width: '100%' }, sendingProactiveInvite && styles.disabledBtn]} 
+              onPress={handleSendProactiveInvite}
+              disabled={sendingProactiveInvite}
+            >
+              {sendingProactiveInvite ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.saveBtnText}>Send SMS Invite</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Membership Management Section */}
 
           {/* Tab Selector */}
           <View style={styles.tabContainer}>
@@ -1328,6 +1531,50 @@ export default function AdminDashboard() {
             </View>
           </View>
         )}
+
+        {/* Announcement Moderation Section */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Announcement Moderation</Text>
+            <Shield size={20} color="#1193d4" strokeWidth={2} />
+          </View>
+
+          {loadingAnnouncements ? (
+            <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />
+          ) : pendingAnnouncements.length === 0 ? (
+            <Text style={styles.emptyText}>No pending announcements.</Text>
+          ) : (
+            <View style={styles.requestsContainer}>
+              {pendingAnnouncements.map((item) => (
+                <View key={item.id} style={styles.qaItem}>
+                  <View style={styles.qaHeader}>
+                    <Text style={styles.qaMember}>
+                      {item.author?.full_name || 'Member'}
+                    </Text>
+                    <Text style={styles.qaDate}>{new Date(item.created_at).toLocaleDateString()}</Text>
+                  </View>
+                  <Text style={[styles.qaMember, { fontSize: 13, marginBottom: 4 }]}>{item.title}</Text>
+                  <Text style={styles.qaText} numberOfLines={3}>{item.content}</Text>
+                  
+                  <View style={styles.actionGroup}>
+                    <TouchableOpacity 
+                      style={styles.approveBtn}
+                      onPress={() => handleApproveAnnouncement(item.id)}
+                    >
+                      <Text style={styles.approveText}>Approve</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.declineBtn}
+                      onPress={() => handleDeleteAnnouncement(item.id)}
+                    >
+                      <Text style={styles.declineText}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
 
         {/* Q&A Management Section */}
         <View style={styles.card}>
@@ -1596,6 +1843,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#0f172a',
     marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: '#64748b',
+    marginBottom: 12,
+    lineHeight: 18,
   },
   badge: {
     backgroundColor: 'rgba(17, 147, 212, 0.1)',
