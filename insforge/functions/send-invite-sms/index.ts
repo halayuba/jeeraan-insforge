@@ -13,7 +13,7 @@ export default async function(req: Request): Promise<Response> {
 
   try {
     const body = await req.json();
-    const { phone, inviteCode, neighborhoodName } = body;
+    const { phone, inviteCode, neighborhoodName, adminName, residentName } = body;
 
     if (!phone || !inviteCode) {
       return new Response(JSON.stringify({ error: 'Missing phone or inviteCode' }), {
@@ -22,55 +22,10 @@ export default async function(req: Request): Promise<Response> {
       });
     }
 
-    // We can verify the admin token here using Supabase auth if needed, but assuming standard edge function auth handles it.
-    // Or we just verify that the request has a valid authorization header.
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
-    }
+    const appLink = 'https://jeeraan.app/join'; // Placeholder for actual app join link
+    const messageBody = `Hi ${residentName || 'Neighbor'}, this is your app Admin ${adminName || 'Bashir'} from ${neighborhoodName || 'LVW Neighborhood'}. You’re invited to join our neighborhood on Jeeraan — a private space for updates, discussions, and community decisions.\n\nCode: ${inviteCode} (valid for a limited time)\nJoin: ${appLink}`;
 
-    /*
-    // Attempt to use Twilio if configured
-    const twilioSid = Deno.env.get('TWILIO_ACCOUNT_SID');
-    const twilioToken = Deno.env.get('TWILIO_AUTH_TOKEN');
-    const twilioFrom = Deno.env.get('TWILIO_PHONE_NUMBER');
-
-    const messageBody = `You have been invited to join ${neighborhoodName || 'the neighborhood'} on Jeeraan! Your invite code is: ${inviteCode}. It expires in 24 hours.`;
-
-    if (twilioSid && twilioToken && twilioFrom) {
-      // Send real SMS
-      const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json`;
-      const formData = new URLSearchParams();
-      formData.append('To', phone);
-      formData.append('From', twilioFrom);
-      formData.append('Body', messageBody);
-
-      const twilioRes = await fetch(twilioUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Basic ' + btoa(`${twilioSid}:${twilioToken}`),
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: formData.toString()
-      });
-
-      if (!twilioRes.ok) {
-        const err = await twilioRes.text();
-        console.error('Twilio error:', err);
-        return new Response(JSON.stringify({ error: 'Failed to send SMS via provider' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        });
-      }
-    } else {
-      // Mock SMS for development
-      console.log(`[MOCK SMS] To: ${phone} | Body: ${messageBody}`);
-    }
-    */
-    const messageBody = `You have been invited to join ${neighborhoodName || 'the neighborhood'} on Jeeraan! Your invite code is: ${inviteCode}. It expires in 24 hours.`;
+    // Mock SMS for development
     console.log(`[MOCK SMS] To: ${phone} | Body: ${messageBody}`);
 
     return new Response(JSON.stringify({ success: true, message: 'Invite sent (Mock)' }), {

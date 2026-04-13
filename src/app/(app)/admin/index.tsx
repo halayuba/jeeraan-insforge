@@ -11,7 +11,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { globalRole, neighborhoodId, handleAuthError } = useAuth();
+  const { fullName, globalRole, neighborhoodId, handleAuthError } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
   const [rejectedRequests, setRejectedRequests] = useState<any[]>([]);
@@ -1090,7 +1090,9 @@ export default function AdminDashboard() {
         body: {
           phone: request.phone,
           inviteCode: inviteCode,
-          neighborhoodName: neighborhood?.name || 'your neighborhood'
+          neighborhoodName: neighborhood?.name || 'your neighborhood',
+          adminName: fullName || 'Bashir',
+          residentName: request.name
         }
       });
 
@@ -1166,7 +1168,9 @@ export default function AdminDashboard() {
         body: {
           phone: proactivePhone,
           inviteCode: inviteCode,
-          neighborhoodName: neighborhood?.name || 'your neighborhood'
+          neighborhoodName: neighborhood?.name || 'your neighborhood',
+          adminName: fullName || 'Bashir',
+          residentName: proactiveName
         }
       });
 

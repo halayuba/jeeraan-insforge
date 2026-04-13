@@ -5,6 +5,7 @@ type UserContextType = {
   user: any;
   session: any;
   loading: boolean;
+  fullName: string | null;
   globalRole: string | null;
   userRole: string | null;
   userLevel: number;
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [fullName, setFullName] = useState<string | null>(null);
   const [globalRole, setGlobalRole] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userLevel, setUserLevel] = useState<number>(1);
@@ -43,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clearAuthState = () => {
     setSession(null);
     setUser(null);
+    setFullName(null);
     setUserRole(null);
     setUserLevel(1);
     setNeighborhoodId(null);
@@ -94,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await insforge.database
         .from('user_profiles')
-        .select('global_role, level')
+        .select('global_role, level, full_name')
         .eq('user_id', userId)
         .single();
 
@@ -106,6 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data) {
         setGlobalRole(data.global_role);
         setUserLevel(data.level || 1);
+        setFullName(data.full_name || null);
       }
     } catch (err) {
       console.error('Error fetching global profile', err);
@@ -192,6 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user, 
       session, 
       loading, 
+      fullName,
       globalRole, 
       userRole, 
       userLevel,
