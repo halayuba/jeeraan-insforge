@@ -138,11 +138,11 @@ export default function SubmitProfileScreen() {
 
         {/* Bio Field */}
         <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>Biography</Text>
+          <Text style={styles.fieldLabel}>Education, Experience & Current Occupation</Text>
           <TextInput
             multiline
             style={styles.textArea}
-            placeholder="Tell us about yourself..."
+            placeholder="Briefly describe your educational background, professional experience, and current role."
             placeholderTextColor="#94a3b8"
             value={bio}
             onChangeText={setBio}
@@ -153,12 +153,12 @@ export default function SubmitProfileScreen() {
         {/* Assets Field */}
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>
-            What are your strongest assets and what would you hope to bring to the board and to the community?
+            Your Vision for the Community & Why You’re a Strong Candidate
           </Text>
           <TextInput
             multiline
             style={[styles.textArea, styles.textAreaTall]}
-            placeholder="Your answer here..."
+            placeholder="Share your ideas, goals, and how you plan to contribute to the community. Tell us why you would be a great fit for this role."
             placeholderTextColor="#94a3b8"
             value={assets}
             onChangeText={setAssets}

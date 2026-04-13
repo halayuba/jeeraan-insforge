@@ -13,15 +13,15 @@ export default function AdminLayout() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
-  const isAdmin = userRole === 'admin' || globalRole === 'super_admin';
+  const isPrivileged = userRole === 'admin' || userRole === 'moderator' || globalRole === 'super_admin';
 
   useEffect(() => {
-    if (!loading && isAdmin) {
+    if (!loading && isPrivileged) {
       authenticate();
     } else if (!loading) {
       setIsAuthenticating(false);
     }
-  }, [loading, isAdmin]);
+  }, [loading, isPrivileged]);
 
   const authenticate = async () => {
     // Biometric bypass for Web platform
@@ -66,8 +66,8 @@ export default function AdminLayout() {
     );
   }
 
-  // Not an admin? 
-  if (!isAdmin) {
+  // Not privileged? 
+  if (!isPrivileged) {
     return <Redirect href="/(app)" />;
   }
 

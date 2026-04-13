@@ -9,7 +9,7 @@ This document summarizes key rules and best practices from the Google JavaScript
 
 ## 2. Source File Structure
 - New files should be ES modules (`import`/`export`).
-- **Exports:** Use named exports (`export {MyClass};`). **Do not use default exports.**
+- **Exports:** Use named exports (`export {MyClass};`). **Do not use default exports.** (Exception: Expo Router route files in `src/app/` should use default exports as required by the framework).
 - **Imports:** Do not use line-wrapped imports. The `.js` extension in import paths is mandatory.
 
 ## 3. Formatting

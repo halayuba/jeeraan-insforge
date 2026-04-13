@@ -40,7 +40,10 @@ export default function AnnouncementDetails() {
     try {
       const { data, error } = await insforge.database
         .from('announcements')
-        .select('*')
+        .select(`
+          *,
+          author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)
+        `)
         .eq('id', id)
         .single();
 
@@ -48,7 +51,12 @@ export default function AnnouncementDetails() {
         handleAuthError(error);
         return;
       }
-      setAnnouncement(data);
+      
+      const formatted = {
+        ...data,
+        author: Array.isArray(data.author) ? data.author[0] : data.author
+      };
+      setAnnouncement(formatted);
     } catch (err) {
       console.error('Error fetching announcement details:', err);
       handleAuthError(err);
@@ -137,12 +145,20 @@ export default function AnnouncementDetails() {
 
         {/* Author info */}
         <View style={styles.authorRow}>
-          <View style={styles.authorIconContainer}>
-            <ShieldAlert size={20} color="#1193d4" strokeWidth={2} />
-          </View>
+          {announcement.author?.avatar_url ? (
+            <Image source={{ uri: announcement.author.avatar_url }} style={styles.authorAvatar} />
+          ) : (
+            <View style={styles.authorIconContainer}>
+              <ShieldAlert size={20} color="#1193d4" strokeWidth={2} />
+            </View>
+          )}
           <View>
-            <Text style={styles.authorName}>Admin / Board</Text>
-            <Text style={styles.authorSubtext}>Official Communication</Text>
+            <Text style={styles.authorName}>
+              {announcement.author?.full_name || 'Admin / Board'}
+            </Text>
+            <Text style={styles.authorSubtext}>
+              {announcement.author?.full_name ? 'Neighborhood Resident' : 'Official Communication'}
+            </Text>
           </View>
         </View>
 
@@ -274,6 +290,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(17, 147, 212, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  authorAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   authorName: {
     fontFamily: 'Manrope-Bold',

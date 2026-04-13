@@ -34,7 +34,7 @@ const CATEGORIES = [
 export default function CreateAnnouncement() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth, handleAuthError, neighborhoodId } = useAuth();
+  const { refreshAuth, handleAuthError, neighborhoodId, userRole } = useAuth();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -129,14 +129,19 @@ export default function CreateAnnouncement() {
       const uploadedImageUrls = await uploadImagesAndGetUrls();
 
       // 3. Save Announcement DB Record
+      const isPrivileged = userRole === 'admin' || userRole === 'moderator';
+      const status = isPrivileged ? 'approved' : 'pending';
+
       const { data: newAnnouncement, error } = await insforge.database
         .from('announcements')
         .insert([{
+          neighborhood_id: neighborhoodId,
           title: title.trim(),
           content: content.trim(),
           category,
           images: uploadedImageUrls,
           author_id: userData.user.id,
+          status,
         }])
         .select()
         .single();
@@ -159,7 +164,11 @@ export default function CreateAnnouncement() {
         // Don't fail the whole process if gamification fails
       }
 
-      showToast('Announcement posted successfully.', 'success');
+      if (status === 'pending') {
+        showToast('This enighborhood admins are reviewing your announcement and it will be posted when approved', 'info');
+      } else {
+        showToast('Announcement posted successfully.', 'success');
+      }
       router.back();
     } catch (err: any) {
       console.error('Submit error:', err);

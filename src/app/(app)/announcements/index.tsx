@@ -31,27 +31,39 @@ const FILTER_OPTIONS = ['Year', 'Month', 'Category', 'Status']
 
 export default function AnnouncementsIndex() {
   const router = useRouter()
-  const { handleAuthError } = useAuth()
+  const { handleAuthError, neighborhoodId, userRole } = useAuth()
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   const fetchAnnouncements = async (isRefreshing = false) => {
+    if (!neighborhoodId) return;
     if (isRefreshing) setRefreshing(true)
     else setLoading(true)
 
     try {
-      const { data, error } = await insforge.database
+      let query = insforge.database
         .from('announcements')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .select(`
+          *,
+          author:user_profiles(full_name, is_visible, anonymous_id)
+        `)
+        .eq('neighborhood_id', neighborhoodId)
+        .order('created_at', { ascending: false });
+      
+      const { data, error } = await query;
 
       if (error) {
         handleAuthError(error)
         return
       }
-      setAnnouncements(data || [])
+
+      const formatted = (data || []).map((a: any) => ({
+        ...a,
+        author: Array.isArray(a.author) ? a.author[0] : a.author
+      }));
+      setAnnouncements(formatted)
     } catch (err) {
       console.error('Error fetching announcements:', err)
       handleAuthError(err)
@@ -214,9 +226,16 @@ export default function AnnouncementsIndex() {
                       {announcement.category}
                     </Text>
                   </View>
-                  <Text style={styles.timeText}>
-                    {formatAnnouncementDate(announcement.created_at)}
-                  </Text>
+                  <View style={styles.headerRight}>
+                    {announcement.status === 'pending' && (
+                      <View style={styles.pendingBadge}>
+                        <Text style={styles.pendingBadgeText}>Pending</Text>
+                      </View>
+                    )}
+                    <Text style={styles.timeText}>
+                      {formatAnnouncementDate(announcement.created_at)}
+                    </Text>
+                  </View>
                 </View>
 
                 <Text style={styles.cardTitle}>{announcement.title}</Text>
@@ -238,7 +257,9 @@ export default function AnnouncementsIndex() {
                     <View style={styles.catIconContainer}>
                       <CategoryIcon size={14} color="#1193d4" strokeWidth={2} />
                     </View>
-                    <Text style={styles.authorName}>Admin Team</Text>
+                    <Text style={styles.authorName}>
+                      {announcement.author?.full_name || 'Admin Team'}
+                    </Text>
                   </View>
                 </View>
                 <Text style={styles.readMoreText}>Read More</Text>
@@ -357,6 +378,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 8,
+  },
+  headerRight: {
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  pendingBadge: {
+    backgroundColor: '#fff7ed',
+    borderWidth: 1,
+    borderColor: '#fdba74',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  pendingBadgeText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 10,
+    color: '#ea580c',
+    textTransform: 'uppercase',
   },
   categoryBadge: {
     paddingHorizontal: 8,
