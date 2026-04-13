@@ -1413,7 +1413,7 @@ export default function AdminDashboard() {
           {activeTab === 'pending' && renderRequestsTab()}
           {activeTab === 'members' && renderMembersTab()}
           {activeTab === 'rejected' && renderRejectedTab()}
-          </View>
+          
 
           {/* Engagement & Gamification Settings */}
           <View style={styles.card}>

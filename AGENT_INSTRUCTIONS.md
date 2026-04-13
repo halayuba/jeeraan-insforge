@@ -62,7 +62,72 @@ For each feature or work segment, maintain and keep up-to-date the following thr
 
 ---
 
-## 5. General Principles
+## 5. Project Tech Stack & Packages
+
+This section lists the core technologies and all packages currently used in the project. **Update this list whenever a new package is installed or an existing one is removed.**
+
+### Core Tech Stack
+- **Framework:** React Native / Expo (SDK 55)
+- **Language:** TypeScript
+- **Backend-as-a-Service:** InsForge (Database, Auth, Storage, Edge Functions)
+- **Navigation:** Expo Router (File-based routing)
+- **Icons:** Lucide React Native & Tabler Icons
+
+### Dependencies (`package.json`)
+| Package | Version | Purpose |
+|---|---|---|
+| `@expo-google-fonts/manrope` | `^0.4.2` | Primary typography |
+| `@expo/vector-icons` | `^15.0.2` | Expo's built-in icon set |
+| `@insforge/sdk` | `^1.1.6` | InsForge Backend SDK |
+| `@react-navigation/bottom-tabs` | `^7.7.3` | Tab-based navigation |
+| `@react-navigation/elements` | `^2.8.1` | Navigation UI elements |
+| `@react-navigation/native` | `^7.1.28` | Core navigation logic |
+| `@tabler/icons-react-native` | `^3.41.1` | Brand and specialized icons |
+| `base64-arraybuffer` | `^1.0.2` | Binary data handling |
+| `expo` | `~55.0.5` | Managed React Native framework |
+| `expo-constants` | `~55.0.7` | System-level constants |
+| `expo-device` | `~55.0.9` | Device information |
+| `expo-document-picker` | `~55.0.13` | File selection |
+| `expo-font` | `~55.0.4` | Custom font loading |
+| `expo-glass-effect` | `~55.0.8` | Frosted glass UI effects |
+| `expo-image` | `~55.0.6` | Optimized image component |
+| `expo-image-picker` | `~55.0.18` | Media library access |
+| `expo-linking` | `~55.0.7` | Deep linking |
+| `expo-local-authentication` | `~55.0.8` | Biometric auth (FaceID/Fingerprint) |
+| `expo-router` | `~55.0.5` | Next.js-style routing |
+| `expo-splash-screen` | `~55.0.10` | App splash screen control |
+| `expo-status-bar` | `~55.0.4` | System status bar control |
+| `expo-symbols` | `~55.0.5` | SF Symbols / Android symbols |
+| `expo-system-ui` | `~55.0.9` | System-level UI configuration |
+| `expo-web-browser` | `~55.0.9` | In-app browser handling |
+| `lucide-react-native` | `^1.7.0` | Primary icon library |
+| `react` | `19.2.0` | UI Library |
+| `react-dom` | `19.2.0` | React for Web |
+| `react-native` | `0.83.2` | Core mobile framework |
+| `react-native-gesture-handler` | `~2.30.0` | Touch gesture system |
+| `react-native-reanimated` | `4.2.1` | High-performance animations |
+| `react-native-safe-area-context` | `~5.6.2` | Safe area inset management |
+| `react-native-screens` | `~4.23.0` | Native screen navigation |
+| `react-native-svg` | `^15.15.4` | SVG rendering (Lucide dependency) |
+| `react-native-web` | `~0.21.0` | React Native for Browsers |
+| `react-native-worklets` | `0.7.2` | Reanimated dependency |
+
+### Dev Dependencies
+| Package | Version | Purpose |
+|---|---|---|
+| `@testing-library/jest-native` | `^5.4.3` | Native assertions for Jest |
+| `@testing-library/react-hooks` | `^8.0.1` | Hook testing utilities |
+| `@testing-library/react-native` | `^13.3.3` | Component testing |
+| `@types/jest` | `^30.0.0` | Jest type definitions |
+| `@types/react` | `~19.2.2` | React type definitions |
+| `jest` | `^30.3.0` | Test runner |
+| `jest-expo` | `^55.0.15` | Jest preset for Expo |
+| `react-test-renderer` | `^19.2.5` | Test snapshot rendering |
+| `typescript` | `~5.9.2` | Static typing |
+
+---
+
+## 6. General Principles
 
 - **Plan before you code.** Always produce an implementation plan and get acknowledgement before making significant changes.
 - **Ask, don't assume.** If requirements are ambiguous, ask for clarification rather than making silent assumptions.
@@ -72,4 +137,4 @@ For each feature or work segment, maintain and keep up-to-date the following thr
 
 ---
 
-*Last updated: 2026-03-12*
+*Last updated: 2026-04-12*

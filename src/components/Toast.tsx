@@ -1,4 +1,4 @@
-import { AlertCircle, Bell, CheckCircle2, Info } from 'lucide-react-native';
+import { AlertCircle, Bell, CircleCheckBig, Info } from 'lucide-react-native';
 
 
 import React, { useEffect } from 'react';
@@ -88,7 +88,7 @@ export const Toast: React.FC<ToastProps> = ({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return CheckCircle2;
+        return CircleCheckBig;
       case 'error':
         return AlertCircle;
       case 'info':

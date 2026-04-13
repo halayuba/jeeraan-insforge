@@ -4,22 +4,19 @@ import {
   Cake, 
   Camera, 
   ChevronRight, 
+  CirclePause,
   Eye, 
   EyeOff, 
-  Facebook, 
   Globe, 
   Home, 
-  Instagram, 
-  Linkedin, 
   Lock, 
   Mail, 
-  PauseCircle, 
+  MessageCircle,
   Phone, 
   ShieldCheck,
-  Twitter, 
   Trash2, 
   User, 
-  UserSquare2 
+  SquareUser
 } from 'lucide-react-native';
 
 import React, { useState, useEffect } from 'react';
@@ -42,10 +39,16 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '../../contexts/AuthContext';
 import { insforge } from '../../lib/insforge';
 import { useToast } from '../../contexts/ToastContext';
+import { 
+  IconBrandInstagram, 
+  IconBrandX, 
+  IconBrandLinkedin, 
+  IconBrandFacebook 
+} from '@tabler/icons-react-native';
 
 type SocialLinks = {
   instagram?: string;
-  twitter?: string;
+  x?: string;
   linkedin?: string;
   facebook?: string;
   website?: string;
@@ -397,7 +400,7 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.card}>
             <View style={styles.inputRow}>
-              <UserSquare2 size={22} color="#94a3b8" style={styles.inputIcon} strokeWidth={2} />
+              <SquareUser size={22} color="#94a3b8" style={styles.inputIcon} strokeWidth={2} />
               <View style={styles.inputContent}>
                 <Text style={styles.inputLabel}>Full Name</Text>
                 <Text style={styles.readOnlyValue}>{profile?.full_name}</Text>
@@ -476,7 +479,7 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.card}>
             <View style={styles.inputRow}>
-              <Instagram size={22} color="#E1306C" style={styles.inputIcon} strokeWidth={2} />
+              <IconBrandInstagram size={22} color="#E1306C" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={[styles.textInput, { paddingTop: 12 }]}
                 value={socialLinks.instagram}
@@ -486,17 +489,17 @@ export default function ProfileScreen() {
               />
             </View>
             <View style={styles.inputRow}>
-              <Twitter size={22} color="#1DA1F2" style={styles.inputIcon} strokeWidth={2} />
+              <IconBrandX size={22} color="#000000" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={[styles.textInput, { paddingTop: 12 }]}
-                value={socialLinks.twitter}
-                onChangeText={(val) => updateSocialLink('twitter', val)}
-                placeholder="Twitter handle"
+                value={socialLinks.x}
+                onChangeText={(val) => updateSocialLink('x', val)}
+                placeholder="X handle"
                 autoCapitalize="none"
               />
             </View>
             <View style={styles.inputRow}>
-              <Linkedin size={22} color="#0077B5" style={styles.inputIcon} strokeWidth={2} />
+              <IconBrandLinkedin size={22} color="#0077B5" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={[styles.textInput, { paddingTop: 12 }]}
                 value={socialLinks.linkedin}
@@ -506,7 +509,7 @@ export default function ProfileScreen() {
               />
             </View>
             <View style={styles.inputRow}>
-              <Facebook size={22} color="#1877F2" style={styles.inputIcon} strokeWidth={2} />
+              <IconBrandFacebook size={22} color="#1877F2" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={[styles.textInput, { paddingTop: 12 }]}
                 value={socialLinks.facebook}
@@ -543,8 +546,8 @@ export default function ProfileScreen() {
 
             <TouchableOpacity style={styles.row} onPress={handleInactivate}>
               <View style={styles.rowLeft}>
-                <PauseCircle size={22} color="#f59e0b" strokeWidth={2} />
-                <Text style={[styles.managementText, { color: '#f59e0b' }]}>Inactivate Account Temporarily</Text>
+                <CirclePause size={22} color="#f59e0b" strokeWidth={2} />
+                <Text style={styles.managementText}>Inactivate Account Temporarily</Text>
               </View>
               <ChevronRight size={20} color="#cbd5e1" strokeWidth={2} />
             </TouchableOpacity>
