@@ -7,12 +7,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## Active Tracks
 - [ ] **Track: Spin Wheel & Leaderboard Upgrade**
   *Link: [./tracks/spin_wheel_20260413/](./tracks/spin_wheel_20260413/)*
-- [x] **Track: Classified Ads – Monetization**
-  *Link: [./tracks/classified_ads_monetization_20260413/](./tracks/classified_ads_monetization_20260413/)*
 
 ---
 
 ## Archived Tracks
+- [x] **Track: Classified Ads – Monetization**
+  *Link: [./archive/classified_ads_monetization_20260413/](./archive/classified_ads_monetization_20260413/)*
 - [x] **Track: Voting and Polls Management**
   *Link: [./archive/voting_and_polls_management_20260317/](./archive/voting_and_polls_management_20260317/)*
 - [x] **Track: Q & A and Advertisements**
