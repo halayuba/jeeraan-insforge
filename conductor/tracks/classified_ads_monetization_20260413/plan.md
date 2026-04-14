@@ -41,3 +41,6 @@
     - [x] Write Tests: Verified setting persistence in `neighborhood_settings`.
     - [x] Implement: Added monetization toggle to Admin Dashboard.
 - [x] Task: Conductor - User Manual Verification 'Ad Details, Engagement, and Moderation' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 350fc41
