@@ -1,7 +1,6 @@
-import { ArrowLeft, CloudUpload } from 'lucide-react-native';
+import { ArrowLeft, CloudUpload, Info, CheckCircle2 } from 'lucide-react-native';
 
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,16 +17,20 @@ import { useRouter } from 'expo-router';
 
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
+import { useStripe } from '@stripe/stripe-react-native';
+
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { checkDailyLimit } from '../../../lib/rateLimit';
+import { calculateListingFee, getListingLimit } from '../../../lib/classifieds';
 
 export default function CreateClassifiedAd() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { handleAuthError, neighborhoodId } = useAuth();
+  const { handleAuthError, neighborhoodId, userRole, user } = useAuth();
   const { refreshAuth } = useAuth();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -35,9 +38,46 @@ export default function CreateClassifiedAd() {
   const [contactInfo, setContactInfo] = useState('');
   
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
   
   const [submitting, setSubmitting] = useState(false);
+  
+  // Monetization state
+  const [monetizationEnabled, setMonetizationEnabled] = useState(false);
+  const [fee, setFee] = useState(0);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [settings, setSettings] = useState<any>(null);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [neighborhoodId]);
+
+  useEffect(() => {
+    if (monetizationEnabled) {
+      const p = parseFloat(price) || 0;
+      setFee(calculateListingFee(p));
+    } else {
+      setFee(0);
+    }
+  }, [price, monetizationEnabled]);
+
+  const fetchSettings = async () => {
+    if (!neighborhoodId) return;
+    try {
+      const { data, error } = await insforge.database
+        .from('neighborhood_settings')
+        .select('*')
+        .eq('neighborhood_id', neighborhoodId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      if (data) {
+        setSettings(data);
+        setMonetizationEnabled(data.classifieds_monetization_enabled);
+      }
+    } catch (err) {
+      console.error('Error fetching settings:', err);
+    }
+  };
 
   const handleGamificationReward = (rewardData: any) => {
     if (rewardData?.success && rewardData.points_added > 0) {
@@ -58,12 +98,10 @@ export default function CreateClassifiedAd() {
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.7,
-        base64: true,
       });
 
-      if (!result.canceled && result.assets[0].base64) {
+      if (!result.canceled) {
         setImageUri(result.assets[0].uri);
-        setImageBase64(result.assets[0].base64);
       }
     } catch (err) {
       console.error('Image picking failed:', err);
@@ -77,29 +115,48 @@ export default function CreateClassifiedAd() {
       return;
     }
 
+    if (!termsAccepted) {
+      showToast('You must accept the terms and conditions.', 'error');
+      return;
+    }
+
     setSubmitting(true);
     let uploadedImageUrl = null;
 
     try {
-      const { data: userData, error: userErr } = await insforge.auth.getCurrentUser();
-      if (userErr) throw userErr;
-      if (!userData?.user) throw new Error('Not authenticated');
+      if (!user) throw new Error('Not authenticated');
 
-      const { allowed } = await checkDailyLimit('classified_ads', userData.user.id);
-      if (!allowed) {
-        showToast('You have reached your limit for the day. You can submit again on a future day.', 'error');
+      // 1. Check user role limits
+      const limit = getListingLimit(userRole || 'resident');
+      const { count, error: countError } = await insforge.database
+        .from('classified_ads')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('neighborhood_id', neighborhoodId)
+        .eq('status', 'active');
+
+      if (countError) throw countError;
+      if ((count || 0) >= limit) {
+        showToast(`You have reached your limit of ${limit} active ads.`, 'error');
+        setSubmitting(false);
         return;
       }
 
-      // Upload Image if present
+      const { allowed } = await checkDailyLimit('classified_ads', user.id);
+      if (!allowed) {
+        showToast('You have reached your limit for the day.', 'error');
+        setSubmitting(false);
+        return;
+      }
+
+      // 2. Upload Image if present
       if (imageUri) {
-        // Correctly handle file extension extraction, especially for blob/data URLs
         let fileExt = 'jpg';
         if (imageUri.includes('.') && !imageUri.startsWith('blob:') && !imageUri.startsWith('data:')) {
           fileExt = imageUri.split('.').pop()?.split('?')[0] || 'jpg';
         }
         
-        const fileName = `${userData.user.id}-${Date.now()}.${fileExt}`;
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
         const filePath = `classifieds/${fileName}`;
         
         const fileResponse = await fetch(imageUri);
@@ -110,48 +167,114 @@ export default function CreateClassifiedAd() {
           .upload(filePath, blob);
 
         if (uploadError) throw uploadError;
-
         uploadedImageUrl = uploadData?.url;
       }
 
-      // Insert Row
-      const { data: newAd, error: dbError } = await insforge.database
-        .from('classified_ads')
-        .insert([{
-          user_id: userData.user.id,
-          neighborhood_id: neighborhoodId,
-          title: title.trim(),
-          price: price.trim(), 
-          description: description.trim(),
-          contact_info: contactInfo.trim(),
-          image_url: uploadedImageUrl,
-          category: 'General',
-        }])
-        .select()
-        .single();
+      // 3. Handle Payment if fee > 0
+      if (fee > 0) {
+        // Create ad with pending_payment status
+        const { data: pendingAd, error: pendingError } = await insforge.database
+          .from('classified_ads')
+          .insert([{
+            user_id: user.id,
+            neighborhood_id: neighborhoodId,
+            title: title.trim(),
+            price: price.trim(),
+            price_numeric: parseFloat(price),
+            description: description.trim(),
+            contact_info: contactInfo.trim(),
+            image_url: uploadedImageUrl,
+            category: 'General',
+            status: 'pending_payment'
+          }])
+          .select()
+          .single();
 
-      if (dbError) throw dbError;
-      
-      // Award Points
-      try {
-        const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
+        if (pendingError) throw pendingError;
+
+        // Call edge function to create checkout session/intent
+        const { data: paymentData, error: paymentFuncError } = await insforge.functions.invoke('create-ad-checkout-session', {
           body: {
-            userId: userData.user.id,
-            actionType: 'classified_ad',
+            userId: user.id,
             neighborhoodId: neighborhoodId,
-            entityId: newAd.id
+            price: parseFloat(price),
+            adId: pendingAd.id,
+            adTitle: title.trim()
           }
         });
-        handleGamificationReward(rewardData);
-      } catch (rewardErr) {
-        console.error('Failed to award classified points:', rewardErr);
+
+        if (paymentFuncError) throw paymentFuncError;
+
+        if (paymentData.success === false) {
+          throw new Error(paymentData.message || 'Payment initiation failed');
+        }
+
+        // Initialize and present Payment Sheet
+        const { error: initError } = await initPaymentSheet({
+          merchantDisplayName: 'Jeeraan Neighborhood',
+          paymentIntentClientSecret: paymentData.paymentIntentClientSecret,
+          // Set to true if you want to support Apple Pay or Google Pay
+          defaultBillingDetails: {
+            name: user.email,
+          },
+        });
+
+        if (initError) throw initError;
+
+        const { error: presentError } = await presentPaymentSheet();
+
+        if (presentError) {
+          if (presentError.code === 'Canceled') {
+            showToast('Payment cancelled. Your ad is saved as pending.', 'info');
+            router.back();
+            return;
+          }
+          throw presentError;
+        }
+
+        showToast('Payment successful! Your ad is being published.', 'success');
+      } else {
+        // Create ad immediately as active
+        const { data: newAd, error: dbError } = await insforge.database
+          .from('classified_ads')
+          .insert([{
+            user_id: user.id,
+            neighborhood_id: neighborhoodId,
+            title: title.trim(),
+            price: price.trim(),
+            price_numeric: parseFloat(price) || 0,
+            description: description.trim(),
+            contact_info: contactInfo.trim(),
+            image_url: uploadedImageUrl,
+            category: 'General',
+            status: 'active'
+          }])
+          .select()
+          .single();
+
+        if (dbError) throw dbError;
+
+        // Award Points
+        try {
+          const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
+            body: {
+              userId: user.id,
+              actionType: 'classified_ad',
+              neighborhoodId: neighborhoodId,
+              entityId: newAd.id
+            }
+          });
+          handleGamificationReward(rewardData);
+        } catch (rewardErr) {
+          console.error('Failed to award classified points:', rewardErr);
+        }
+
+        showToast('Ad posted successfully.');
       }
 
-      showToast('Ad posted successfully.');
       router.back();
     } catch (err: any) {
       console.error('Submit error:', err);
-      
       handleAuthError(err);
       showToast(err.message || 'Failed to post ad.', 'error');
     } finally {
@@ -198,6 +321,15 @@ export default function CreateClassifiedAd() {
               onChangeText={setPrice}
             />
           </View>
+          
+          {monetizationEnabled && (
+            <View style={[styles.feeBanner, fee > 0 ? styles.feeBannerPaid : styles.feeBannerFree]}>
+              <Info size={16} color={fee > 0 ? '#1e40af' : '#166534'} />
+              <Text style={[styles.feeText, fee > 0 ? styles.feeTextPaid : styles.feeTextFree]}>
+                {fee > 0 ? `Listing Fee: $${fee.toFixed(2)}` : 'Listing is Free!'}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.inputContainer}>
@@ -241,6 +373,20 @@ export default function CreateClassifiedAd() {
           </TouchableOpacity>
         </View>
 
+        {/* Terms and Conditions */}
+        <TouchableOpacity 
+          style={styles.termsContainer}
+          onPress={() => setTermsAccepted(!termsAccepted)}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
+            {termsAccepted && <CheckCircle2 size={16} color="#ffffff" />}
+          </View>
+          <Text style={styles.termsText}>
+            I agree to the <Text style={styles.termsLink}>Terms & Conditions</Text>. I understand that listing fees (if any) are non-refundable.
+          </Text>
+        </TouchableOpacity>
+
         <View style={styles.spacer} />
       </ScrollView>
 
@@ -254,7 +400,9 @@ export default function CreateClassifiedAd() {
           {submitting ? (
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
-            <Text style={styles.submitButtonText}>Post Ad</Text>
+            <Text style={styles.submitButtonText}>
+              {fee > 0 ? `Pay $${fee.toFixed(2)} & Post` : 'Post Ad'}
+            </Text>
           )}
         </TouchableOpacity>
       </View>
@@ -343,6 +491,30 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     height: '100%',
   },
+  feeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 8,
+    gap: 8,
+    marginTop: 4,
+  },
+  feeBannerPaid: {
+    backgroundColor: '#eff6ff',
+  },
+  feeBannerFree: {
+    backgroundColor: '#f0fdf4',
+  },
+  feeText: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 13,
+  },
+  feeTextPaid: {
+    color: '#1e40af',
+  },
+  feeTextFree: {
+    color: '#166534',
+  },
   textArea: {
     minHeight: 120,
     backgroundColor: '#ffffff',
@@ -389,6 +561,35 @@ const styles = StyleSheet.create({
   previewImage: {
     width: '100%',
     height: 200,
+  },
+  termsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#1193d4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: '#1193d4',
+  },
+  termsText: {
+    flex: 1,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 13,
+    color: '#64748b',
+    lineHeight: 18,
+  },
+  termsLink: {
+    color: '#1193d4',
+    fontFamily: 'Manrope-SemiBold',
   },
   spacer: {
     height: 60,

@@ -1,6 +1,5 @@
 import { ArrowLeft, PlusCircle, Search, Tag } from 'lucide-react-native';
 
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -20,16 +19,17 @@ import { MemberName } from '../../../components/MemberName';
 
 export default function ClassifiedsIndex() {
   const router = useRouter();
-  const { handleAuthError, neighborhoodId } = useAuth();
+  const { handleAuthError, neighborhoodId, user } = useAuth();
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchAds();
-  }, []);
+  }, [neighborhoodId]);
 
   const fetchAds = async () => {
+    if (!neighborhoodId) return;
     setLoading(true);
     try {
       const { data, error } = await insforge.database
@@ -47,7 +47,15 @@ export default function ClassifiedsIndex() {
         ...ad,
         author: Array.isArray(ad.author) ? ad.author[0] : ad.author
       }));
-      setAds(formattedData);
+
+      // Filter: Show all active/sold ads, but only show pending/inactive to the owner
+      const visibleAds = formattedData.filter((ad: any) => 
+        ad.status === 'active' || 
+        ad.status === 'sold' || 
+        ad.user_id === user?.id
+      );
+
+      setAds(visibleAds);
     } catch (err) {
       console.error('Error fetching ads:', err);
       handleAuthError(err);
@@ -111,9 +119,22 @@ export default function ClassifiedsIndex() {
                       <Tag size={32} color="#94a3b8" strokeWidth={1.5} />
                     </View>
                   )}
+                  
                   <View style={styles.priceBadge}>
                     <Text style={styles.priceText}>${ad.price}</Text>
                   </View>
+
+                  {/* Status Overlay for non-active ads */}
+                  {ad.status !== 'active' && (
+                    <View style={[styles.cardStatusBadge, 
+                      ad.status === 'sold' ? styles.statusSold : 
+                      ad.status === 'expired' ? styles.statusExpired : 
+                      ad.status === 'pending_payment' ? styles.statusPending :
+                      styles.statusInactive
+                    ]}>
+                      <Text style={styles.statusText}>{ad.status?.replace('_', ' ').toUpperCase()}</Text>
+                    </View>
+                  )}
                 </View>
                 <View style={styles.adContent}>
                   <Text style={styles.adTitle} numberOfLines={1}>{ad.title}</Text>
@@ -225,15 +246,42 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 8,
     right: 8,
-    backgroundColor: '#1193d4',
+    backgroundColor: 'rgba(17, 147, 212, 0.9)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
+    zIndex: 2,
   },
   priceText: {
     fontFamily: 'Manrope-Bold',
     fontSize: 12,
     color: '#ffffff',
+  },
+  cardStatusBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    zIndex: 2,
+  },
+  statusSold: {
+    backgroundColor: '#10b981',
+  },
+  statusExpired: {
+    backgroundColor: '#ef4444',
+  },
+  statusPending: {
+    backgroundColor: '#f59e0b',
+  },
+  statusInactive: {
+    backgroundColor: '#94a3b8',
+  },
+  statusText: {
+    color: '#ffffff',
+    fontSize: 8,
+    fontFamily: 'Manrope-Bold',
   },
   adContent: {
     padding: 12,

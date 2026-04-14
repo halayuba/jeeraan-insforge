@@ -1,5 +1,4 @@
-import { ArrowLeft, MessageCircle, Share2, Tag } from 'lucide-react-native';
-
+import { ArrowLeft, MessageCircle, Share2, Tag, CheckCircle2, RotateCcw, AlertTriangle, Flag } from 'lucide-react-native';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -11,21 +10,26 @@ import {
   StyleSheet,
   ActivityIndicator,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
 import { MemberName } from '../../../components/MemberName';
+import { useToast } from '../../../contexts/ToastContext';
 
 const { width } = Dimensions.get('window');
 
 export default function AdDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { handleAuthError } = useAuth();
+  const { user, neighborhoodId, handleAuthError } = useAuth();
+  const { showToast } = useToast();
+  
   const [ad, setAd] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     fetchAdDetail();
@@ -38,7 +42,7 @@ export default function AdDetail() {
         .from('classified_ads')
         .select(`
           *,
-          author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)
+          author:user_profiles(user_id, full_name, avatar_url, is_visible, anonymous_id)
         `)
         .eq('id', id)
         .single();
@@ -55,6 +59,91 @@ export default function AdDetail() {
       handleAuthError(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    setUpdating(true);
+    try {
+      const updateData: any = { status: newStatus };
+      
+      // If renewing, reset expiration
+      if (newStatus === 'active' && ad.status === 'expired') {
+        const newExpiry = new Date();
+        newExpiry.setDate(newExpiry.getDate() + 30);
+        updateData.expires_at = newExpiry.toISOString();
+      }
+
+      const { error } = await insforge.database
+        .from('classified_ads')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      showToast(`Ad marked as ${newStatus}.`, 'success');
+      fetchAdDetail();
+    } catch (err) {
+      console.error('Error updating status:', err);
+      showToast('Failed to update ad status.', 'error');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleContactSeller = () => {
+    if (!ad.author?.user_id) return;
+    
+    router.push({
+      pathname: '/(app)/messages/[id]',
+      params: { id: 'new', recipientId: ad.author.user_id }
+    } as any);
+  };
+
+  const handleReportAd = () => {
+    // Note: Alert.prompt is iOS only in React Native core, for cross-platform
+    // we would use a custom modal, but Loma Vista West seems to prefer standard Alerts
+    // for now. For simplicity, we use Alert.alert if prompt is not available.
+    if (Platform.OS === 'ios') {
+      Alert.prompt(
+        'Report Ad',
+        'Please describe why you are reporting this ad (e.g., scam, inappropriate content).',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Report', 
+            onPress: async (reason) => submitReport(reason || 'No reason provided')
+          }
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Report Ad',
+        'Are you sure you want to report this ad for community review?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Report', onPress: () => submitReport('Reported via Android') }
+        ]
+      );
+    }
+  };
+
+  const submitReport = async (reason: string) => {
+    try {
+      const { error } = await insforge.database
+        .from('content_reports')
+        .insert({
+          reporter_id: user?.id,
+          neighborhood_id: neighborhoodId,
+          entity_type: 'classified_ad',
+          entity_id: id,
+          reason: reason.trim()
+        });
+      if (error) throw error;
+      showToast('Ad reported successfully. Thank you!', 'success');
+    } catch (err) {
+      console.error('Failed to report ad:', err);
+      showToast('Failed to submit report.', 'error');
     }
   };
 
@@ -77,6 +166,23 @@ export default function AdDetail() {
     );
   }
 
+  const isOwner = user?.id === ad.user_id;
+
+  const renderStatusBadge = () => {
+    switch (ad.status) {
+      case 'sold':
+        return <View style={[styles.statusBadge, styles.statusSold]}><Text style={styles.statusText}>SOLD</Text></View>;
+      case 'expired':
+        return <View style={[styles.statusBadge, styles.statusExpired]}><Text style={styles.statusText}>EXPIRED</Text></View>;
+      case 'pending_payment':
+        return <View style={[styles.statusBadge, styles.statusPending]}><Text style={styles.statusText}>PENDING PAYMENT</Text></View>;
+      case 'inactive':
+        return <View style={[styles.statusBadge, styles.statusInactive]}><Text style={styles.statusText}>INACTIVE</Text></View>;
+      default:
+        return null;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -86,6 +192,11 @@ export default function AdDetail() {
             <ArrowLeft size={24} color="#ffffff" strokeWidth={2} />
           </TouchableOpacity>
           <View style={styles.headerRight}>
+            {!isOwner && ad.status === 'active' && (
+              <TouchableOpacity style={styles.iconButton} onPress={handleReportAd}>
+                <Flag size={20} color="#ffffff" strokeWidth={2} />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={styles.iconButton}>
               <Share2 size={24} color="#ffffff" strokeWidth={2} />
             </TouchableOpacity>
@@ -105,7 +216,10 @@ export default function AdDetail() {
 
         <View style={styles.content}>
           <View style={styles.priceRow}>
-            <Text style={styles.price}>${ad.price}</Text>
+            <View style={styles.priceContainer}>
+              <Text style={styles.price}>${ad.price}</Text>
+              {renderStatusBadge()}
+            </View>
             <View style={styles.categoryBadge}>
               <Text style={styles.categoryText}>{ad.category}</Text>
             </View>
@@ -113,6 +227,9 @@ export default function AdDetail() {
 
           <Text style={styles.title}>{ad.title}</Text>
           <Text style={styles.timestamp}>Posted on {new Date(ad.created_at).toLocaleDateString()}</Text>
+          {ad.status === 'active' && ad.expires_at && (
+            <Text style={styles.expiryDate}>Expires on {new Date(ad.expires_at).toLocaleDateString()}</Text>
+          )}
 
           <View style={styles.divider} />
 
@@ -147,16 +264,70 @@ export default function AdDetail() {
               </View>
             </View>
           </View>
+
+          {/* Owner Actions */}
+          {isOwner && (
+            <View style={styles.ownerActions}>
+              <Text style={styles.sectionTitle}>Manage Your Ad</Text>
+              <View style={styles.actionButtons}>
+                {ad.status === 'active' && (
+                  <TouchableOpacity 
+                    style={[styles.actionButton, styles.soldButton]} 
+                    onPress={() => handleStatusUpdate('sold')}
+                    disabled={updating}
+                  >
+                    <CheckCircle2 size={18} color="#ffffff" />
+                    <Text style={styles.actionButtonText}>Mark as Sold</Text>
+                  </TouchableOpacity>
+                )}
+                
+                {ad.status === 'expired' && (
+                  <TouchableOpacity 
+                    style={[styles.actionButton, styles.renewButton]} 
+                    onPress={() => handleStatusUpdate('active')}
+                    disabled={updating}
+                  >
+                    <RotateCcw size={18} color="#ffffff" />
+                    <Text style={styles.actionButtonText}>Renew (Free)</Text>
+                  </TouchableOpacity>
+                )}
+
+                {ad.status !== 'inactive' && ad.status !== 'pending_payment' && (
+                  <TouchableOpacity 
+                    style={[styles.actionButton, styles.deactivateButton]} 
+                    onPress={() => handleStatusUpdate('inactive')}
+                    disabled={updating}
+                  >
+                    <AlertTriangle size={18} color="#64748b" />
+                    <Text style={[styles.actionButtonText, { color: '#64748b' }]}>Deactivate</Text>
+                  </TouchableOpacity>
+                )}
+
+                {ad.status === 'inactive' && (
+                  <TouchableOpacity 
+                    style={[styles.actionButton, styles.renewButton]} 
+                    onPress={() => handleStatusUpdate('active')}
+                    disabled={updating}
+                  >
+                    <RotateCcw size={18} color="#ffffff" />
+                    <Text style={styles.actionButtonText}>Reactivate</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
 
       {/* Footer CTA */}
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.messageButton}>
-          <MessageCircle size={20} color="#ffffff" strokeWidth={2} />
-          <Text style={styles.messageButtonText}>Contact Seller</Text>
-        </TouchableOpacity>
-      </View>
+      {!isOwner && ad.status === 'active' && (
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.messageButton} onPress={handleContactSeller}>
+            <MessageCircle size={20} color="#ffffff" strokeWidth={2} />
+            <Text style={styles.messageButtonText}>Contact Seller</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -212,18 +383,46 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flexWrap: 'wrap',
   },
   price: {
     fontFamily: 'Manrope-Bold',
     fontSize: 28,
     color: '#1193d4',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusSold: {
+    backgroundColor: '#10b981',
+  },
+  statusExpired: {
+    backgroundColor: '#ef4444',
+  },
+  statusPending: {
+    backgroundColor: '#f59e0b',
+  },
+  statusInactive: {
+    backgroundColor: '#94a3b8',
+  },
+  statusText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontFamily: 'Manrope-Bold',
   },
   categoryBadge: {
     backgroundColor: '#f1f5f9',
@@ -247,6 +446,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Medium',
     fontSize: 14,
     color: '#94a3b8',
+  },
+  expiryDate: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
   },
   divider: {
     height: 1,
@@ -304,6 +509,40 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Medium',
     fontSize: 12,
     color: '#64748b',
+  },
+  ownerActions: {
+    marginTop: 32,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  soldButton: {
+    backgroundColor: '#10b981',
+    borderColor: '#10b981',
+  },
+  renewButton: {
+    backgroundColor: '#1193d4',
+    borderColor: '#1193d4',
+  },
+  deactivateButton: {
+    backgroundColor: '#f1f5f9',
+    borderColor: '#e2e8f0',
+  },
+  actionButtonText: {
+    color: '#ffffff',
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
   },
   footer: {
     position: 'absolute',

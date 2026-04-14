@@ -1,5 +1,4 @@
-import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, HelpCircle, Layout, MessageCircle, Plus, Shield, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle } from 'lucide-react-native';
-
+import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, HelpCircle, Layout, MessageCircle, Plus, Shield, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle, DollarSign, Flag } from 'lucide-react-native';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image, Switch } from 'react-native';
@@ -72,6 +71,12 @@ export default function AdminDashboard() {
   const [maxDailyMessages, setMaxDailyMessages] = useState(10);
   const [savingDmSettings, setSavingDmSettings] = useState(false);
 
+  // Classified Ads Management State
+  const [monetizationEnabled, setMonetizationEnabled] = useState(false);
+  const [savingMonetization, setSavingMonetization] = useState(false);
+  const [reportedAds, setReportedAds] = useState<any[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+
   // Proactive Invite State
   const [proactiveName, setProactiveName] = useState('');
   const [proactivePhone, setProactivePhone] = useState('');
@@ -80,6 +85,123 @@ export default function AdminDashboard() {
   // Announcement Management State
   const [pendingAnnouncements, setPendingAnnouncements] = useState<any[]>([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(false);
+
+  const fetchClassifiedSettings = async () => {
+    if (!neighborhoodId) return;
+    try {
+      const { data, error } = await insforge.database
+        .from('neighborhood_settings')
+        .select('*')
+        .eq('neighborhood_id', neighborhoodId)
+        .maybeSingle();
+      
+      if (error) throw error;
+      if (data) {
+        setMonetizationEnabled(data.classifieds_monetization_enabled);
+      }
+    } catch (err) {
+      console.error('Failed to load classified settings', err);
+    }
+  };
+
+  const fetchReportedAds = async () => {
+    if (!neighborhoodId) return;
+    setLoadingReports(true);
+    try {
+      const { data, error } = await insforge.database
+        .from('content_reports')
+        .select(`
+          *,
+          reporter:user_profiles!reporter_id(full_name)
+        `)
+        .eq('neighborhood_id', neighborhoodId)
+        .eq('entity_type', 'classified_ad')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formatted = (data || []).map((r: any) => ({
+        ...r,
+        reporter: Array.isArray(r.reporter) ? r.reporter[0] : r.reporter
+      }));
+      setReportedAds(formatted);
+    } catch (err) {
+      console.error('Failed to load reported ads', err);
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const saveMonetizationSetting = async (val: boolean) => {
+    if (!neighborhoodId) return;
+    setSavingMonetization(true);
+    try {
+      const { error } = await insforge.database
+        .from('neighborhood_settings')
+        .update({ classifieds_monetization_enabled: val })
+        .eq('neighborhood_id', neighborhoodId);
+
+      if (error) throw error;
+      setMonetizationEnabled(val);
+      Alert.alert('Success', `Classified Ads monetization ${val ? 'enabled' : 'disabled'}.`);
+    } catch (err) {
+      console.error('Failed to save monetization setting', err);
+      Alert.alert('Error', 'Failed to update setting.');
+    } finally {
+      setSavingMonetization(false);
+    }
+  };
+
+  const handleDismissReport = async (reportId: string) => {
+    try {
+      const { error } = await insforge.database
+        .from('content_reports')
+        .update({ status: 'dismissed' })
+        .eq('id', reportId);
+
+      if (error) throw error;
+      setReportedAds(reportedAds.filter(r => r.id !== reportId));
+    } catch (err) {
+      console.error('Failed to dismiss report', err);
+    }
+  };
+
+  const handleDeleteReportedAd = async (adId: string, reportId: string) => {
+    Alert.alert(
+      'Delete Reported Ad',
+      'Are you sure you want to permanently delete this ad?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // 1. Delete ad
+              const { error: adError } = await insforge.database
+                .from('classified_ads')
+                .delete()
+                .eq('id', adId);
+              if (adError) throw adError;
+
+              // 2. Resolve report
+              await insforge.database
+                .from('content_reports')
+                .update({ status: 'reviewed' })
+                .eq('id', reportId);
+
+              setReportedAds(reportedAds.filter(r => r.id !== reportId));
+              Alert.alert('Success', 'Ad deleted.');
+            } catch (err) {
+              console.error('Failed to delete ad', err);
+              Alert.alert('Error', 'Failed to delete ad.');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   const fetchPendingAnnouncements = async () => {
     if (!neighborhoodId) return;
@@ -205,6 +327,8 @@ export default function AdminDashboard() {
         fetchEligibleUsers();
         fetchMembers();
         fetchPendingAnnouncements();
+        fetchClassifiedSettings();
+        fetchReportedAds();
       }
       if (globalRole === 'super_admin' && neighborhoodId) {
         fetchElectionInfo();
@@ -1424,6 +1548,69 @@ export default function AdminDashboard() {
           {renderGamificationSettings()}
           </View>
 
+          {/* Classified Ads Settings */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>Classified Ads Settings</Text>
+              <DollarSign size={20} color="#1193d4" strokeWidth={2} />
+            </View>
+            
+            <View style={styles.adminSection}>
+              <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
+                <Text style={styles.inputLabel}>Enable Monetization</Text>
+                {savingMonetization ? (
+                  <ActivityIndicator size="small" color="#1193d4" />
+                ) : (
+                  <Switch 
+                    value={monetizationEnabled}
+                    onValueChange={saveMonetizationSetting}
+                    trackColor={{ false: '#cbd5e1', true: '#1193d4' }}
+                  />
+                )}
+              </View>
+              <Text style={styles.sectionSubtitle}>
+                When enabled, listing fees will be charged based on the item price according to community tiers.
+              </Text>
+
+              {/* Reported Ads List */}
+              <View style={[styles.divider, { marginVertical: 16 }]} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <Flag size={18} color="#ef4444" strokeWidth={2} />
+                <Text style={styles.cardTitle}>Reported Content</Text>
+              </View>
+
+              {loadingReports ? (
+                <ActivityIndicator color="#1193d4" />
+              ) : reportedAds.length === 0 ? (
+                <Text style={styles.emptyText}>No reports pending review.</Text>
+              ) : (
+                reportedAds.map((report) => (
+                  <View key={report.id} style={styles.qaItem}>
+                    <View style={styles.qaHeader}>
+                      <Text style={styles.qaMember}>Reporter: {report.reporter?.full_name || 'Anonymous'}</Text>
+                      <Text style={styles.qaDate}>{new Date(report.created_at).toLocaleDateString()}</Text>
+                    </View>
+                    <Text style={styles.qaText}>Reason: {report.reason}</Text>
+                    <View style={[styles.actionGroup, { marginTop: 12 }]}>
+                      <TouchableOpacity 
+                        style={styles.approveBtn}
+                        onPress={() => handleDismissReport(report.id)}
+                      >
+                        <Text style={styles.approveText}>Dismiss</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={styles.declineBtn}
+                        onPress={() => handleDeleteReportedAd(report.entity_id, report.id)}
+                      >
+                        <Text style={styles.declineText}>Delete Ad</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+          </View>
+
           {/* Direct Messaging Settings */}
           <View style={styles.card}>
             <View style={styles.cardHeader}>
@@ -1998,25 +2185,13 @@ const styles = StyleSheet.create({
     color: '#1193d4',
   },
   adminSection: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
+    gap: 16,
   },
   adminLabel: {
-    fontFamily: 'Manrope-SemiBold',
+    fontFamily: 'Manrope-Bold',
     fontSize: 14,
-    color: '#475569',
+    color: '#0f172a',
     marginBottom: 8,
-  },
-  inputGroup: {
-    marginBottom: 12,
-  },
-  inputLabel: {
-    fontFamily: 'Manrope-Medium',
-    fontSize: 12,
-    color: '#64748b',
-    marginBottom: 4,
   },
   inputRow: {
     flexDirection: 'row',
@@ -2024,36 +2199,34 @@ const styles = StyleSheet.create({
   },
   adminInput: {
     flex: 1,
+    height: 44,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#e2e8f0',
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontFamily: 'Manrope-Regular',
+    fontFamily: 'Manrope-Medium',
     fontSize: 14,
     color: '#0f172a',
   },
   saveBtn: {
     backgroundColor: '#1193d4',
     paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 8,
-    justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 70,
+    justifyContent: 'center',
   },
   saveBtnText: {
     fontFamily: 'Manrope-Bold',
     fontSize: 14,
     color: '#fff',
   },
-  disabledBtn: {
-    opacity: 0.6,
-  },
   positionItem: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
@@ -2071,21 +2244,20 @@ const styles = StyleSheet.create({
   addPositionForm: {
     marginTop: 16,
     backgroundColor: '#f8fafc',
-    padding: 12,
-    borderRadius: 8,
+    padding: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    borderStyle: 'dashed',
   },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
     backgroundColor: '#1193d4',
-    marginTop: 12,
     paddingVertical: 10,
     borderRadius: 8,
-    gap: 4,
+    marginTop: 12,
   },
   addBtnText: {
     fontFamily: 'Manrope-Bold',
@@ -2093,14 +2265,17 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   qaItem: {
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    backgroundColor: '#f8fafc',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    marginBottom: 12,
   },
   qaHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   qaMember: {
     fontFamily: 'Manrope-Bold',
@@ -2110,68 +2285,66 @@ const styles = StyleSheet.create({
   qaDate: {
     fontFamily: 'Manrope-Regular',
     fontSize: 12,
-    color: '#64748b',
+    color: '#94a3b8',
   },
   qaText: {
-    fontFamily: 'Manrope-Medium',
+    fontFamily: 'Manrope-Regular',
     fontSize: 14,
     color: '#334155',
     lineHeight: 20,
-    marginBottom: 8,
   },
   qaAnswer: {
-    backgroundColor: '#f8fafc',
-    padding: 8,
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#eff6ff',
     borderRadius: 8,
-    marginBottom: 8,
-    borderLeftWidth: 2,
+    borderLeftWidth: 4,
     borderLeftColor: '#1193d4',
   },
   qaAnswerLabel: {
     fontFamily: 'Manrope-Bold',
     fontSize: 12,
     color: '#1193d4',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   qaAnswerText: {
     fontFamily: 'Manrope-Medium',
-    fontSize: 13,
-    color: '#475569',
+    fontSize: 14,
+    color: '#1e40af',
   },
   qaPending: {
+    marginTop: 8,
     fontFamily: 'Manrope-Medium',
     fontSize: 12,
-    color: '#94a3b8',
+    color: '#f59e0b',
     fontStyle: 'italic',
-    marginBottom: 8,
   },
   qaActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 16,
   },
   qaBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   publicBadge: {
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+    backgroundColor: '#f0fdf4',
   },
   privateBadge: {
-    backgroundColor: 'rgba(100, 116, 139, 0.1)',
+    backgroundColor: '#fef2f2',
   },
   qaBadgeText: {
     fontFamily: 'Manrope-Bold',
-    fontSize: 10,
-    color: '#475569',
-    textTransform: 'uppercase',
+    fontSize: 11,
+    color: '#1193d4',
   },
   qaResponseBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   qaResponseText: {
     fontFamily: 'Manrope-Bold',
@@ -2179,45 +2352,42 @@ const styles = StyleSheet.create({
     color: '#1193d4',
   },
   responseForm: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#1193d4',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 12,
+    marginTop: 16,
+    gap: 12,
   },
   responseInput: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    padding: 12,
+    minHeight: 80,
     fontFamily: 'Manrope-Medium',
     fontSize: 14,
     color: '#0f172a',
-    minHeight: 80,
-    textAlignVertical: 'top',
-    marginBottom: 8,
   },
   responseActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 8,
+    gap: 12,
   },
   cancelBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   cancelText: {
     fontFamily: 'Manrope-Bold',
-    fontSize: 13,
+    fontSize: 14,
     color: '#64748b',
   },
   saveResponseBtn: {
     backgroundColor: '#1193d4',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
   uploadContainer: {
     marginTop: 16,
-    marginBottom: 8,
   },
   imagePickerNode: {
     borderWidth: 2,
@@ -2225,17 +2395,18 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#fff',
+    marginTop: 8,
   },
   imagePlaceholder: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 24,
+    paddingVertical: 32,
   },
   imagePickerText: {
     fontFamily: 'Manrope-Medium',
     fontSize: 14,
-    color: '#3b82f6',
+    color: '#1193d4',
     marginTop: 8,
   },
   imagePickerSubtext: {
@@ -2248,10 +2419,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 150,
   },
+  disabledBtn: {
+    opacity: 0.6,
+  },
   duplicateBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fee2e2',
+    backgroundColor: '#fef2f2',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
@@ -2260,6 +2434,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     fontSize: 10,
     color: '#ef4444',
+  },
+  blockedRow: {
+    backgroundColor: '#fef2f2',
+  },
+  blockedText: {
+    color: '#94a3b8',
+    textDecorationLine: 'line-through',
   },
   memberAvatar: {
     width: 36,
@@ -2270,19 +2451,25 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    backgroundColor: '#e2e8f0',
     alignItems: 'center',
     justifyContent: 'center',
   },
   memberAvatarInitial: {
     fontFamily: 'Manrope-Bold',
     fontSize: 14,
-    color: '#1193d4',
+    color: '#64748b',
   },
-  blockedRow: {
-    backgroundColor: '#fff1f2',
+  inputGroup: {
+    gap: 4,
   },
-  blockedText: {
-    color: '#ef4444',
-  }
+  inputLabel: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 14,
+    color: '#475569',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+  },
 });

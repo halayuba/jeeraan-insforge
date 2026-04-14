@@ -11,6 +11,7 @@ import {
   Manrope_700Bold 
 } from '@expo-google-fonts/manrope';
 import { useEffect } from 'react';
+import { StripeProvider } from '@stripe/stripe-react-native';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -35,11 +36,15 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <ToastProvider>
-          <Slot />
-        </ToastProvider>
-      </AuthProvider>
+      <StripeProvider
+        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
+      >
+        <AuthProvider>
+          <ToastProvider>
+            <Slot />
+          </ToastProvider>
+        </AuthProvider>
+      </StripeProvider>
     </SafeAreaProvider>
   );
 }

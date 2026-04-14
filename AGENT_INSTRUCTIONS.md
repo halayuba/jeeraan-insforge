@@ -79,11 +79,12 @@ This section lists the core technologies and all packages currently used in the 
 |---|---|---|
 | `@expo-google-fonts/manrope` | `^0.4.2` | Primary typography |
 | `@expo/vector-icons` | `^15.0.2` | Expo's built-in icon set |
-| `@insforge/sdk` | `^1.1.6` | InsForge Backend SDK |
-| `@react-navigation/bottom-tabs` | `^7.7.3` | Tab-based navigation |
-| `@react-navigation/elements` | `^2.8.1` | Navigation UI elements |
-| `@react-navigation/native` | `^7.1.28` | Core navigation logic |
-| `@tabler/icons-react-native` | `^3.41.1` | Brand and specialized icons |
+| @insforge/sdk | ^1.1.6 | InsForge Backend SDK |
+| @react-navigation/bottom-tabs | ^7.7.3 | Tab-based navigation |
+| @react-navigation/elements | ^2.8.1 | Navigation UI elements |
+| @react-navigation/native | ^7.1.28 | Core navigation logic |
+| @stripe/stripe-react-native | ^0.37.2 | Stripe Payments SDK |
+| @tabler/icons-react-native | ^3.41.1 | Brand and specialized icons |
 | `base64-arraybuffer` | `^1.0.2` | Binary data handling |
 | `expo` | `~55.0.5` | Managed React Native framework |
 | `expo-constants` | `~55.0.7` | System-level constants |
