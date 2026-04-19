@@ -23,3 +23,8 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./archive/gamified_engagement_engine_20260410/](./archive/gamified_engagement_engine_20260410/)*
 - [x] **Track: Neighborhood Access & Resident Onboarding**
   *Link: [./archive/neighborhood_access_20260412/](./archive/neighborhood_access_20260412/)*
+
+---
+
+- [ ] **Track: Waitlist Feature for non-residents and Admin Waitlist Management**
+*Link: [./tracks/waitlist_feature_20260419/](./tracks/waitlist_feature_20260419/)*
