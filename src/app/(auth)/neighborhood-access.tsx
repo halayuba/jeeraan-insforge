@@ -1,4 +1,5 @@
 import { ArrowLeft, Check, ChevronDown, ChevronUp, Key, UserPlus } from 'lucide-react-native';
+import { IconCalendarUser } from '@tabler/icons-react-native';
 
 import { Link, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
@@ -16,13 +17,14 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { insforge } from '../../lib/insforge'
+import { FLOORPLAN_OPTIONS, submitWaitlistRequest } from '../../lib/waitlist'
 
 export default function NeighborhoodAccess() {
   const router = useRouter()
 
   // Accordion State
   const [expandedSection, setExpandedSection] = useState<
-    'invite' | 'request' | null
+    'invite' | 'request' | 'waitlist' | null
   >(null)
 
   // Section 1 State
@@ -36,6 +38,14 @@ export default function NeighborhoodAccess() {
   const [address, setAddress] = useState('')
   const [confirmResidency, setConfirmResidency] = useState(false)
   const [submittingRequest, setSubmittingRequest] = useState(false)
+
+  // Waitlist State
+  const [waitlistName, setWaitlistName] = useState('')
+  const [waitlistPhone, setWaitlistPhone] = useState('')
+  const [waitlistEmail, setWaitlistEmail] = useState('')
+  const [waitlistFloorplan, setWaitlistFloorplan] = useState(FLOORPLAN_OPTIONS[4]) // Default to "Any of the above"
+  const [submittingWaitlist, setSubmittingWaitlist] = useState(false)
+
   const [neighborhood, setNeighborhood] = useState<any>(null) // MVP: Single active neighborhood
   const [loadingNeighborhood, setLoadingNeighborhood] = useState(true)
 
@@ -121,22 +131,42 @@ export default function NeighborhoodAccess() {
 
     setSubmittingRequest(true)
     try {
-      // Check if already a member before allowing request submission
+      // 1. Check for existing pending join request
+      const { data: existingRequest } = await insforge.database
+        .from('join_requests')
+        .select('id')
+        .eq('phone', phone)
+        .eq('status', 'pending')
+        .maybeSingle();
+
+      if (existingRequest) {
+        Alert.alert(
+          'Request Already Submitted',
+          'A join request with this phone number is already pending. Please wait for an admin to review it.',
+        );
+        setSubmittingRequest(false);
+        return;
+      }
+
+      // 2. Check if already a member before allowing request submission
       const { data: profile } = await insforge.database
         .from('user_profiles')
         .select('user_id')
         .eq('phone', phone)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         const { data: membership } = await insforge.database
           .from('user_neighborhoods')
           .select('id')
           .eq('user_id', profile.user_id)
-          .single();
+          .maybeSingle();
         
         if (membership) {
-          Alert.alert('Already a Member', 'A user with this phone number already belongs to a neighborhood. Please sign in instead.');
+          Alert.alert(
+            'Already a Member',
+            'A user with this phone number already belongs to a neighborhood. Please sign in instead.',
+          );
           setSubmittingRequest(false);
           return;
         }
@@ -158,18 +188,52 @@ export default function NeighborhoodAccess() {
       } else {
         Alert.alert(
           'Request Submitted',
-          'Thank you! Your request to join ' + neighborhood.name + ' has been submitted for admin review. You will receive an SMS with an invite code once approved.',
+          'Thank you! Your request has been submitted successfully. Your request will need to be validated by one of the Neighborhood admins and a decision will be made within the next 24 hours.',
+          [{ text: 'OK', onPress: () => router.replace('/') }]
         )
-        setFullName('')
-        setPhone('')
-        setAddress('')
-        setConfirmResidency(false)
-        setExpandedSection(null) // Close accordion on success
       }
     } catch (err) {
       Alert.alert('Error', 'An unexpected error occurred.')
     } finally {
       setSubmittingRequest(false)
+    }
+  }
+
+  const handleWaitlistSubmit = async () => {
+    if (!waitlistName || !waitlistPhone || !waitlistEmail || !waitlistFloorplan) {
+      Alert.alert('Error', 'Please fill out all fields.')
+      return
+    }
+
+    if (!neighborhood) {
+      Alert.alert('Error', 'No neighborhood available.')
+      return
+    }
+
+    setSubmittingWaitlist(true)
+    try {
+      const { error } = await submitWaitlistRequest({
+        neighborhood_id: neighborhood.id,
+        full_name: waitlistName,
+        phone_number: waitlistPhone,
+        email_address: waitlistEmail,
+        floorplan_interest: waitlistFloorplan,
+      })
+
+      if (error) {
+        Alert.alert('Error', 'Failed to submit waitlist request. Please try again.')
+        console.error(error)
+      } else {
+        Alert.alert(
+          'Request Submitted',
+          'Thank you! You have been added to the waitlist for Loma Vista West. We will contact you if a suitable unit becomes available.',
+          [{ text: 'OK', onPress: () => router.replace('/') }]
+        )
+      }
+    } catch (err) {
+      Alert.alert('Error', 'An unexpected error occurred.')
+    } finally {
+      setSubmittingWaitlist(false)
     }
   }
 
@@ -432,6 +496,147 @@ export default function NeighborhoodAccess() {
                 </View>
               </View>
             )}
+
+            {/* Horizontal Divider */}
+            <View style={styles.divider} />
+
+            {/* Section 3: Add me to the waitlist */}
+            <TouchableOpacity
+              style={[
+                styles.accordionHeader,
+                expandedSection === 'waitlist' && styles.accordionHeaderActive,
+                { marginTop: 12 },
+              ]}
+              onPress={() => setExpandedSection(expandedSection === 'waitlist' ? null : 'waitlist')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.accordionTitleContainer}>
+                <IconCalendarUser 
+                  size={24} 
+                  color={expandedSection === 'waitlist' ? '#1193d4' : '#64748b'} 
+                  strokeWidth={2} 
+                />
+                <Text
+                  style={[
+                    styles.accordionTitle,
+                    expandedSection === 'waitlist' &&
+                      styles.accordionTitleActive,
+                  ]}
+                >
+                  Add me to the waitlist
+                </Text>
+              </View>
+              {expandedSection === 'waitlist' ? (
+                <ChevronUp size={28} color="#64748b" strokeWidth={2} />
+              ) : (
+                <ChevronDown size={28} color="#64748b" strokeWidth={2} />
+              )}
+            </TouchableOpacity>
+
+            {expandedSection === 'waitlist' && (
+              <View style={styles.accordionContent}>
+                <Text style={styles.sectionSubtitle}>
+                  If you are not a resident of Loma Vista West but would like to
+                  be added to the waitlist, please fill out the form below.
+                </Text>
+
+                <View style={styles.formGroup}>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Full Name</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Your Name"
+                      placeholderTextColor="#94a3b8"
+                      value={waitlistName}
+                      onChangeText={setWaitlistName}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Phone Number</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="+1 (555) 000-0000"
+                      placeholderTextColor="#94a3b8"
+                      keyboardType="phone-pad"
+                      value={waitlistPhone}
+                      onChangeText={setWaitlistPhone}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Email Address</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="you@example.com"
+                      placeholderTextColor="#94a3b8"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      value={waitlistEmail}
+                      onChangeText={setWaitlistEmail}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Interested in - Floorplans</Text>
+                    <View style={styles.floorplanContainer}>
+                      {FLOORPLAN_OPTIONS.map((option) => (
+                        <TouchableOpacity
+                          key={option}
+                          style={[
+                            styles.floorplanOption,
+                            waitlistFloorplan === option && styles.floorplanOptionSelected,
+                          ]}
+                          onPress={() => setWaitlistFloorplan(option)}
+                        >
+                          <View style={[
+                            styles.radio,
+                            waitlistFloorplan === option && styles.radioSelected,
+                          ]}>
+                            {waitlistFloorplan === option && <View style={styles.radioInner} />}
+                          </View>
+                          <Text style={[
+                            styles.floorplanOptionText,
+                            waitlistFloorplan === option && styles.floorplanOptionTextSelected,
+                          ]}>
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.primaryButton,
+                      styles.submitButton,
+                      (!waitlistName ||
+                        !waitlistPhone ||
+                        !waitlistEmail ||
+                        !waitlistFloorplan ||
+                        submittingWaitlist) &&
+                        styles.disabledButton,
+                    ]}
+                    onPress={handleWaitlistSubmit}
+                    disabled={
+                      !waitlistName ||
+                      !waitlistPhone ||
+                      !waitlistEmail ||
+                      !waitlistFloorplan ||
+                      submittingWaitlist
+                    }
+                  >
+                    {submittingWaitlist ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.primaryButtonText}>
+                        Submit Request
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -637,5 +842,57 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Medium',
     color: '#334155',
     lineHeight: 20,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginVertical: 24,
+    marginHorizontal: 4,
+  },
+  floorplanContainer: {
+    marginTop: 8,
+    gap: 12,
+  },
+  floorplanOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    gap: 12,
+  },
+  floorplanOptionSelected: {
+    backgroundColor: 'rgba(17, 147, 212, 0.05)',
+    borderColor: '#1193d4',
+  },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#cbd5e1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioSelected: {
+    borderColor: '#1193d4',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#1193d4',
+  },
+  floorplanOptionText: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 14,
+    color: '#475569',
+    flex: 1,
+  },
+  floorplanOptionTextSelected: {
+    color: '#0f172a',
+    fontFamily: 'Manrope-SemiBold',
   },
 })
