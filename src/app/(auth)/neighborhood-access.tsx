@@ -40,6 +40,7 @@ export default function NeighborhoodAccess() {
   const [email, setEmail] = useState('')
   const [address, setAddress] = useState('')
   const [confirmResidency, setConfirmResidency] = useState(false)
+  const [isPublic, setIsPublic] = useState(true)
   const [submittingRequest, setSubmittingRequest] = useState(false)
 
   // Waitlist State
@@ -200,6 +201,7 @@ export default function NeighborhoodAccess() {
           address: address,
           neighborhood_id: neighborhood.id,
           status: 'pending',
+          is_public: isPublic,
         },
       ])
 
@@ -530,6 +532,26 @@ export default function NeighborhoodAccess() {
                     <Text style={styles.checkboxLabel}>
                       I confirm that I am a resident of the selected
                       neighborhood above
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.checkboxContainer, { marginTop: 12 }]}
+                    onPress={() => setIsPublic(!isPublic)}
+                    activeOpacity={0.7}
+                  >
+                    <View
+                      style={[
+                        styles.checkbox,
+                        !isPublic && styles.checkboxChecked,
+                      ]}
+                    >
+                      {!isPublic && (
+                        <Check size={16} color="#fff" strokeWidth={2} />
+                      )}
+                    </View>
+                    <Text style={styles.checkboxLabel}>
+                      Do not make my profile public
                     </Text>
                   </TouchableOpacity>
 

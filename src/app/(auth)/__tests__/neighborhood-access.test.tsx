@@ -105,6 +105,9 @@ describe('NeighborhoodAccess - Waitlist Form', () => {
     
     // Check residency
     fireEvent.press(getByText(/I confirm that I am a resident/));
+
+    // Toggle public profile (default is public, so first press makes it non-public)
+    fireEvent.press(getByText('Do not make my profile public'));
     
     const submitBtn = getByText('Submit Request');
     fireEvent.press(submitBtn);
