@@ -223,7 +223,7 @@ export default function NeighborhoodAccess() {
         Alert.alert('Error', 'Failed to submit waitlist request. Please try again.')
         console.error(error)
       } else {
-        showToast('Thank you! You have been added to the waitlist for Loma Vista West.', 'success')
+        showToast('Your request to be added to the waitlist will be reviewed by the Neighborhood admin then will be forwarded to one of the office staff members and someone will get in touch with you soon to explain the procedure for accepting new applicants.', 'success')
         router.replace('/')
       }
     } catch (err) {

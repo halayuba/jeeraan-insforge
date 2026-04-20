@@ -5,10 +5,12 @@ import { insforge } from '../../../lib/insforge';
 import { useRouter } from 'expo-router';
 import { Alert } from 'react-native';
 
+const mockShowToast = jest.fn();
+
 // Mock useToast
 jest.mock('../../../contexts/ToastContext', () => ({
   useToast: jest.fn(() => ({
-    showToast: jest.fn(),
+    showToast: mockShowToast,
     hideToast: jest.fn(),
   })),
 }));
@@ -106,6 +108,10 @@ describe('NeighborhoodAccess - Waitlist Form', () => {
     fireEvent.press(submitBtn);
 
     await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith(
+        'Your request to be added to the waitlist will be reviewed by the Neighborhood admin then will be forwarded to one of the office staff members and someone will get in touch with you soon to explain the procedure for accepting new applicants.',
+        'success'
+      );
       expect(mockReplace).toHaveBeenCalledWith('/');
     });
   });
