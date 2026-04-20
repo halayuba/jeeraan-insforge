@@ -1,4 +1,5 @@
 import { AlertCircle, Bell, CircleCheckBig, Info } from 'lucide-react-native';
+import { IconBan } from '@tabler/icons-react-native';
 import React, { useEffect } from 'react';
 import {
   Animated,
@@ -94,7 +95,7 @@ export const Toast: React.FC<ToastProps> = ({
       case 'info':
         return Info;
       case 'warning':
-        return Bell;
+        return IconBan;
       default:
         return Bell;
     }
