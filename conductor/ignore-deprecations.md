@@ -1,0 +1,2 @@
+# Ignore Deprecations
+The user has decided to ignore the `shadow*` and `pointerEvents` deprecation warnings from React Native Web for now, as they do not affect current functionality. No further action is required.
