@@ -26,5 +26,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Waitlist Feature for non-residents and Admin Waitlist Management**
+- [x] **Track: Waitlist Feature for non-residents and Admin Waitlist Management**
 *Link: [./tracks/waitlist_feature_20260419/](./tracks/waitlist_feature_20260419/)*
