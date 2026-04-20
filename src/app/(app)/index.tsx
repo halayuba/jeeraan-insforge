@@ -1,37 +1,37 @@
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { 
-  Megaphone, 
-  Users, 
-  UserPlus, 
-  HelpCircle, 
-  Calendar, 
-  Vote, 
-  Wrench, 
-  MessageSquare, 
-  Tag, 
-  Layout, 
-  AlertCircle,
-  MessageSquareText,
-  Trophy,
-  Mail
-} from 'lucide-react-native';
+  IconSpeakerphone,
+  IconUsersGroup,
+  IconUsersPlus,
+  IconHelp,
+  IconCalendarEvent,
+  IconUserCheck,
+  IconTool,
+  IconMessages,
+  IconTag,
+  IconAd2,
+  IconUserQuestion,
+  IconClipboardSearch,
+  IconTrophy,
+  IconMessageUser
+} from '@tabler/icons-react-native';
 
 const GRID_ITEMS = [
-  { id: 'announcements', title: 'Announcements', icon: Megaphone },
-  { id: 'messages', title: 'Direct Messages', icon: Mail },
-  { id: 'members', title: 'Members', icon: Users },
-  { id: 'invites', title: 'Invites', icon: UserPlus },
-  { id: 'faq', title: 'FAQ', icon: HelpCircle },
-  { id: 'events', title: 'Events', icon: Calendar },
-  { id: 'voting', title: 'Voting', icon: Vote },
-  { id: 'service-orders', title: 'Service Orders', icon: Wrench },
-  { id: 'forum', title: 'Forum', icon: MessageSquare },
-  { id: 'classifieds', title: 'Classified Ads', icon: Tag },
-  { id: 'advertisements', title: 'Advertisements', icon: Layout },
-  { id: 'grievances', title: 'Grievances', icon: AlertCircle },
-  { id: 'q-and-a', title: 'Q & A', icon: MessageSquareText },
-  { id: 'leaderboard', title: 'Leaderboard', icon: Trophy },
+  { id: 'announcements', title: 'Announcements', icon: IconSpeakerphone },
+  { id: 'messages', title: 'Direct Messages', icon: IconMessageUser },
+  { id: 'members', title: 'Members', icon: IconUsersGroup },
+  { id: 'invites', title: 'Invites', icon: IconUsersPlus },
+  { id: 'faq', title: 'FAQ', icon: IconHelp },
+  { id: 'events', title: 'Events', icon: IconCalendarEvent },
+  { id: 'voting', title: 'Voting', icon: IconUserCheck },
+  { id: 'service-orders', title: 'Service Orders', icon: IconTool },
+  { id: 'forum', title: 'Forum', icon: IconMessages },
+  { id: 'classifieds', title: 'Classified Ads', icon: IconTag },
+  { id: 'advertisements', title: 'Advertisements', icon: IconAd2 },
+  { id: 'grievances', title: 'Grievances', icon: IconUserQuestion },
+  { id: 'q-and-a', title: 'Q & A', icon: IconClipboardSearch },
+  { id: 'leaderboard', title: 'Leaderboard', icon: IconTrophy },
 ];
 
 export default function HomeIndex() {

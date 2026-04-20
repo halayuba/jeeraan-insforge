@@ -11,7 +11,7 @@ import {
   Manrope_700Bold 
 } from '@expo-google-fonts/manrope';
 import { useEffect } from 'react';
-import { StripeProvider } from '@stripe/stripe-react-native';
+import { StripeProvider } from '../lib/stripe';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();

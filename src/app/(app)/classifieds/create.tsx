@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
-import { useStripe } from '@stripe/stripe-react-native';
+import { useStripe } from '../../../lib/stripe';
 
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
