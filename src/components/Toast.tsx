@@ -1,6 +1,4 @@
 import { AlertCircle, Bell, CircleCheckBig, Info } from 'lucide-react-native';
-
-
 import React, { useEffect } from 'react';
 import {
   Animated,
@@ -13,7 +11,7 @@ import {
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export type ToastType = 'success' | 'error' | 'info';
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface ToastProps {
   message: string;
@@ -80,6 +78,8 @@ export const Toast: React.FC<ToastProps> = ({
         return '#ef4444'; // red-500
       case 'info':
         return '#3b82f6'; // blue-500
+      case 'warning':
+        return '#f59e0b'; // amber-500
       default:
         return '#1f2937'; // gray-800
     }
@@ -93,6 +93,8 @@ export const Toast: React.FC<ToastProps> = ({
         return AlertCircle;
       case 'info':
         return Info;
+      case 'warning':
+        return Bell;
       default:
         return Bell;
     }

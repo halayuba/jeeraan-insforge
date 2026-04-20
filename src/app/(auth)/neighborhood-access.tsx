@@ -204,14 +204,18 @@ export default function NeighborhoodAccess() {
       ])
 
       if (error) {
-        Alert.alert('Error', 'Failed to submit request. Please try again.')
-        console.error(error)
+        if (error.code === '23505') {
+          showToast('Your request has already been submitted with this phone number or email address.', 'warning')
+        } else {
+          showToast('Failed to submit request. Please try again.', 'error')
+          console.error(error)
+        }
       } else {
         showToast('Thank you! Your request has been submitted successfully. It will be reviewed by an admin within 24 hours.', 'success')
         router.replace('/')
       }
     } catch (err) {
-      Alert.alert('Error', 'An unexpected error occurred.')
+      showToast('An unexpected error occurred.', 'error')
     } finally {
       setSubmittingRequest(false)
     }
@@ -271,14 +275,18 @@ export default function NeighborhoodAccess() {
       })
 
       if (error) {
-        Alert.alert('Error', 'Failed to submit waitlist request. Please try again.')
-        console.error(error)
+        if (error.code === '23505') {
+          showToast('A waitlist request with this phone number or email address already exists.', 'warning')
+        } else {
+          showToast('Failed to submit waitlist request. Please try again.', 'error')
+          console.error(error)
+        }
       } else {
         showToast('Your request to be added to the waitlist will be reviewed by the Neighborhood admin then will be forwarded to one of the office staff members and someone will get in touch with you soon to explain the procedure for accepting new applicants.', 'success')
         router.replace('/')
       }
     } catch (err) {
-      Alert.alert('Error', 'An unexpected error occurred.')
+      showToast('An unexpected error occurred.', 'error')
     } finally {
       setSubmittingWaitlist(false)
     }
