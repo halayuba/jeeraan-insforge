@@ -1,4 +1,5 @@
 import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, HelpCircle, Layout, MessageCircle, Plus, Shield, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle, DollarSign, Flag } from 'lucide-react-native';
+import { IconCalendarUser, IconArrowsSort, IconFilter } from '@tabler/icons-react-native';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image, Switch } from 'react-native';
@@ -7,6 +8,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { insforge } from '../../../lib/insforge';
 import { useAuth } from '../../../contexts/AuthContext';
+import { FLOORPLAN_OPTIONS } from '../../../lib/waitlist';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -85,6 +87,37 @@ export default function AdminDashboard() {
   // Announcement Management State
   const [pendingAnnouncements, setPendingAnnouncements] = useState<any[]>([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(false);
+
+  // Waitlist Management State
+  const [waitlistRequests, setWaitlistRequests] = useState<any[]>([]);
+  const [loadingWaitlist, setLoadingWaitlist] = useState(false);
+  const [waitlistSort, setWaitlistSort] = useState<{ field: 'full_name' | 'created_at', direction: 'asc' | 'desc' }>({ field: 'created_at', direction: 'desc' });
+  const [waitlistFilter, setWaitlistFilter] = useState<string>('All');
+
+  const fetchWaitlistRequests = async () => {
+    if (!neighborhoodId) return;
+    setLoadingWaitlist(true);
+    try {
+      let query = insforge.database
+        .from('waitlist_requests')
+        .select('*')
+        .eq('neighborhood_id', neighborhoodId);
+      
+      if (waitlistFilter !== 'All') {
+        query = query.eq('floorplan_interest', waitlistFilter);
+      }
+
+      query = query.order(waitlistSort.field, { ascending: waitlistSort.direction === 'asc' });
+
+      const { data, error } = await query;
+      if (error) throw error;
+      setWaitlistRequests(data || []);
+    } catch (err) {
+      console.error('Failed to fetch waitlist:', err);
+    } finally {
+      setLoadingWaitlist(false);
+    }
+  };
 
   const fetchClassifiedSettings = async () => {
     if (!neighborhoodId) return;
@@ -329,15 +362,109 @@ export default function AdminDashboard() {
         fetchPendingAnnouncements();
         fetchClassifiedSettings();
         fetchReportedAds();
-      }
-      if (globalRole === 'super_admin' && neighborhoodId) {
-        fetchElectionInfo();
-        fetchBoardPositions();
-        fetchPolls();
-        fetchAdminAds();
-      }
-    }, [globalRole, neighborhoodId])
-  );
+        fetchWaitlistRequests();
+        }
+        if (globalRole === 'super_admin' && neighborhoodId) {
+          fetchElectionInfo();
+          fetchBoardPositions();
+          fetchPolls();
+          fetchAdminAds();
+        }
+        }, [globalRole, neighborhoodId])
+        );
+
+        const renderWaitlistSection = () => {
+        return (
+        <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <IconCalendarUser size={20} color="#1193d4" strokeWidth={2} />
+            <Text style={styles.cardTitle}>Waitlist Management</Text>
+          </View>
+          <Text style={styles.badgeCount}>{waitlistRequests.length}</Text>
+        </View>
+
+        <Text style={styles.sectionSubtitle}>
+          View and manage potential residents who have requested to join the waitlist.
+        </Text>
+
+        {/* Sort & Filter Controls */}
+        <View style={styles.controlsRow}>
+          <View style={styles.controlGroup}>
+            <IconFilter size={16} color="#64748b" />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+              {['All', ...FLOORPLAN_OPTIONS].map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[styles.filterChip, waitlistFilter === option && styles.activeFilterChip]}
+                  onPress={() => setWaitlistFilter(option)}
+                >
+                  <Text style={[styles.filterChipText, waitlistFilter === option && styles.activeFilterChipText]}>
+                    {option.split(':')[0]}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+
+        <View style={[styles.controlsRow, { marginTop: 8 }]}>
+          <TouchableOpacity 
+            style={styles.sortButton}
+            onPress={() => setWaitlistSort({ 
+              field: 'full_name', 
+              direction: waitlistSort.field === 'full_name' && waitlistSort.direction === 'asc' ? 'desc' : 'asc' 
+            })}
+          >
+            <Text style={[styles.sortButtonText, waitlistSort.field === 'full_name' && styles.activeSortText]}>Name</Text>
+            {waitlistSort.field === 'full_name' && (
+              <IconArrowsSort size={14} color="#1193d4" style={{ transform: [{ rotate: waitlistSort.direction === 'asc' ? '0deg' : '180deg' }] }} />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.sortButton}
+            onPress={() => setWaitlistSort({ 
+              field: 'created_at', 
+              direction: waitlistSort.field === 'created_at' && waitlistSort.direction === 'asc' ? 'desc' : 'asc' 
+            })}
+          >
+            <Text style={[styles.sortButtonText, waitlistSort.field === 'created_at' && styles.activeSortText]}>Date</Text>
+            {waitlistSort.field === 'created_at' && (
+              <IconArrowsSort size={14} color="#1193d4" style={{ transform: [{ rotate: waitlistSort.direction === 'asc' ? '0deg' : '180deg' }] }} />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {loadingWaitlist ? (
+          <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />
+        ) : waitlistRequests.length === 0 ? (
+          <Text style={styles.emptyText}>No waitlist requests found.</Text>
+        ) : (
+          <View style={styles.waitlistContainer}>
+            {waitlistRequests.map((req) => (
+              <View key={req.id} style={styles.waitlistRow}>
+                <View style={styles.waitlistInfo}>
+                  <Text style={styles.requestName}>{req.full_name}</Text>
+                  <Text style={styles.requestDetail}>Phone: {req.phone_number}</Text>
+                  <Text style={styles.requestDetail}>Email: {req.email_address}</Text>
+                  <View style={styles.floorplanBadge}>
+                    <Text style={styles.floorplanBadgeText}>{req.floorplan_interest}</Text>
+                  </View>
+                </View>
+                <Text style={styles.waitlistDate}>{new Date(req.created_at).toLocaleDateString()}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+        </View>
+        );
+        };
+
+
+  useEffect(() => {
+    fetchWaitlistRequests();
+  }, [waitlistSort, waitlistFilter]);
 
   const fetchMembers = async () => {
     if (!neighborhoodId) return;
@@ -1538,6 +1665,7 @@ export default function AdminDashboard() {
           {activeTab === 'members' && renderMembersTab()}
           {activeTab === 'rejected' && renderRejectedTab()}
           
+          {renderWaitlistSection()}
 
           {/* Engagement & Gamification Settings */}
           <View style={styles.card}>
@@ -2471,5 +2599,108 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: '#f1f5f9',
+  },
+  controlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 16,
+    flexWrap: 'wrap',
+  },
+  controlGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  filterScroll: {
+    gap: 8,
+    paddingRight: 16,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  activeFilterChip: {
+    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    borderColor: '#1193d4',
+  },
+  filterChipText: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#64748b',
+  },
+  activeFilterChipText: {
+    color: '#1193d4',
+    fontFamily: 'Manrope-Bold',
+  },
+  sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  sortButtonText: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#64748b',
+  },
+  activeSortText: {
+    color: '#1193d4',
+    fontFamily: 'Manrope-Bold',
+  },
+  waitlistContainer: {
+    marginTop: 16,
+    gap: 12,
+  },
+  waitlistRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 12,
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  waitlistInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  floorplanBadge: {
+    marginTop: 4,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(17, 147, 212, 0.05)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  floorplanBadgeText: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+    color: '#1193d4',
+  },
+  waitlistDate: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#94a3b8',
+  },
+  badgeCount: {
+    backgroundColor: '#f1f5f9',
+    color: '#64748b',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    fontSize: 12,
+    fontFamily: 'Manrope-Bold',
+    overflow: 'hidden',
   },
 });
