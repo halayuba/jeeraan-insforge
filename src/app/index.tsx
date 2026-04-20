@@ -155,18 +155,6 @@ export default function SplashScreen() {
               <Text style={styles.primaryButtonText}>Access Jeeraan</Text>
             </TouchableOpacity>
           </View>
-
-          <View style={{ marginTop: 24, alignItems: 'center' }}>
-            <Text
-              style={{
-                fontFamily: 'Manrope-SemiBold',
-                fontSize: 15,
-                color: '#64748b',
-              }}
-            >
-              Create a new Neighborhood (Admin) - Coming soon
-            </Text>
-          </View>
         </View>
 
         {/* Footer Visual */}
