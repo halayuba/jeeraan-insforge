@@ -75,7 +75,10 @@ export default function SplashScreen() {
             </View>
             <Text style={styles.logoText}>Jeeraan</Text>
           </View>
-          <TouchableOpacity style={styles.helpButton}>
+          <TouchableOpacity 
+            style={styles.helpButton}
+            onPress={() => setModalVisible(true)}
+          >
             <HelpCircle size={24} color="#64748b" strokeWidth={2} />
           </TouchableOpacity>
         </View>
@@ -154,19 +157,15 @@ export default function SplashScreen() {
           </View>
 
           <View style={{ marginTop: 24, alignItems: 'center' }}>
-            <TouchableOpacity
-              onPress={() => router.push('/(auth)/create-neighborhood')}
+            <Text
+              style={{
+                fontFamily: 'Manrope-SemiBold',
+                fontSize: 15,
+                color: '#64748b',
+              }}
             >
-              <Text
-                style={{
-                  fontFamily: 'Manrope-SemiBold',
-                  fontSize: 15,
-                  color: '#1193d4',
-                }}
-              >
-                Create a new Neighborhood (Admin)
-              </Text>
-            </TouchableOpacity>
+              Create a new Neighborhood (Admin) - Coming soon
+            </Text>
           </View>
         </View>
 
