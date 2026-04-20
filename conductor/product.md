@@ -17,6 +17,7 @@ Jeeraan is a SaaS web and mobile application designed to empower communities by 
 - **Neighborhood Admin Onboarding:** Dedicated wizard for creating a new neighborhood account and community profile.
 - Secure neighborhood creation and address verification.
 - **Private & Verified Access:** Invitation-only access system using 6-digit codes sent via SMS. Residents must be explicitly approved or proactively invited by an admin.
+- **Waitlist Management:** Allow potential residents to request joining a waitlist for specific neighborhoods with floorplan interests.
 - **Restricted Onboarding:** Multi-neighborhood restriction (one neighborhood per user) and phone-based identity verification.
 - Role-based access control (Global: Super Admin; Local: Admin, Moderator, Member).
 
