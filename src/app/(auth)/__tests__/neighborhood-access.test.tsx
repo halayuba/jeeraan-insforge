@@ -37,11 +37,7 @@ jest.mock('../../../lib/insforge', () => {
       database: {
         from: jest.fn(() => ({
           select: jest.fn(() => mockSelect),
-          insert: jest.fn(() => ({
-            select: jest.fn(() => ({
-              single: jest.fn(() => Promise.resolve({ data: { id: 'req-123' }, error: null })),
-            })),
-          })),
+          insert: jest.fn(() => Promise.resolve({ data: null, error: null })),
         })),
       },
     },

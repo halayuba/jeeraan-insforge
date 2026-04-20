@@ -6,11 +6,7 @@ jest.mock('../insforge', () => ({
   insforge: {
     database: {
       from: jest.fn(() => ({
-        insert: jest.fn(() => ({
-          select: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({ data: { id: 'test-uuid' }, error: null })),
-          })),
-        })),
+        insert: jest.fn(() => Promise.resolve({ data: null, error: null })),
       })),
     },
   },
@@ -34,18 +30,13 @@ describe('Waitlist Logic', () => {
       const result = await submitWaitlistRequest(mockRequest);
 
       expect(insforge.database.from).toHaveBeenCalledWith('waitlist_requests');
-      expect(result.data).toEqual({ id: 'test-uuid' });
       expect(result.error).toBeNull();
     });
 
     test('should return error if insertion fails', async () => {
       const mockError = { message: 'Insert failed' };
       (insforge.database.from as jest.Mock).mockReturnValue({
-        insert: jest.fn(() => ({
-          select: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({ data: null, error: mockError })),
-          })),
-        })),
+        insert: jest.fn(() => Promise.resolve({ data: null, error: mockError })),
       });
 
       const mockRequest: WaitlistRequest = {
@@ -58,7 +49,6 @@ describe('Waitlist Logic', () => {
 
       const result = await submitWaitlistRequest(mockRequest);
 
-      expect(result.data).toBeNull();
       expect(result.error).toEqual(mockError);
     });
   });

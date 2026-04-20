@@ -24,9 +24,7 @@ export interface WaitlistRequest {
 export async function submitWaitlistRequest(request: WaitlistRequest) {
   const { data, error } = await insforge.database
     .from('waitlist_requests')
-    .insert([request])
-    .select()
-    .single();
+    .insert([request]);
 
   return { data, error };
 }
