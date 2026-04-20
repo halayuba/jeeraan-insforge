@@ -5,6 +5,14 @@ import { insforge } from '../../../lib/insforge';
 import { useRouter } from 'expo-router';
 import { Alert } from 'react-native';
 
+// Mock useToast
+jest.mock('../../../contexts/ToastContext', () => ({
+  useToast: jest.fn(() => ({
+    showToast: jest.fn(),
+    hideToast: jest.fn(),
+  })),
+}));
+
 // Mock Alert.alert to immediately call the button action
 jest.spyOn(Alert, 'alert').mockImplementation((title, message, buttons) => {
   if (buttons && buttons[0] && buttons[0].onPress) {

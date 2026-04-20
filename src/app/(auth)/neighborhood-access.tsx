@@ -18,9 +18,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { insforge } from '../../lib/insforge'
 import { FLOORPLAN_OPTIONS, submitWaitlistRequest } from '../../lib/waitlist'
+import { useToast } from '../../contexts/ToastContext'
 
 export default function NeighborhoodAccess() {
   const router = useRouter()
+  const { showToast } = useToast()
 
   // Accordion State
   const [expandedSection, setExpandedSection] = useState<
@@ -186,11 +188,8 @@ export default function NeighborhoodAccess() {
         Alert.alert('Error', 'Failed to submit request. Please try again.')
         console.error(error)
       } else {
-        Alert.alert(
-          'Request Submitted',
-          'Thank you! Your request has been submitted successfully. Your request will need to be validated by one of the Neighborhood admins and a decision will be made within the next 24 hours.',
-          [{ text: 'OK', onPress: () => router.replace('/') }]
-        )
+        showToast('Thank you! Your request has been submitted successfully. It will be reviewed by an admin within 24 hours.', 'success')
+        router.replace('/')
       }
     } catch (err) {
       Alert.alert('Error', 'An unexpected error occurred.')
@@ -224,11 +223,8 @@ export default function NeighborhoodAccess() {
         Alert.alert('Error', 'Failed to submit waitlist request. Please try again.')
         console.error(error)
       } else {
-        Alert.alert(
-          'Request Submitted',
-          'Thank you! You have been added to the waitlist for Loma Vista West. We will contact you if a suitable unit becomes available.',
-          [{ text: 'OK', onPress: () => router.replace('/') }]
-        )
+        showToast('Thank you! You have been added to the waitlist for Loma Vista West.', 'success')
+        router.replace('/')
       }
     } catch (err) {
       Alert.alert('Error', 'An unexpected error occurred.')

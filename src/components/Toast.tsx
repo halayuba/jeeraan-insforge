@@ -28,7 +28,7 @@ export const Toast: React.FC<ToastProps> = ({
   message,
   type = 'success',
   onHide,
-  duration = 3000,
+  duration = 5000,
 }) => {
   const insets = useSafeAreaInsets();
   const opacity = React.useRef(new Animated.Value(0)).current;
