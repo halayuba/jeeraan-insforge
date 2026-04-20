@@ -71,6 +71,53 @@ describe('NeighborhoodAccess - Waitlist Form', () => {
     jest.clearAllMocks();
   });
 
+  test('should render "Request to Join" accordion', () => {
+    const { getByText } = render(<NeighborhoodAccess />);
+    expect(getByText('Request to Join')).toBeTruthy();
+  });
+
+  test('should show Request to Join form when accordion is clicked', () => {
+    const { getByText, getByPlaceholderText } = render(<NeighborhoodAccess />);
+    
+    fireEvent.press(getByText('Request to Join'));
+    
+    expect(getByText(/Would you like to join your neighborhood but don't have a code yet/)).toBeTruthy();
+    expect(getByPlaceholderText('John Doe')).toBeTruthy();
+    expect(getByPlaceholderText('john@example.com')).toBeTruthy();
+  });
+
+  test('should submit join request successfully', async () => {
+    const { getByText, getByPlaceholderText } = render(<NeighborhoodAccess />);
+    const mockReplace = jest.fn();
+    (useRouter as jest.Mock).mockReturnValue({ replace: mockReplace });
+
+    fireEvent.press(getByText('Request to Join'));
+
+    // Ensure form is visible
+    await waitFor(() => {
+      expect(getByPlaceholderText('John Doe')).toBeTruthy();
+    });
+
+    fireEvent.changeText(getByPlaceholderText('John Doe'), 'John Smith');
+    fireEvent.changeText(getByPlaceholderText('(555) 000-0000'), '8160001111');
+    fireEvent.changeText(getByPlaceholderText('john@example.com'), 'john@test.com');
+    fireEvent.changeText(getByPlaceholderText('123 Neighborhood St'), '456 West St');
+    
+    // Check residency
+    fireEvent.press(getByText(/I confirm that I am a resident/));
+    
+    const submitBtn = getByText('Submit Request');
+    fireEvent.press(submitBtn);
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith(
+        'Thank you! Your request has been submitted successfully. It will be reviewed by an admin within 24 hours.',
+        'success'
+      );
+      expect(mockReplace).toHaveBeenCalledWith('/');
+    });
+  });
+
   test('should render "Add me to the waitlist" accordion', () => {
     const { getByText } = render(<NeighborhoodAccess />);
     expect(getByText('Add me to the waitlist')).toBeTruthy();
@@ -84,6 +131,11 @@ describe('NeighborhoodAccess - Waitlist Form', () => {
     expect(getByText(/If you are not a resident of Loma Vista West/)).toBeTruthy();
     expect(getByPlaceholderText('Your Name')).toBeTruthy();
     expect(getByPlaceholderText('you@example.com')).toBeTruthy();
+  });
+
+  test('should render "Create a new Neighborhood (Admin) - Coming soon" message', () => {
+    const { getByText } = render(<NeighborhoodAccess />);
+    expect(getByText('Create a new Neighborhood (Admin) - Coming soon')).toBeTruthy();
   });
 
   test('should submit waitlist request successfully', async () => {

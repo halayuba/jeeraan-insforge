@@ -37,6 +37,7 @@ export default function NeighborhoodAccess() {
   // Section 2 State
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [address, setAddress] = useState('')
   const [confirmResidency, setConfirmResidency] = useState(false)
   const [submittingRequest, setSubmittingRequest] = useState(false)
@@ -115,8 +116,8 @@ export default function NeighborhoodAccess() {
   }
 
   const handleRequestToJoin = async () => {
-    if (!fullName || !phone || !address) {
-      Alert.alert('Error', 'Please enter your full name, phone number, and address.')
+    if (!fullName || !phone || !email || !address) {
+      Alert.alert('Error', 'Please enter your full name, phone number, email, and address.')
       return
     }
     if (!neighborhood) {
@@ -133,18 +134,35 @@ export default function NeighborhoodAccess() {
 
     setSubmittingRequest(true)
     try {
-      // 1. Check for existing pending join request
-      const { data: existingRequest } = await insforge.database
+      // 1. Check for existing pending join request by phone
+      const { data: existingRequestPhone } = await insforge.database
         .from('join_requests')
         .select('id')
         .eq('phone', phone)
         .eq('status', 'pending')
         .maybeSingle();
 
-      if (existingRequest) {
+      if (existingRequestPhone) {
         Alert.alert(
           'Request Already Submitted',
           'A join request with this phone number is already pending. Please wait for an admin to review it.',
+        );
+        setSubmittingRequest(false);
+        return;
+      }
+
+      // 1b. Check for existing pending join request by email
+      const { data: existingRequestEmail } = await insforge.database
+        .from('join_requests')
+        .select('id')
+        .eq('email', email)
+        .eq('status', 'pending')
+        .maybeSingle();
+
+      if (existingRequestEmail) {
+        Alert.alert(
+          'Request Already Submitted',
+          'A join request with this email address is already pending. Please wait for an admin to review it.',
         );
         setSubmittingRequest(false);
         return;
@@ -178,6 +196,7 @@ export default function NeighborhoodAccess() {
         {
           name: fullName,
           phone: phone,
+          email: email,
           address: address,
           neighborhood_id: neighborhood.id,
           status: 'pending',
@@ -211,6 +230,38 @@ export default function NeighborhoodAccess() {
 
     setSubmittingWaitlist(true)
     try {
+      // 1. Check for existing waitlist request by phone
+      const { data: existingWaitlistPhone } = await insforge.database
+        .from('waitlist_requests')
+        .select('id')
+        .eq('phone_number', waitlistPhone)
+        .maybeSingle();
+
+      if (existingWaitlistPhone) {
+        Alert.alert(
+          'Already on Waitlist',
+          'A waitlist request with this phone number already exists.',
+        );
+        setSubmittingWaitlist(false);
+        return;
+      }
+
+      // 2. Check for existing waitlist request by email
+      const { data: existingWaitlistEmail } = await insforge.database
+        .from('waitlist_requests')
+        .select('id')
+        .eq('email_address', waitlistEmail)
+        .maybeSingle();
+
+      if (existingWaitlistEmail) {
+        Alert.alert(
+          'Already on Waitlist',
+          'A waitlist request with this email address already exists.',
+        );
+        setSubmittingWaitlist(false);
+        return;
+      }
+
       const { error } = await submitWaitlistRequest({
         neighborhood_id: neighborhood.id,
         full_name: waitlistName,
@@ -413,6 +464,19 @@ export default function NeighborhoodAccess() {
                   </View>
 
                   <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Email Address</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="john@example.com"
+                      placeholderTextColor="#94a3b8"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      value={email}
+                      onChangeText={setEmail}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
                     <Text style={styles.label}>Address</Text>
                     <TextInput
                       style={styles.input}
@@ -467,6 +531,7 @@ export default function NeighborhoodAccess() {
                       styles.submitButton,
                       (!fullName ||
                         !phone ||
+                        !email ||
                         !address ||
                         !confirmResidency ||
                         submittingRequest) &&
@@ -476,6 +541,7 @@ export default function NeighborhoodAccess() {
                     disabled={
                       !fullName ||
                       !phone ||
+                      !email ||
                       !address ||
                       !confirmResidency ||
                       submittingRequest
@@ -633,6 +699,22 @@ export default function NeighborhoodAccess() {
                 </View>
               </View>
             )}
+
+            {/* Horizontal Divider */}
+            <View style={styles.divider} />
+
+            <View style={{ marginTop: 24, alignItems: 'center', paddingBottom: 20 }}>
+              <Text
+                style={{
+                  fontFamily: 'Manrope-SemiBold',
+                  fontSize: 15,
+                  color: '#64748b',
+                  textAlign: 'center',
+                }}
+              >
+                Create a new Neighborhood (Admin) - Coming soon
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
