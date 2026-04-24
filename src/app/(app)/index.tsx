@@ -10,7 +10,7 @@ import {
   IconTool,
   IconMessages,
   IconTag,
-  IconAd2,
+  IconPencilFilled,
   IconUserQuestion,
   IconClipboardSearch,
   IconTrophy,
@@ -22,16 +22,16 @@ const GRID_ITEMS = [
   { id: 'messages', title: 'Direct Messages', icon: IconMessageUser },
   { id: 'members', title: 'Members', icon: IconUsersGroup },
   { id: 'invites', title: 'Invites', icon: IconUsersPlus },
-  { id: 'faq', title: 'FAQ', icon: IconHelp },
   { id: 'events', title: 'Events', icon: IconCalendarEvent },
   { id: 'voting', title: 'Voting', icon: IconUserCheck },
   { id: 'service-orders', title: 'Service Orders', icon: IconTool },
   { id: 'forum', title: 'Forum', icon: IconMessages },
   { id: 'classifieds', title: 'Classified Ads', icon: IconTag },
-  { id: 'advertisements', title: 'Advertisements', icon: IconAd2 },
+  { id: 'notes', title: 'Notes', icon: IconPencilFilled },
   { id: 'grievances', title: 'Grievances', icon: IconUserQuestion },
-  { id: 'q-and-a', title: 'Q & A', icon: IconClipboardSearch },
   { id: 'leaderboard', title: 'Leaderboard', icon: IconTrophy },
+  { id: 'q-and-a', title: 'Q & A', icon: IconClipboardSearch },
+  { id: 'faq', title: 'FAQ', icon: IconHelp },
 ];
 
 export default function HomeIndex() {
@@ -60,8 +60,8 @@ export default function HomeIndex() {
       router.push('/(app)/invites' as any);
     } else if (id === 'classifieds') {
       router.push('/(app)/classifieds' as any);
-    } else if (id === 'advertisements') {
-      router.push('/(app)/advertisements' as any);
+    } else if (id === 'notes') {
+      router.push('/(app)/notes' as any);
     } else if (id === 'q-and-a') {
       router.push('/(app)/q-and-a' as any);
     } else if (id === 'leaderboard') {

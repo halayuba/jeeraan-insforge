@@ -14,12 +14,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../../../lib/insforge';
-import { useAuth } from '../../../../../contexts/AuthContext';
+import { useAuthStore } from '../../../../../store/useAuthStore';
 
 export default function CandidateProfileScreen() {
   const { poll_id, candidate_id } = useLocalSearchParams<{ poll_id: string; candidate_id: string }>();
   const router = useRouter();
-  const { handleAuthError } = useAuth();
+  const { handleAuthError } = useAuthStore();
   const [candidate, setCandidate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ questions: 0, endorsements: 0, responseRate: 98 });

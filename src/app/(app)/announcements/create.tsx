@@ -20,7 +20,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { checkDailyLimit } from '../../../lib/rateLimit';
 
 const CATEGORIES = [
@@ -34,7 +34,7 @@ const CATEGORIES = [
 export default function CreateAnnouncement() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth, handleAuthError, neighborhoodId, userRole } = useAuth();
+  const { refreshAuth, handleAuthError, neighborhoodId, userRole } = useAuthStore();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');

@@ -1,6 +1,6 @@
 import { Slot } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { AuthProvider } from "../contexts/AuthContext";
+import { useAuthStore } from "../store/useAuthStore";
 import { ToastProvider } from "../contexts/ToastContext";
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
@@ -10,19 +10,27 @@ import {
   Manrope_600SemiBold, 
   Manrope_700Bold 
 } from '@expo-google-fonts/manrope';
-import { useEffect } from 'react';
+import { useMemo, useEffect } from 'react';
 import { StripeProvider } from '../lib/stripe';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
+  const initializeAuth = useAuthStore(state => state.initialize);
+
+  const fontsConfig = useMemo(() => ({
     'Manrope-Regular': Manrope_400Regular,
     'Manrope-Medium': Manrope_500Medium,
     'Manrope-SemiBold': Manrope_600SemiBold,
     'Manrope-Bold': Manrope_700Bold,
-  });
+  }), []);
+
+  const [loaded, error] = useFonts(fontsConfig);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   useEffect(() => {
     if (loaded || error) {
@@ -36,15 +44,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StripeProvider
-        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
-      >
-        <AuthProvider>
-          <ToastProvider>
-            <Slot />
-          </ToastProvider>
-        </AuthProvider>
-      </StripeProvider>
+      <ToastProvider>
+        <StripeProvider
+          publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
+        >
+          <Slot />
+        </StripeProvider>
+      </ToastProvider>
     </SafeAreaProvider>
   );
 }

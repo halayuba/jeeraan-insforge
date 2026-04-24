@@ -14,12 +14,12 @@ import {
 import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
 
 export default function ClassifiedsIndex() {
   const router = useRouter();
-  const { handleAuthError, neighborhoodId, user } = useAuth();
+  const { handleAuthError, neighborhoodId, user } = useAuthStore();
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

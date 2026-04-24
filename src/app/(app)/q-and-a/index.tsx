@@ -16,7 +16,7 @@ import {
 import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -25,7 +25,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function QandAIndex() {
   const router = useRouter();
-  const { user, handleAuthError } = useAuth();
+  const { user, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

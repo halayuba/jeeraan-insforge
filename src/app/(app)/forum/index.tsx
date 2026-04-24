@@ -23,14 +23,14 @@ import {
 import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { LevelBadge } from '../../../components/LevelBadge';
 import { MemberName } from '../../../components/MemberName';
 
 export default function ForumIndex() {
   const router = useRouter();
-  const { handleAuthError } = useAuth();
+  const { handleAuthError } = useAuthStore();
   const { showToast } = useToast();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

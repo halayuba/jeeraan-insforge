@@ -18,11 +18,12 @@ import { useRouter } from 'expo-router';
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit } from '../../../lib/rateLimit';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 export default function SubmitServiceOrder() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { neighborhoodId } = useAuth();
+  const { neighborhoodId } = useAuthStore();
   
   const [unitAddress, setUnitAddress] = useState('');
   const [occupantName, setOccupantName] = useState('');

@@ -15,12 +15,12 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { ArrowLeft, Search, Mail, MessageSquare, Plus, X } from 'lucide-react-native';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
 
 export default function MessagesIndex() {
   const router = useRouter();
-  const { user, neighborhoodId, handleAuthError } = useAuth();
+  const { user, neighborhoodId, handleAuthError } = useAuthStore();
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

@@ -14,12 +14,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 export default function ServiceOrderDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { handleAuthError } = useAuth();
+  const { handleAuthError } = useAuthStore();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 

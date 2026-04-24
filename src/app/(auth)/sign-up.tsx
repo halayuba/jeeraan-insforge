@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Alert, ActivityIndicator, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { insforge } from '../../lib/insforge';
 import { useLocalSearchParams, useRouter, Link } from 'expo-router';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
+import { JeeraanLogo } from '../../components/JeeraanLogo';
 
 export default function SignUp() {
   const router = useRouter();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth } = useAuthStore();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -152,6 +153,9 @@ export default function SignUp() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <JeeraanLogo width={180} height={60} />
+      </View>
       <Text style={styles.title}>Create Account</Text>
       
       <View style={styles.inputContainer}>
@@ -213,6 +217,10 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
     backgroundColor: '#fff',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,

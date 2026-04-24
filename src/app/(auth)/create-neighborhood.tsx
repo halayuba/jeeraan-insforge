@@ -7,11 +7,11 @@ import { useRouter } from 'expo-router';
 import { insforge } from '../../lib/insforge';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function CreateNeighborhoodScreen() {
   const router = useRouter();
-  const { refreshAuth, session } = useAuth();
+  const { refreshAuth, session } = useAuthStore();
   
   const [step, setStep] = useState(session ? 2 : 1);
   const [loading, setLoading] = useState(false);

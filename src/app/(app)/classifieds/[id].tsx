@@ -11,11 +11,12 @@ import {
   ActivityIndicator,
   Dimensions,
   Alert,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
 import { useToast } from '../../../contexts/ToastContext';
 
@@ -24,7 +25,7 @@ const { width } = Dimensions.get('window');
 export default function AdDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { user, neighborhoodId, handleAuthError } = useAuth();
+  const { user, neighborhoodId, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
   
   const [ad, setAd] = useState<any>(null);

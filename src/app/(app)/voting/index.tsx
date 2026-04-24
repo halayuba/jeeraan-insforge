@@ -13,11 +13,11 @@ import {
 import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 export default function VotingIndex() {
   const router = useRouter();
-  const { neighborhoodId, handleAuthError } = useAuth();
+  const { neighborhoodId, handleAuthError } = useAuthStore();
   const [polls, setPolls] = useState<any[]>([]);
   const [boardPositions, setBoardPositions] = useState<any[]>([]);
   const [votingDate, setVotingDate] = useState<string | null>(null);

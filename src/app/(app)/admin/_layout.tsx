@@ -6,10 +6,10 @@ import { Redirect, Slot } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 export default function AdminLayout() {
-  const { userRole, globalRole, loading } = useAuth();
+  const { userRole, globalRole, loading } = useAuthStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 

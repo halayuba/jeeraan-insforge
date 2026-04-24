@@ -15,7 +15,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 type JoinRequest = {
   id: string;
@@ -28,7 +28,7 @@ type JoinRequest = {
 
 export default function InvitesIndex() {
   const router = useRouter();
-  const { neighborhoodId, refreshAuth, handleAuthError } = useAuth();
+  const { neighborhoodId, refreshAuth, handleAuthError } = useAuthStore();
   const [requests, setRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

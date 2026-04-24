@@ -21,6 +21,10 @@ const FAQ_DATA = [
       {
         q: 'Is Jeeraan public or private?',
         a: 'Jeeraan neighborhoods are private and access-controlled. Only verified residents can join and view content within their community.'
+      },
+      {
+        q: 'Mobile App?',
+        a: 'A dedicated mobile application is scheduled for a future release to provide an even better experience on the go.'
       }
     ]
   },

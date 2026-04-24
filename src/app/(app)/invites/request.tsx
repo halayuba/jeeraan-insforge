@@ -17,13 +17,13 @@ import {
 import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit, validateInvite } from '../../../lib/rateLimit';
 
 export default function InviteRequestForm() {
   const router = useRouter();
-  const { neighborhoodId, session, refreshAuth, handleAuthError } = useAuth();
+  const { neighborhoodId, session, refreshAuth, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
   
   const [name, setName] = useState('');

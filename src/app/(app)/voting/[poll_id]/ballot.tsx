@@ -15,12 +15,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../../lib/insforge';
-import { useAuth } from '../../../../contexts/AuthContext';
+import { useAuthStore } from '../../../../store/useAuthStore';
 
 export default function BallotScreen() {
   const { poll_id } = useLocalSearchParams<{ poll_id: string }>();
   const router = useRouter();
-  const { session, handleAuthError } = useAuth();
+  const { session, handleAuthError } = useAuthStore();
   const [candidates, setCandidates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);

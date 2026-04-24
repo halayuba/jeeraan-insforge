@@ -2,11 +2,11 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import AdminDashboard from '../index';
 import { insforge } from '../../../../lib/insforge';
-import { useAuth } from '../../../../contexts/AuthContext';
+import { useAuthStore } from '../../../../store/useAuthStore';
 
-// Mock useAuth
-jest.mock('../../../../contexts/AuthContext', () => ({
-  useAuth: jest.fn(() => ({
+// Mock useAuthStore
+jest.mock('../../../../store/useAuthStore', () => ({
+  useAuthStore: jest.fn(() => ({
     fullName: 'Admin User',
     globalRole: 'super_admin',
     neighborhoodId: 'nh-123',

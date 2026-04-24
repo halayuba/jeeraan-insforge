@@ -18,12 +18,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../../lib/insforge';
-import { useAuth } from '../../../../contexts/AuthContext';
+import { useAuthStore } from '../../../../store/useAuthStore';
 
 export default function SubmitProfileScreen() {
   const { poll_id } = useLocalSearchParams<{ poll_id: string }>();
   const router = useRouter();
-  const { session } = useAuth();
+  const { session } = useAuthStore();
   const [bio, setBio] = useState('');
   const [assets, setAssets] = useState('');
   const [submitting, setSubmitting] = useState(false);

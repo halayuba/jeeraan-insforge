@@ -15,12 +15,12 @@ import {
 import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
 
 export default function MembersIndex() {
   const router = useRouter();
-  const { neighborhoodId, handleAuthError } = useAuth();
+  const { neighborhoodId, handleAuthError } = useAuthStore();
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

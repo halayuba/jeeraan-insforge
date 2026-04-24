@@ -13,19 +13,19 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Send, Paperclip, Image as ImageIcon, X, FileText } from 'lucide-react-native';
+import { ArrowLeft, Send, Paperclip, Image as ImageIcon, X, FileText, MessageSquare } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { MemberName } from '../../../components/MemberName';
 
 export default function MessageThread() {
   const router = useRouter();
   const { id, recipientId } = useLocalSearchParams<{ id: string; recipientId?: string }>();
-  const { user, neighborhoodId, handleAuthError } = useAuth();
+  const { user, neighborhoodId, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
   
   const [messages, setMessages] = useState<any[]>([]);
@@ -87,7 +87,8 @@ export default function MessageThread() {
         .single();
       
       if (convError) throw convError;
-      const otherParticipant = conv.participant_1.user_id === user?.id ? conv.participant_2 : conv.participant_1;
+      const c = conv as any;
+      const otherParticipant = c.participant_1.user_id === user?.id ? c.participant_2 : c.participant_1;
       setRecipient(otherParticipant);
 
       // 3. Mark unread messages as read (optional MVP)

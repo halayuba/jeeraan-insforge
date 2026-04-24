@@ -1,10 +1,20 @@
-import { Stack, Redirect, useSegments } from 'expo-router';
-import { useAuth } from '../../contexts/AuthContext';
+import { Stack, useSegments, useRouter } from 'expo-router';
+import { useAuthStore } from '../../store/useAuthStore';
 import { View, ActivityIndicator } from 'react-native';
+import React, { useEffect } from 'react';
 
 export default function AuthLayout() {
-  const { session, loading } = useAuth();
+  const { session, loading } = useAuthStore();
   const segments = useSegments();
+  const router = useRouter();
+
+  const currentSegment = segments[segments.length - 1];
+
+  useEffect(() => {
+    if (!loading && session && currentSegment !== 'create-neighborhood' && currentSegment !== 'admin-sign-in') {
+      router.replace('/(app)');
+    }
+  }, [session, loading, currentSegment, router]);
 
   if (loading) {
     return (
@@ -14,10 +24,8 @@ export default function AuthLayout() {
     );
   }
 
-  const currentSegment = segments[segments.length - 1];
-
   if (session && currentSegment !== 'create-neighborhood' && currentSegment !== 'admin-sign-in') {
-    return <Redirect href="/(app)" />;
+    return null;
   }
 
   return (

@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 const CATEGORIES = [
   'General',
@@ -30,7 +30,7 @@ const CATEGORIES = [
 export default function CreateForumPost() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth, handleAuthError, neighborhoodId } = useAuth();
+  const { refreshAuth, handleAuthError, neighborhoodId } = useAuthStore();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');

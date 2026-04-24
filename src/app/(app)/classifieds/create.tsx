@@ -21,15 +21,15 @@ import { useStripe } from '../../../lib/stripe';
 
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { checkDailyLimit } from '../../../lib/rateLimit';
 import { calculateListingFee, getListingLimit } from '../../../lib/classifieds';
 
 export default function CreateClassifiedAd() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { handleAuthError, neighborhoodId, userRole, user } = useAuth();
-  const { refreshAuth } = useAuth();
+  const { handleAuthError, neighborhoodId, userRole, user } = useAuthStore();
+  const { refreshAuth } = useAuthStore();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [title, setTitle] = useState('');

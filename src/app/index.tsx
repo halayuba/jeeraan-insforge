@@ -1,9 +1,7 @@
 import { Calendar, HeartHandshake, HelpCircle, MapPin, Megaphone, MessageSquare, MoveHorizontal, Users, Vote, X } from 'lucide-react-native';
-
-
-
-import { Redirect, useRouter } from 'expo-router'
-import React, { useState } from 'react'
+import { IconPlayerPlayFilled } from '@tabler/icons-react-native';
+import { useRouter, useSegments } from 'expo-router'
+import React, { useState, useEffect } from 'react'
 import {
   ImageBackground,
   Modal,
@@ -15,7 +13,8 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuthStore } from '../store/useAuthStore'
+import { JeeraanLogo } from '../components/JeeraanLogo'
 
 const SLIDES = [
   {
@@ -51,15 +50,19 @@ const SLIDES = [
 
 export default function SplashScreen() {
   const router = useRouter()
+  const segments = useSegments()
   const { width } = useWindowDimensions()
   const [modalVisible, setModalVisible] = useState(false)
-  const { session, loading } = useAuth()
+  const { session, loading } = useAuthStore()
+
+  useEffect(() => {
+    const segs = segments as string[];
+    if (!loading && session && (segs.length === 0 || segs[0] === '(app)')) {
+      router.replace('/(app)');
+    }
+  }, [loading, session, segments, router]);
 
   const SLIDE_WIDTH = width * 0.85 - 40 // 85% modal width minus 20 padding each side
-
-  if (!loading && session) {
-    return <Redirect href="/(app)" />
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -70,10 +73,7 @@ export default function SplashScreen() {
         {/* Navigation / Top Bar */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <View style={styles.logoIcon}>
-              <MapPin size={20} color="#fff" strokeWidth={2} />
-            </View>
-            <Text style={styles.logoText}>Jeeraan</Text>
+            <JeeraanLogo width={120} height={42} />
           </View>
           <TouchableOpacity 
             style={styles.helpButton}
@@ -103,7 +103,6 @@ export default function SplashScreen() {
 
         {/* Content Section */}
         <View style={styles.contentSection}>
-          <Text style={styles.mainTitle}>Your neighborhood, connected.</Text>
           <Text style={styles.subtitle}>
             Jeeraan helps you discover local events, share recommendations, and
             build a stronger community with the people living right next door.
@@ -113,39 +112,50 @@ export default function SplashScreen() {
 
           {/* Value Props */}
           <View style={styles.grid}>
-            <View style={styles.gridItem}>
-              <Users size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
+            <View style={[styles.gridItem, styles.lightGridItem]}>
+              <Users size={32} color="#64748b" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Meet Neighbors</Text>
             </View>
-            <View style={styles.gridItem}>
-              <Megaphone size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
+            <View style={[styles.gridItem, styles.lightGridItem]}>
+              <Megaphone size={32} color="#64748b" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Local News</Text>
             </View>
-            <View style={styles.gridItem}>
-              <HeartHandshake size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
+            <View style={[styles.gridItem, styles.lightGridItem]}>
+              <HeartHandshake size={32} color="#64748b" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Help Others</Text>
             </View>
-            <View style={styles.gridItem}>
-              <Vote size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
+            <View style={[styles.gridItem, styles.lightGridItem]}>
+              <Vote size={32} color="#64748b" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Elections</Text>
             </View>
-            <View style={styles.gridItem}>
-              <Calendar size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
+            <View style={[styles.gridItem, styles.lightGridItem]}>
+              <Calendar size={32} color="#64748b" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Events</Text>
             </View>
-            <View style={styles.gridItem}>
-              <MessageSquare size={32} color="#1193d4" style={styles.gridIcon} strokeWidth={2} />
+            <View style={[styles.gridItem, styles.lightGridItem]}>
+              <MessageSquare size={32} color="#64748b" style={styles.gridIcon} strokeWidth={2} />
               <Text style={styles.gridText}>Forum</Text>
             </View>
+
+            {/* Learn More Full Width Item */}
+            <TouchableOpacity 
+              style={styles.fullWidthItem}
+              onPress={() => setModalVisible(true)}
+            >
+              <View style={styles.fullWidthContent}>
+                <IconPlayerPlayFilled size={24} color="#1193d4" style={styles.fullWidthIcon} />
+                <Text style={styles.fullWidthText}>Learn more</Text>
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
             <TouchableOpacity
               style={[styles.button, styles.secondaryButton]}
-              onPress={() => setModalVisible(true)}
+              onPress={() => router.push('/advertisements')}
             >
-              <Text style={styles.secondaryButtonText}>Learn more</Text>
+              <Text style={styles.secondaryButtonText}>Advertisements</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -241,19 +251,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  logoIcon: {
-    width: 32,
-    height: 32,
-    backgroundColor: '#1193d4',
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: {
-    fontSize: 20,
-    fontFamily: 'Manrope-Bold',
-    color: '#0f172a',
-  },
   helpButton: {
     padding: 8,
     borderRadius: 20,
@@ -329,6 +326,10 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
   },
+  lightGridItem: {
+    backgroundColor: '#f1f5f9', // Very light gray
+    borderColor: '#e2e8f0',
+  },
   gridIcon: {
     marginBottom: 8,
   },
@@ -337,6 +338,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#0f172a',
     textAlign: 'center',
+  },
+  fullWidthItem: {
+    width: '100%',
+    backgroundColor: 'rgba(17, 147, 212, 0.05)',
+    borderColor: 'rgba(17, 147, 212, 0.1)',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 4,
+  },
+  fullWidthContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  fullWidthIcon: {
+    // No margin bottom needed since it's inline
+  },
+  fullWidthText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: '#0f172a',
   },
   actionButtons: {
     width: '100%',

@@ -14,13 +14,13 @@ import {
 import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 const FILTER_OPTIONS = ['Year', 'Month', 'Rating'];
 
 export default function ServiceOrdersIndex() {
   const router = useRouter();
-  const { handleAuthError } = useAuth();
+  const { handleAuthError } = useAuthStore();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');

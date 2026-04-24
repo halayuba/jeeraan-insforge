@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { insforge } from '../../lib/insforge'
 import { FLOORPLAN_OPTIONS, submitWaitlistRequest } from '../../lib/waitlist'
 import { useToast } from '../../contexts/ToastContext'
+import { JeeraanLogo } from '../../components/JeeraanLogo'
 
 export default function NeighborhoodAccess() {
   const router = useRouter()
@@ -315,6 +316,9 @@ export default function NeighborhoodAccess() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.logoContainer}>
+            <JeeraanLogo width={180} height={60} />
+          </View>
           {/* Prominent Sign In Section */}
           <View style={styles.prominentSignIn}>
             <Text style={styles.signInTitle}>Welcome Back</Text>
@@ -756,6 +760,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 10,
   },
   header: {
     flexDirection: 'row',

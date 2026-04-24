@@ -2,14 +2,13 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import SignIn from '../sign-in';
 import { insforge } from '../../../lib/insforge';
-import { AuthProvider } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
-// Mock AuthContext
-jest.mock('../../../contexts/AuthContext', () => ({
-  ...jest.requireActual('../../../contexts/AuthContext'),
-  useAuth: () => ({
+// Mock useAuthStore
+jest.mock('../../../store/useAuthStore', () => ({
+  useAuthStore: jest.fn(() => ({
     refreshAuth: jest.fn(),
-  }),
+  })),
 }));
 
 // Mock insforge

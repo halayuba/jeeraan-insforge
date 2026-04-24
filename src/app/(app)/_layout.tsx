@@ -1,14 +1,13 @@
 import { BarChart3, Bell, HelpCircle, Home, Menu, User } from 'lucide-react-native';
-
-
-import { Tabs, Redirect } from 'expo-router';
-import { useAuth } from '../../contexts/AuthContext';
+import { Tabs, useSegments, useRouter } from 'expo-router';
+import { useAuthStore } from '../../store/useAuthStore';
 import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
-
+import React, { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LevelBadge } from '../../components/LevelBadge';
+
 function CustomHeader() {
-  const { userLevel, userRole, globalRole } = useAuth();
+  const { userLevel, userRole, globalRole } = useAuthStore();
 
   return (
     <SafeAreaView edges={['top']} style={styles.headerContainer}>
@@ -32,7 +31,32 @@ function CustomHeader() {
 }
 
 export default function AppLayout() {
-  const { session, loading, userRole, globalRole, neighborhoodId, isBlocked } = useAuth();
+  const { session, loading, userRole, globalRole, neighborhoodId, isBlocked } = useAuthStore();
+  const segments = useSegments();
+  const router = useRouter();
+
+  const currentPath = segments.join('/');
+
+  useEffect(() => {
+    if (loading) return;
+
+    if (!session) {
+      if (currentPath.includes('(app)')) {
+        router.replace('/');
+      }
+      return;
+    }
+
+    if (isBlocked && currentPath !== '(app)/blocked' && !currentPath.endsWith('/blocked')) {
+      router.replace('/blocked');
+      return;
+    }
+
+    // If super admin has no neighborhood, they must create or join one
+    if (globalRole === 'super_admin' && !neighborhoodId && !currentPath.includes('create-neighborhood')) {
+      router.replace('/(auth)/create-neighborhood');
+    }
+  }, [session, loading, isBlocked, globalRole, neighborhoodId, currentPath, router]);
 
   if (loading) {
     return (
@@ -43,16 +67,7 @@ export default function AppLayout() {
   }
 
   if (!session) {
-    return <Redirect href="/(auth)/sign-in" />;
-  }
-
-  if (isBlocked) {
-    return <Redirect href="/blocked" />;
-  }
-
-  // If super admin has no neighborhood, they must create or join one
-  if (globalRole === 'super_admin' && !neighborhoodId) {
-    return <Redirect href="/(auth)/create-neighborhood" />;
+    return null;
   }
 
   return (
@@ -100,13 +115,13 @@ export default function AppLayout() {
       <Tabs.Screen name="leaderboard" options={{ href: null }} />
       <Tabs.Screen name="events" options={{ href: null }} />
       <Tabs.Screen name="q-and-a" options={{ href: null }} />
-      <Tabs.Screen name="advertisements" options={{ href: null }} />
       <Tabs.Screen name="forum" options={{ href: null }} />
       <Tabs.Screen name="voting" options={{ href: null }} />
       <Tabs.Screen name="grievances" options={{ href: null }} />
       <Tabs.Screen name="announcements" options={{ href: null }} />
       <Tabs.Screen name="service-orders" options={{ href: null }} />
       <Tabs.Screen name="classifieds" options={{ href: null }} />
+      <Tabs.Screen name="notes" options={{ href: null }} />
       <Tabs.Screen name="members" options={{ href: null }} />
       <Tabs.Screen name="invites" options={{ href: null }} />
       <Tabs.Screen name="blocked" options={{ href: null }} />

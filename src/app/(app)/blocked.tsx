@@ -1,10 +1,10 @@
 import { ShieldAlert } from 'lucide-react-native';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function BlockedScreen() {
-  const { signOut } = useAuth();
+  const { signOut } = useAuthStore();
 
   return (
     <SafeAreaView style={styles.container}>

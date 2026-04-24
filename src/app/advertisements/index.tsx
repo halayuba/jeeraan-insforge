@@ -12,12 +12,13 @@ import {
   Image,
   Dimensions,
   Linking,
+  ScrollView,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
-import { useToast } from '../../../contexts/ToastContext';
+import { insforge } from '../../lib/insforge';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useToast } from '../../contexts/ToastContext';
 
 const { width } = Dimensions.get('window');
 const AD_WIDTH = 300;
@@ -25,7 +26,7 @@ const AD_HEIGHT = 600;
 
 export default function AdvertisementsIndex() {
   const router = useRouter();
-  const { neighborhoodId, handleAuthError } = useAuth();
+  const { neighborhoodId, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
   const [ads, setAds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +40,8 @@ export default function AdvertisementsIndex() {
   );
 
   useEffect(() => {
+    // Auto-rotation disabled as per issue_Apr22-4
+    /*
     if (ads.length > 1) {
       const interval = setInterval(() => {
         const nextIndex = (currentIndex + 1) % ads.length;
@@ -47,24 +50,31 @@ export default function AdvertisementsIndex() {
       }, 5000); // Rotate every 5 seconds
       return () => clearInterval(interval);
     }
+    */
   }, [ads, currentIndex]);
 
   const fetchAds = async () => {
-    if (!neighborhoodId) return;
-    
     setLoading(true);
     try {
-      const { data, error } = await insforge.database
+      let query = insforge.database
         .from('advertisements')
         .select('*')
-        .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
+
+      if (neighborhoodId) {
+        query = query.eq('neighborhood_id', neighborhoodId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setAds(data || []);
     } catch (err: any) {
       console.error('Error fetching ads:', err);
-      handleAuthError(err);
+      // Don't call handleAuthError if we're in a public route and it might be a 401 we expect
+      if (neighborhoodId) {
+        handleAuthError(err);
+      }
     } finally {
       setLoading(false);
     }
@@ -91,16 +101,19 @@ export default function AdvertisementsIndex() {
           style={styles.adImage}
           resizeMode="cover"
         />
-        <View style={styles.adOverlay}>
-          <Text style={styles.businessName}>{item.business_name}</Text>
-          <Text style={styles.industryText}>{item.industry}</Text>
-        </View>
       </View>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
+      {/* Launch Notification */}
+      <View style={styles.notificationBar}>
+        <Text style={styles.notificationText}>
+          Celebrating Our Launch — Enjoy 30 Days of Free Advertising - Reach the community at no cost.
+        </Text>
+      </View>
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
@@ -159,17 +172,23 @@ export default function AdvertisementsIndex() {
   );
 }
 
-// Wrapper for ScrollView because FlatList is inside
-const ScrollView = ({ children, contentContainerStyle }: any) => (
-  <View style={{ flex: 1 }}>
-    <View style={contentContainerStyle}>{children}</View>
-  </View>
-);
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f6f7f8',
+  },
+  notificationBar: {
+    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(17, 147, 212, 0.2)',
+  },
+  notificationText: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 11,
+    color: '#1193d4',
+    textAlign: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -194,7 +213,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scrollContent: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
   },
   introSection: {

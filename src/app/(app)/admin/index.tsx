@@ -1,18 +1,18 @@
-import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, HelpCircle, Layout, MessageCircle, Plus, Shield, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle, DollarSign, Flag } from 'lucide-react-native';
-import { IconCalendarUser, IconArrowsSort, IconFilter } from '@tabler/icons-react-native';
+import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, Eye, HelpCircle, Layout, MessageCircle, Plus, Shield, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle, DollarSign, Flag } from 'lucide-react-native';
+import { IconCalendarUser, IconArrowsSort, IconFilter, IconPencilFilled } from '@tabler/icons-react-native';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image, Switch, Platform } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 
 import * as ImagePicker from 'expo-image-picker';
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { FLOORPLAN_OPTIONS } from '../../../lib/waitlist';
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { fullName, globalRole, neighborhoodId, handleAuthError } = useAuth();
+  const { fullName, globalRole, neighborhoodId, handleAuthError } = useAuthStore();
   const [requests, setRequests] = useState<any[]>([]);
   const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
   const [rejectedRequests, setRejectedRequests] = useState<any[]>([]);
@@ -60,6 +60,13 @@ export default function AdminDashboard() {
   });
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [savingAd, setSavingAd] = useState(false);
+  const [expandedAdId, setExpandedAdId] = useState<string | null>(null);
+
+  // Notes Management State
+  const [adminNotes, setAdminNotes] = useState<any[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+  const [newNote, setNewNote] = useState({ title: '', message: '' });
+  const [savingNote, setSavingNote] = useState(false);
 
   // Gamification Management State
   const [gamificationSettings, setGamificationSettings] = useState<any>(null);
@@ -104,7 +111,7 @@ export default function AdminDashboard() {
         .eq('neighborhood_id', neighborhoodId);
       
       if (waitlistFilter !== 'All') {
-        query = query.eq('floorplan_interest', waitlistFilter);
+        query = query.or(`floorplan_interest.eq."${waitlistFilter}",floorplan_interest.eq."Any of the above"`);
       }
 
       query = query.order(waitlistSort.field, { ascending: waitlistSort.direction === 'asc' });
@@ -309,6 +316,83 @@ export default function AdminDashboard() {
     );
   };
 
+  const fetchAdminNotes = async () => {
+    if (!neighborhoodId) return;
+    setLoadingNotes(true);
+    try {
+      const { data, error } = await insforge.database
+        .from('neighborhood_notes')
+        .select('*')
+        .eq('neighborhood_id', neighborhoodId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAdminNotes(data || []);
+    } catch (err) {
+      console.error('Failed to load notes', err);
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
+
+  const handleCreateNote = async () => {
+    if (!newNote.title || !newNote.message) {
+      Alert.alert('Error', 'Title and Message are required');
+      return;
+    }
+
+    setSavingNote(true);
+    try {
+      const { data, error } = await insforge.database
+        .from('neighborhood_notes')
+        .insert([{
+          neighborhood_id: neighborhoodId,
+          ...newNote
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setAdminNotes([data, ...adminNotes]);
+      setNewNote({ title: '', message: '' });
+      Alert.alert('Success', 'Note created');
+    } catch (err) {
+      console.error('Failed to create note', err);
+      Alert.alert('Error', 'Failed to create note');
+    } finally {
+      setSavingNote(false);
+    }
+  };
+
+  const handleDeleteNote = (id: string) => {
+    Alert.alert(
+      'Delete Note',
+      'Are you sure you want to delete this note?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await insforge.database
+                .from('neighborhood_notes')
+                .delete()
+                .eq('id', id);
+
+              if (error) throw error;
+              setAdminNotes(adminNotes.filter(n => n.id !== id));
+            } catch (err) {
+              console.error('Failed to delete note', err);
+              Alert.alert('Error', 'Failed to delete note');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const saveDmSettings = async () => {
     if (!neighborhoodId) return;
     setSavingDmSettings(true);
@@ -363,6 +447,7 @@ export default function AdminDashboard() {
         fetchClassifiedSettings();
         fetchReportedAds();
         fetchWaitlistRequests();
+        fetchAdminNotes();
         }
         if (globalRole === 'super_admin' && neighborhoodId) {
           fetchElectionInfo();
@@ -371,6 +456,73 @@ export default function AdminDashboard() {
           fetchAdminAds();
         }
         }, [globalRole, neighborhoodId])
+        );
+
+        const renderNotesSection = () => (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <IconPencilFilled size={20} color="#1193d4" />
+                <Text style={styles.cardTitle}>Notes Management</Text>
+              </View>
+              <Text style={styles.badgeCount}>{adminNotes.length}</Text>
+            </View>
+      
+            <Text style={styles.sectionSubtitle}>
+              Create and manage notes that will be visible to all members.
+            </Text>
+      
+            {loadingNotes ? (
+              <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />
+            ) : adminNotes.length === 0 ? (
+              <Text style={styles.emptyText}>No notes found.</Text>
+            ) : (
+              <View style={{ gap: 12, marginBottom: 16 }}>
+                {adminNotes.map((note) => (
+                  <View key={note.id} style={styles.positionItem}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.positionTitle}>{note.title}</Text>
+                      <Text style={styles.positionDesc} numberOfLines={1}>{note.message}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => handleDeleteNote(note.id)}>
+                      <Trash2 size={20} color="#ef4444" strokeWidth={2} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+      
+            <View style={styles.addPositionForm}>
+              <TextInput
+                style={styles.adminInput}
+                value={newNote.title}
+                onChangeText={(text) => setNewNote({ ...newNote, title: text })}
+                placeholder="Note Title (e.g. Board Minutes)"
+              />
+              <TextInput
+                style={[styles.adminInput, { marginTop: 8, height: 80, textAlignVertical: 'top', paddingTop: 8 }]}
+                value={newNote.message}
+                onChangeText={(text) => setNewNote({ ...newNote, message: text })}
+                placeholder="Note Message"
+                multiline
+              />
+              
+              <TouchableOpacity 
+                style={[styles.addBtn, savingNote && styles.disabledBtn]} 
+                onPress={handleCreateNote}
+                disabled={savingNote}
+              >
+                {savingNote ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Plus size={20} color="#fff" strokeWidth={2} />
+                    <Text style={styles.addBtnText}>Post Note</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         );
 
         const renderWaitlistSection = () => {
@@ -393,7 +545,7 @@ export default function AdminDashboard() {
           <View style={styles.controlGroup}>
             <IconFilter size={16} color="#64748b" />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-              {['All', ...FLOORPLAN_OPTIONS].map((option) => (
+              {['All', ...FLOORPLAN_OPTIONS.filter(o => o !== 'Any of the above')].map((option) => (
                 <TouchableOpacity
                   key={option}
                   style={[styles.filterChip, waitlistFilter === option && styles.activeFilterChip]}
@@ -1002,6 +1154,10 @@ export default function AdminDashboard() {
     } finally {
       setSavingAd(false);
     }
+  };
+
+  const toggleAdDetails = (id: string) => {
+    setExpandedAdId(expandedAdId === id ? null : id);
   };
 
   const handleDeleteAd = async (id: string) => {
@@ -1664,9 +1820,10 @@ export default function AdminDashboard() {
           {activeTab === 'pending' && renderRequestsTab()}
           {activeTab === 'members' && renderMembersTab()}
           {activeTab === 'rejected' && renderRejectedTab()}
-          
-          {renderWaitlistSection()}
 
+          {renderNotesSection()}
+
+          {renderWaitlistSection()}
           {/* Engagement & Gamification Settings */}
           <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -1992,14 +2149,65 @@ export default function AdminDashboard() {
                 <Text style={styles.emptyText}>No advertisements yet.</Text>
               ) : (
                 adminAds.map((ad) => (
-                  <View key={ad.id} style={styles.positionItem}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.positionTitle}>{ad.business_name}</Text>
-                      <Text style={styles.positionDesc}>{ad.industry} • {ad.website_url}</Text>
+                  <View key={ad.id}>
+                    <View style={styles.positionItem}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.positionTitle}>{ad.business_name}</Text>
+                        <Text style={styles.positionDesc}>{ad.industry}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <TouchableOpacity 
+                          onPress={() => toggleAdDetails(ad.id)}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                          {expandedAdId === ad.id ? (
+                            <ChevronUp size={20} color="#1193d4" strokeWidth={2} />
+                          ) : (
+                            <ChevronDown size={20} color="#1193d4" strokeWidth={2} />
+                          )}
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          onPress={() => handleDeleteAd(ad.id)}
+                          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                          <Trash2 size={20} color="#ef4444" strokeWidth={2} />
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                    <TouchableOpacity onPress={() => handleDeleteAd(ad.id)}>
-                      <Trash2 size={20} color="#ef4444" strokeWidth={2} />
-                    </TouchableOpacity>
+                    {expandedAdId === ad.id && (
+                      <View style={styles.adDetailsContainer}>
+                        <View style={styles.adDetailRow}>
+                          <Text style={styles.adDetailLabel}>Business Name:</Text>
+                          <Text style={styles.adDetailText}>{ad.business_name}</Text>
+                        </View>
+                        <View style={styles.adDetailRow}>
+                          <Text style={styles.adDetailLabel}>Industry:</Text>
+                          <Text style={styles.adDetailText}>{ad.industry || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.adDetailRow}>
+                          <Text style={styles.adDetailLabel}>Address:</Text>
+                          <Text style={styles.adDetailText}>{ad.address || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.adDetailRow}>
+                          <Text style={styles.adDetailLabel}>Contact Info:</Text>
+                          <Text style={styles.adDetailText}>{ad.contact_info || 'N/A'}</Text>
+                        </View>
+                        <View style={styles.adDetailRow}>
+                          <Text style={styles.adDetailLabel}>Website URL:</Text>
+                          <Text style={styles.adDetailText}>{ad.website_url || 'N/A'}</Text>
+                        </View>
+                        {ad.image_url && (
+                          <View style={styles.adDetailImageContainer}>
+                            <Text style={styles.adDetailLabel}>Advertisement Image:</Text>
+                            <Image 
+                              source={{ uri: ad.image_url }} 
+                              style={styles.adDetailImagePreview} 
+                              resizeMode="contain" 
+                            />
+                          </View>
+                        )}
+                      </View>
+                    )}
                   </View>
                 ))
               )}
@@ -2702,5 +2910,43 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Manrope-Bold',
     overflow: 'hidden',
+  },
+  adDetailsContainer: {
+    backgroundColor: '#f8fafc',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  adDetailRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
+  adDetailLabel: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 13,
+    color: '#64748b',
+    width: 110,
+  },
+  adDetailText: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 13,
+    color: '#1e293b',
+    flex: 1,
+  },
+  adDetailImageContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e2e8f0',
+  },
+  adDetailImagePreview: {
+    width: '100%',
+    height: 200,
+    marginTop: 8,
+    borderRadius: 4,
+    backgroundColor: '#fff',
   },
 });

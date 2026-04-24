@@ -17,14 +17,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
 
 export default function ForumThread() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
-  const { handleAuthError } = useAuth();
+  const { handleAuthError } = useAuthStore();
 
   const [thread, setThread] = useState<any>(null);
   const [replies, setReplies] = useState<any[]>([]);

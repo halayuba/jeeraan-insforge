@@ -17,14 +17,14 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 
 import { insforge } from '../../lib/insforge';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 import { LevelBadge } from '../../components/LevelBadge';
 import { useToast } from '../../contexts/ToastContext';
 import { SpinWheel } from '../../components/SpinWheel';
 
 export default function Leaderboard() {
   const router = useRouter();
-  const { user, neighborhoodId, userRole, handleAuthError, refreshAuth } = useAuth();
+  const { user, neighborhoodId, userRole, handleAuthError, refreshAuth } = useAuthStore();
   const { showToast } = useToast();
   
   const [activeTab, setActiveTab] = useState<'activities' | 'neighbors'>('activities');
@@ -152,8 +152,10 @@ export default function Leaderboard() {
     setSpinLoading(true);
     try {
       const { data, error } = await insforge.functions.invoke('spin-wheel', {
-        userId: user.id,
-        neighborhoodId: neighborhoodId
+        body: {
+          userId: user.id,
+          neighborhoodId: neighborhoodId
+        }
       });
       
       if (error) throw error;

@@ -15,13 +15,13 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 const TABS = ['Upcoming', 'Past', 'Ongoing'];
 
 export default function EventsIndex() {
   const router = useRouter();
-  const { refreshAuth, handleAuthError } = useAuth();
+  const { refreshAuth, handleAuthError } = useAuthStore();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

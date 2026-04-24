@@ -36,7 +36,7 @@ import {
 import { useRouter } from 'expo-router';
 
 import * as ImagePicker from 'expo-image-picker';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 import { insforge } from '../../lib/insforge';
 import { useToast } from '../../contexts/ToastContext';
 import { 
@@ -56,7 +56,7 @@ type SocialLinks = {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { session, signOut, neighborhoodId, userRole } = useAuth();
+  const { session, signOut, neighborhoodId, userRole, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
@@ -99,11 +99,17 @@ export default function ProfileScreen() {
         .eq('neighborhood_id', neighborhoodId)
         .maybeSingle();
 
+      if (error) {
+        handleAuthError(error);
+        return;
+      }
+
       if (data) {
         setGamificationSettings(data);
       }
     } catch (err) {
       console.error('Error fetching gamification settings:', err);
+      handleAuthError(err);
     }
   };
 
@@ -115,7 +121,10 @@ export default function ProfileScreen() {
         .eq('user_id', session?.user?.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        return;
+      }
 
       if (data) {
         setProfile(data);
@@ -131,6 +140,7 @@ export default function ProfileScreen() {
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
+      handleAuthError(err);
       showToast('Failed to load profile', 'error');
     }
   };
@@ -167,7 +177,10 @@ export default function ProfileScreen() {
         .from('avatars')
         .upload(fileName, blob);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        handleAuthError(uploadError);
+        throw uploadError;
+      }
 
       const publicUrlData = insforge.storage
         .from('avatars')
@@ -180,12 +193,16 @@ export default function ProfileScreen() {
         .update({ avatar_url: newAvatarUrl })
         .eq('user_id', session?.user?.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        handleAuthError(updateError);
+        throw updateError;
+      }
 
       setAvatarUrl(newAvatarUrl);
       showToast('Profile picture updated');
     } catch (err) {
       console.error('Error uploading image:', err);
+      handleAuthError(err);
       showToast('Failed to upload image', 'error');
     } finally {
       setSaving(false);
@@ -210,10 +227,14 @@ export default function ProfileScreen() {
         })
         .eq('user_id', session?.user?.id);
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       showToast('Profile updated successfully');
     } catch (err) {
       console.error('Error saving profile:', err);
+      handleAuthError(err);
       showToast('Failed to update profile', 'error');
     } finally {
       setSaving(false);
@@ -247,7 +268,7 @@ export default function ProfileScreen() {
       return;
     }
     try {
-      const { error } = await insforge.auth.resetPassword(email);
+      const { error } = await (insforge.auth as any).resetPassword(email);
       if (error) throw error;
       showToast('Password reset code sent to your email');
     } catch (err) {
@@ -294,7 +315,7 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               setSaving(true);
-              const { error } = await insforge.auth.deleteAccount();
+              const { error } = await (insforge.auth as any).deleteAccount();
               if (error) throw error;
               
               await signOut();

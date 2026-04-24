@@ -16,12 +16,12 @@ import {
 import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 
 export default function QuestionSubmit() {
   const router = useRouter();
-  const { user, neighborhoodId, handleAuthError } = useAuth();
+  const { user, neighborhoodId, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
   const [questionText, setQuestionText] = useState('');
   const [loading, setLoading] = useState(false);

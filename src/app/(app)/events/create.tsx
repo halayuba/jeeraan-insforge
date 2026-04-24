@@ -18,13 +18,13 @@ import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
 import { useToast } from '../../../contexts/ToastContext';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { checkDailyLimit } from '../../../lib/rateLimit';
 
 export default function CreateEvent() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth, handleAuthError } = useAuth();
+  const { refreshAuth, handleAuthError } = useAuthStore();
 
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');

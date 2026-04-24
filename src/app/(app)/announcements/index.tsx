@@ -8,6 +8,7 @@ import {
   Shield,
   ShieldAlert,
   Wrench,
+  User,
 } from 'lucide-react-native'
 
 import { useFocusEffect, useRouter } from 'expo-router'
@@ -24,14 +25,14 @@ import {
   View,
 } from 'react-native'
 
-import { useAuth } from '../../../contexts/AuthContext'
+import { useAuthStore } from '../../../store/useAuthStore'
 import { insforge } from '../../../lib/insforge'
 
 const FILTER_OPTIONS = ['Year', 'Month', 'Category', 'Status']
 
 export default function AnnouncementsIndex() {
   const router = useRouter()
-  const { handleAuthError, neighborhoodId, userRole } = useAuth()
+  const { handleAuthError, neighborhoodId, userRole } = useAuthStore()
   const [announcements, setAnnouncements] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -254,8 +255,8 @@ export default function AnnouncementsIndex() {
                 )}
                 <View style={styles.cardFooter}>
                   <View style={styles.authorContainer}>
-                    <View style={styles.catIconContainer}>
-                      <CategoryIcon size={14} color="#1193d4" strokeWidth={2} />
+                    <View style={styles.authorIconContainer}>
+                      <User size={14} color="#1193d4" strokeWidth={2} />
                     </View>
                     <Text style={styles.authorName}>
                       {announcement.author?.full_name || 'Admin Team'}

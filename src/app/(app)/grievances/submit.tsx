@@ -17,7 +17,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit } from '../../../lib/rateLimit';
 
@@ -29,7 +29,7 @@ const CATEGORIES = [
 
 export default function SubmitGrievance() {
   const router = useRouter();
-  const { handleAuthError, neighborhoodId } = useAuth();
+  const { handleAuthError, neighborhoodId } = useAuthStore();
   const { showToast } = useToast();
   
   const [category, setCategory] = useState(CATEGORIES[0].id);

@@ -21,12 +21,12 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
-import { useAuth } from '../../../contexts/AuthContext';
+import { useAuthStore } from '../../../store/useAuthStore';
 
 export default function AnnouncementDetails() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { handleAuthError } = useAuth();
+  const { handleAuthError } = useAuthStore();
   
   const [announcement, setAnnouncement] = useState<any>(null);
   const [loading, setLoading] = useState(true);

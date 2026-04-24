@@ -17,12 +17,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../store/useAuthStore';
 import { insforge } from '../../lib/insforge';
 
 export default function AdminSignInScreen() {
   const router = useRouter();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
