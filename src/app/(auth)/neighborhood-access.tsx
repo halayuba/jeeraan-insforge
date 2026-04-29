@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -44,6 +45,10 @@ export default function NeighborhoodAccess() {
   const [isPublic, setIsPublic] = useState(true)
   const [submittingRequest, setSubmittingRequest] = useState(false)
 
+  // Early Access Modal State
+  const [showEarlyAccessModal, setShowEarlyAccessModal] = useState(false)
+  const [earlyAccessChecked, setEarlyAccessChecked] = useState(false)
+
   // Waitlist State
   const [waitlistName, setWaitlistName] = useState('')
   const [waitlistPhone, setWaitlistPhone] = useState('')
@@ -76,8 +81,19 @@ export default function NeighborhoodAccess() {
     }
   }
 
-  const toggleSection = (section: 'invite' | 'request') => {
+  const toggleSection = (section: 'invite' | 'request' | 'waitlist') => {
     setExpandedSection(expandedSection === section ? null : section)
+  }
+
+  const handleProceedEarlyAccess = () => {
+    setShowEarlyAccessModal(false)
+    // Once acknowledged and proceeded, perform the actual submission
+    performJoinRequestSubmission()
+  }
+
+  const handleCancelEarlyAccess = () => {
+    setShowEarlyAccessModal(false)
+    setEarlyAccessChecked(false)
   }
 
   const handleJoinViaCode = async () => {
@@ -117,7 +133,7 @@ export default function NeighborhoodAccess() {
     }
   }
 
-  const handleRequestToJoin = async () => {
+  const handleRequestToJoin = () => {
     if (!fullName || !phone || !email || !address) {
       Alert.alert('Error', 'Please enter your full name, phone number, email, and address.')
       return
@@ -134,6 +150,11 @@ export default function NeighborhoodAccess() {
       return
     }
 
+    // Show disclaimer modal before actual submission
+    setShowEarlyAccessModal(true)
+  }
+
+  const performJoinRequestSubmission = async () => {
     setSubmittingRequest(true)
     try {
       // 1. Check for existing pending join request by phone
@@ -603,7 +624,7 @@ export default function NeighborhoodAccess() {
                 expandedSection === 'waitlist' && styles.accordionHeaderActive,
                 { marginTop: 12 },
               ]}
-              onPress={() => setExpandedSection(expandedSection === 'waitlist' ? null : 'waitlist')}
+              onPress={() => toggleSection('waitlist')}
               activeOpacity={0.7}
             >
               <View style={styles.accordionTitleContainer}>
@@ -752,6 +773,66 @@ export default function NeighborhoodAccess() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Early Access Disclaimer Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showEarlyAccessModal}
+        onRequestClose={handleCancelEarlyAccess}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Technical Preview</Text>
+            <Text style={styles.modalBody}>
+              Today we're sharing an early version of what the next version of Jeeraan will look like as a technical preview. It's very early, but we get the best feedback when we work in public.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => setEarlyAccessChecked(!earlyAccessChecked)}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  earlyAccessChecked && styles.checkboxChecked,
+                ]}
+              >
+                {earlyAccessChecked && (
+                  <Check size={16} color="#fff" strokeWidth={2} />
+                )}
+              </View>
+              <Text style={styles.modalCheckboxLabel}>
+                I understand that Jeeraan is not production ready and I would like to proceed
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={handleCancelEarlyAccess}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalButtonCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  styles.modalButtonProceed,
+                  !earlyAccessChecked && styles.disabledButton,
+                ]}
+                onPress={handleProceedEarlyAccess}
+                disabled={!earlyAccessChecked}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.modalButtonProceedText}>Proceed</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -1011,5 +1092,78 @@ const styles = StyleSheet.create({
   floorplanOptionTextSelected: {
     color: '#0f172a',
     fontFamily: 'Manrope-SemiBold',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 420,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Manrope-Bold',
+    color: '#0f172a',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalBody: {
+    fontSize: 15,
+    fontFamily: 'Manrope-Regular',
+    color: '#475569',
+    lineHeight: 22,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalCheckboxLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: 'Manrope-Medium',
+    color: '#334155',
+    lineHeight: 20,
+  },
+  modalButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 24,
+  },
+  modalButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  modalButtonCancelText: {
+    color: '#64748b',
+    fontSize: 16,
+    fontFamily: 'Manrope-Bold',
+  },
+  modalButtonProceed: {
+    backgroundColor: '#1193d4',
+  },
+  modalButtonProceedText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'Manrope-Bold',
   },
 })

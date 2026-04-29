@@ -112,6 +112,17 @@ describe('NeighborhoodAccess - Waitlist Form', () => {
     const submitBtn = getByText('Submit Request');
     fireEvent.press(submitBtn);
 
+    // Expect Technical Preview modal to appear
+    await waitFor(() => {
+      expect(getByText('Technical Preview')).toBeTruthy();
+    });
+
+    // Accept the disclaimer
+    fireEvent.press(getByText('I understand that Jeeraan is not production ready and I would like to proceed'));
+    
+    // Press Proceed in the modal
+    fireEvent.press(getByText('Proceed'));
+
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalledWith(
         'Thank you! Your request has been submitted successfully. It will be reviewed by an admin within 24 hours.',
