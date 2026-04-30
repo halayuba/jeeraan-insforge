@@ -120,7 +120,7 @@ export default function ProfileScreen() {
         .from('user_profiles')
         .select('*')
         .eq('user_id', session?.user?.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         handleAuthError(error);
@@ -143,6 +143,10 @@ export default function ProfileScreen() {
         
         setIsVisible(data.is_visible ?? true);
         setSocialLinks(data.social_links || {});
+      } else {
+        // If no profile exists yet, we can initialize with some defaults if needed
+        // but the upsert in handleSave will create it anyway
+        console.log('No profile found for user, will be created on first save');
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -192,8 +196,11 @@ export default function ProfileScreen() {
 
       const { error: updateError } = await insforge.database
         .from('user_profiles')
-        .update({ avatar_url: newAvatarUrl })
-        .eq('user_id', session.user.id);
+        .upsert({ 
+          user_id: session.user.id,
+          avatar_url: newAvatarUrl,
+          updated_at: new Date().toISOString()
+        });
 
       if (updateError) {
         handleAuthError(updateError);
@@ -213,32 +220,55 @@ export default function ProfileScreen() {
   };
 
   const handleSave = async () => {
+    if (!session?.user?.id) {
+      showToast('You must be signed in to save changes', 'error');
+      return;
+    }
+
     setSaving(true);
     try {
-      const { error } = await insforge.database
+      const updateData = {
+        user_id: session.user.id,
+        gender,
+        email,
+        phone,
+        birthday: birthday || null,
+        language,
+        work_title: workTitle,
+        is_visible: isVisible,
+        social_links: socialLinks,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { data, error } = await insforge.database
         .from('user_profiles')
-        .update({
-          gender,
-          email,
-          phone,
-          birthday: birthday || null,
-          language,
-          work_title: workTitle,
-          is_visible: isVisible,
-          social_links: socialLinks,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', session?.user?.id);
+        .upsert(updateData)
+        .select()
+        .single();
 
       if (error) {
         handleAuthError(error);
         throw error;
       }
+
+      if (data) {
+        setProfile(data);
+        // Refresh local states with confirmed data from server
+        setGender(data.gender || '');
+        setEmail(data.email || '');
+        setPhone(data.phone || '');
+        setBirthday(data.birthday || '');
+        setLanguage(data.language || '');
+        setWorkTitle(data.work_title || '');
+        setIsVisible(data.is_visible ?? true);
+        setSocialLinks(data.social_links || {});
+      }
+
       showToast('Profile updated successfully');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving profile:', err);
       handleAuthError(err);
-      showToast('Failed to update profile', 'error');
+      showToast(err.message || 'Failed to update profile', 'error');
     } finally {
       setSaving(false);
     }
@@ -292,8 +322,11 @@ export default function ProfileScreen() {
             try {
               const { error } = await insforge.database
                 .from('user_profiles')
-                .update({ is_active: false })
-                .eq('user_id', session?.user?.id);
+                .upsert({ 
+                  user_id: session?.user?.id,
+                  is_active: false,
+                  updated_at: new Date().toISOString()
+                });
               if (error) throw error;
               await signOut();
               router.replace('/(auth)/sign-in');

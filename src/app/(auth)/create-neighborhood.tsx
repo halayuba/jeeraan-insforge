@@ -104,8 +104,11 @@ export default function CreateNeighborhoodScreen() {
     // For existing super admins, we use fullName if they provided it, or skip
     if (fullName) {
       await insforge.database.from('user_profiles')
-        .update({ full_name: fullName })
-        .eq('user_id', userId);
+        .upsert({ 
+          user_id: userId,
+          full_name: fullName,
+          updated_at: new Date().toISOString()
+        });
     }
 
     // 3. Link the user to the new neighborhood as 'admin'
