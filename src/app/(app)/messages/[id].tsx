@@ -18,6 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
 import { insforge } from '../../../lib/insforge';
+import { uploadImage as uploadImageUtil } from '../../../lib/upload';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { MemberName } from '../../../components/MemberName';
@@ -105,13 +106,15 @@ export default function MessageThread() {
       mediaTypes: ['images'],
       allowsEditing: true,
       quality: 0.8,
+      base64: true,
     });
 
     if (!result.canceled) {
       setAttachment({
         uri: result.assets[0].uri,
         type: 'image',
-        name: result.assets[0].fileName || `image-${Date.now()}.jpg`
+        name: result.assets[0].fileName || `image-${Date.now()}.jpg`,
+        base64: result.assets[0].base64 || undefined
       });
     }
   };
@@ -131,20 +134,24 @@ export default function MessageThread() {
   };
 
   const uploadAttachment = async () => {
-    if (!attachment) return null;
+    if (!attachment || !user || !neighborhoodId) return null;
 
     try {
-      const fileResponse = await fetch(attachment.uri);
-      const blob = await fileResponse.blob();
-      const ext = attachment.name.split('.').pop();
-      const fileKey = `${user?.id}/${Date.now()}.${ext}`;
+      const { url, error } = await uploadImageUtil(attachment.uri, {
+        bucketName: 'message-attachments',
+        folderPath: user.id,
+        userId: user.id,
+        neighborhoodId: neighborhoodId,
+        serviceType: 'message_attachment',
+        maxLimit: 20, // Higher limit for messages
+        base64: (attachment as any).base64
+      });
 
-      const { data, error } = await insforge.storage
-        .from('message-attachments')
-        .upload(fileKey, blob);
-
-      if (error) throw error;
-      return data?.url;
+      if (error) {
+        showToast(error, 'error');
+        return null;
+      }
+      return url;
     } catch (err) {
       console.error('Upload error:', err);
       throw new Error('Failed to upload attachment');

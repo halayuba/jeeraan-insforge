@@ -20,6 +20,7 @@ import { decode } from 'base64-arraybuffer';
 import { useStripe } from '../../../lib/stripe';
 
 import { insforge } from '../../../lib/insforge';
+import { uploadImage as uploadImageUtil } from '../../../lib/upload';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { checkDailyLimit } from '../../../lib/rateLimit';
@@ -98,16 +99,21 @@ export default function CreateClassifiedAd() {
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.7,
+        base64: true,
       });
 
       if (!result.canceled) {
         setImageUri(result.assets[0].uri);
+        setImageBase64(result.assets[0].base64 || null);
       }
     } catch (err) {
       console.error('Image picking failed:', err);
-      showToast('Failed to pick image.', 'error');
+      Alert.alert('Error', 'Failed to pick image.');
     }
   };
+
+  // Add state for base64
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!title.trim() || !price.trim() || !contactInfo.trim()) {
@@ -150,24 +156,22 @@ export default function CreateClassifiedAd() {
       }
 
       // 2. Upload Image if present
-      if (imageUri) {
-        let fileExt = 'jpg';
-        if (imageUri.includes('.') && !imageUri.startsWith('blob:') && !imageUri.startsWith('data:')) {
-          fileExt = imageUri.split('.').pop()?.split('?')[0] || 'jpg';
-        }
-        
-        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-        const filePath = `classifieds/${fileName}`;
-        
-        const fileResponse = await fetch(imageUri);
-        const blob = await fileResponse.blob();
-        
-        const { data: uploadData, error: uploadError } = await insforge.storage
-          .from('classified-media')
-          .upload(filePath, blob);
+      if (imageUri && user?.id) {
+        const { url: newImageUrl, error: uploadError } = await uploadImageUtil(imageUri, {
+          bucketName: 'classified-media',
+          folderPath: 'classifieds',
+          userId: user.id,
+          neighborhoodId: neighborhoodId!,
+          serviceType: 'classified_ad',
+          base64: imageBase64 || undefined
+        });
 
-        if (uploadError) throw uploadError;
-        uploadedImageUrl = uploadData?.url;
+        if (uploadError) {
+          showToast(uploadError, 'error');
+          setSubmitting(false);
+          return;
+        }
+        uploadedImageUrl = newImageUrl;
       }
 
       // 3. Handle Payment if fee > 0

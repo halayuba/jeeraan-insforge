@@ -26,18 +26,19 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
-  Image,
   TextInput,
   ActivityIndicator,
   Alert,
   Platform,
   Switch,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 
 import * as ImagePicker from 'expo-image-picker';
 import { useAuthStore } from '../../store/useAuthStore';
 import { insforge } from '../../lib/insforge';
+import { uploadImage as uploadImageUtil } from '../../lib/upload';
 import { useToast } from '../../contexts/ToastContext';
 import { 
   IconBrandInstagram, 
@@ -134,7 +135,12 @@ export default function ProfileScreen() {
         setBirthday(data.birthday || '');
         setLanguage(data.language || '');
         setWorkTitle(data.work_title || '');
-        setAvatarUrl(data.avatar_url || '');
+        
+        // Filter out invalid URLs that might have been saved due to previous bugs
+        const savedUrl = data.avatar_url;
+        const isValidUrl = savedUrl && typeof savedUrl === 'string' && savedUrl.startsWith('http') && savedUrl !== '[object Object]';
+        setAvatarUrl(isValidUrl ? savedUrl : '');
+        
         setIsVisible(data.is_visible ?? true);
         setSocialLinks(data.social_links || {});
       }
@@ -157,41 +163,37 @@ export default function ProfileScreen() {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
+      base64: true,
     });
 
     if (!result.canceled) {
-      uploadImage(result.assets[0].uri);
+      uploadImage(result.assets[0].uri, result.assets[0].base64 || undefined);
     }
   };
 
-  const uploadImage = async (uri: string) => {
+  const uploadImage = async (uri: string, base64?: string) => {
+    if (!session?.user?.id || !neighborhoodId) return;
+
     setSaving(true);
     try {
-      const ext = uri.split('.').pop();
-      const fileName = `${session?.user?.id}-${Date.now()}.${ext}`;
-      
-      const fileResponse = await fetch(uri);
-      const blob = await fileResponse.blob();
-
-      const { error: uploadError } = await insforge.storage
-        .from('avatars')
-        .upload(fileName, blob);
+      const { url: newAvatarUrl, error: uploadError } = await uploadImageUtil(uri, {
+        bucketName: 'avatars',
+        oldImageUrl: avatarUrl,
+        userId: session.user.id,
+        neighborhoodId: neighborhoodId,
+        serviceType: 'profile_picture',
+        base64: base64
+      });
 
       if (uploadError) {
-        handleAuthError(uploadError);
-        throw uploadError;
+        showToast(uploadError, 'error');
+        return;
       }
 
-      const publicUrlData = insforge.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      const newAvatarUrl = publicUrlData as unknown as string;
-      
       const { error: updateError } = await insforge.database
         .from('user_profiles')
         .update({ avatar_url: newAvatarUrl })
-        .eq('user_id', session?.user?.id);
+        .eq('user_id', session.user.id);
 
       if (updateError) {
         handleAuthError(updateError);
@@ -199,11 +201,12 @@ export default function ProfileScreen() {
       }
 
       setAvatarUrl(newAvatarUrl);
+      setProfile((prev: any) => prev ? ({ ...prev, avatar_url: newAvatarUrl }) : null);
       showToast('Profile picture updated');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error uploading image:', err);
       handleAuthError(err);
-      showToast('Failed to upload image', 'error');
+      showToast(err.message || 'Failed to upload image', 'error');
     } finally {
       setSaving(false);
     }
@@ -358,7 +361,12 @@ export default function ProfileScreen() {
         <View style={styles.profileHeaderCard}>
           <TouchableOpacity onPress={handlePickImage} style={styles.avatarWrapper}>
             {avatarUrl ? (
-              <Image source={{ uri: avatarUrl }} style={styles.mainAvatar} />
+              <Image 
+                source={{ uri: avatarUrl }} 
+                style={styles.mainAvatar} 
+                contentFit="cover"
+                transition={200}
+              />
             ) : (
               <View style={[styles.mainAvatar, styles.avatarPlaceholder]}>
                 <Text style={styles.avatarInitial}>{profile?.full_name?.charAt(0).toUpperCase()}</Text>
@@ -502,7 +510,7 @@ export default function ProfileScreen() {
             <View style={styles.inputRow}>
               <IconBrandInstagram size={22} color="#E1306C" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={[styles.textInput, { paddingTop: 12 }]}
+                style={styles.textInput}
                 value={socialLinks.instagram}
                 onChangeText={(val) => updateSocialLink('instagram', val)}
                 placeholder="Instagram username"
@@ -512,7 +520,7 @@ export default function ProfileScreen() {
             <View style={styles.inputRow}>
               <IconBrandX size={22} color="#000000" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={[styles.textInput, { paddingTop: 12 }]}
+                style={styles.textInput}
                 value={socialLinks.x}
                 onChangeText={(val) => updateSocialLink('x', val)}
                 placeholder="X handle"
@@ -522,7 +530,7 @@ export default function ProfileScreen() {
             <View style={styles.inputRow}>
               <IconBrandLinkedin size={22} color="#0077B5" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={[styles.textInput, { paddingTop: 12 }]}
+                style={styles.textInput}
                 value={socialLinks.linkedin}
                 onChangeText={(val) => updateSocialLink('linkedin', val)}
                 placeholder="LinkedIn profile URL"
@@ -532,7 +540,7 @@ export default function ProfileScreen() {
             <View style={styles.inputRow}>
               <IconBrandFacebook size={22} color="#1877F2" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={[styles.textInput, { paddingTop: 12 }]}
+                style={styles.textInput}
                 value={socialLinks.facebook}
                 onChangeText={(val) => updateSocialLink('facebook', val)}
                 placeholder="Facebook profile URL"
@@ -542,7 +550,7 @@ export default function ProfileScreen() {
             <View style={[styles.inputRow, { borderBottomWidth: 0 }]}>
               <Globe size={22} color="#64748b" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={[styles.textInput, { paddingTop: 12 }]}
+                style={styles.textInput}
                 value={socialLinks.website}
                 onChangeText={(val) => updateSocialLink('website', val)}
                 placeholder="Personal website URL"
@@ -812,7 +820,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
     color: '#1e293b',
     padding: 0,
-    height: 24,
+    height: 40,
   },
   managementText: {
     fontSize: 15,

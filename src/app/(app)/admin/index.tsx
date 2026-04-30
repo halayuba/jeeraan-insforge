@@ -18,9 +18,13 @@ export default function AdminDashboard() {
   const [rejectedRequests, setRejectedRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeMembersCount, setActiveMembersCount] = useState(0);
-  const [activeTab, setActiveTab] = useState<'pending' | 'members' | 'rejected'>('pending');
+  const [activeTab, setActiveTab] = useState<'pending' | 'members' | 'rejected' | 'moderation'>('pending');
   const [neighborhood, setNeighborhood] = useState<any>(null);
   
+  // Moderation Management State
+  const [moderationQueue, setModerationQueue] = useState<any[]>([]);
+  const [loadingModeration, setLoadingModeration] = useState(false);
+
   // Member Management State
   const [allMembers, setAllMembers] = useState<any[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
@@ -448,8 +452,8 @@ export default function AdminDashboard() {
         fetchReportedAds();
         fetchWaitlistRequests();
         fetchAdminNotes();
-        }
-        if (globalRole === 'super_admin' && neighborhoodId) {
+        fetchModerationQueue();
+        }        if (globalRole === 'super_admin' && neighborhoodId) {
           fetchElectionInfo();
           fetchBoardPositions();
           fetchPolls();
@@ -1442,6 +1446,54 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchModerationQueue = async () => {
+    if (!neighborhoodId) return;
+    setLoadingModeration(true);
+    try {
+      const { data, error } = await insforge.database
+        .from('image_moderation_queue')
+        .select(`
+          *,
+          user:user_profiles!user_id(full_name)
+        `)
+        .eq('neighborhood_id', neighborhoodId)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setModerationQueue(data || []);
+    } catch (err) {
+      console.error('Failed to load moderation queue', err);
+    } finally {
+      setLoadingModeration(false);
+    }
+  };
+
+  const handleModerateImage = async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      // 1. Update moderation entry
+      const { error } = await insforge.database
+        .from('image_moderation_queue')
+        .update({ 
+          status, 
+          moderated_at: new Date().toISOString()
+          // Note: moderated_by handled by database triggers or added if needed
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      // 2. Perform the actual action based on status (e.g., if rejected, we might want to flag/remove the source)
+      // For now, we just update the queue status as requested.
+      
+      setModerationQueue(moderationQueue.filter(m => m.id !== id));
+      Alert.alert('Success', `Image ${status}`);
+    } catch (err) {
+      console.error('Failed to moderate image', err);
+      Alert.alert('Error', 'Failed to update moderation status');
+    }
+  };
+
   const fetchRequests = async () => {
     setLoading(true);
     try {
@@ -1723,6 +1775,55 @@ export default function AdminDashboard() {
     );
   };
 
+  const renderModerationTab = () => {
+    if (loadingModeration) {
+      return <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />;
+    }
+
+    if (moderationQueue.length === 0) {
+      return <Text style={styles.emptyText}>No pending images for moderation.</Text>;
+    }
+
+    return (
+      <View style={styles.requestsContainer}>
+        {moderationQueue.map((item) => (
+          <View key={item.id} style={styles.requestRowExtended}>
+            <View style={styles.requestInfo}>
+              <View style={styles.requestMainInfo}>
+                <Text style={styles.requestName}>{item.user?.full_name || 'Resident'}</Text>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{item.service_type.replace('_', ' ').toUpperCase()}</Text>
+                </View>
+              </View>
+              <Text style={styles.requestDetail}>Uploaded: {new Date(item.created_at).toLocaleString()}</Text>
+              
+              <Image 
+                source={{ uri: item.image_url }} 
+                style={{ width: '100%', height: 200, borderRadius: 12, marginTop: 12 }} 
+                resizeMode="cover" 
+              />
+              
+              <View style={[styles.actionGroup, { marginTop: 16 }]}>
+                <TouchableOpacity 
+                  style={styles.declineBtn} 
+                  onPress={() => handleModerateImage(item.id, 'rejected')}
+                >
+                  <Text style={styles.declineText}>Reject</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.approveBtn} 
+                  onPress={() => handleModerateImage(item.id, 'approved')}
+                >
+                  <Text style={styles.approveText}>Approve</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -1815,11 +1916,23 @@ export default function AdminDashboard() {
             >
               <Text style={[styles.tabText, activeTab === 'rejected' && styles.activeTabText]}>Rejected</Text>
             </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.tabButton, activeTab === 'moderation' && styles.activeTabButton]} 
+              onPress={() => setActiveTab('moderation')}
+            >
+              <Text style={[styles.tabText, activeTab === 'moderation' && styles.activeTabText]}>Moderation</Text>
+              {moderationQueue.length > 0 && (
+                <View style={styles.miniBadge}>
+                  <Text style={styles.miniBadgeText}>{moderationQueue.length}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
 
           {activeTab === 'pending' && renderRequestsTab()}
           {activeTab === 'members' && renderMembersTab()}
           {activeTab === 'rejected' && renderRejectedTab()}
+          {activeTab === 'moderation' && renderModerationTab()}
 
           {renderNotesSection()}
 
@@ -2465,6 +2578,22 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#1193d4',
+  },
+  miniBadge: {
+    position: 'absolute',
+    top: -4,
+    right: 4,
+    backgroundColor: '#ef4444',
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontFamily: 'Manrope-Bold',
   },
   requestName: {
     fontFamily: 'Manrope-Bold',

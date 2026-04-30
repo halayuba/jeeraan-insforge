@@ -17,6 +17,7 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
 import { insforge } from '../../../lib/insforge';
+import { uploadImage as uploadImageUtil } from '../../../lib/upload';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit } from '../../../lib/rateLimit';
@@ -73,31 +74,27 @@ export default function SubmitGrievance() {
     if (images.length === 0) return [];
     
     const imageUrls: string[] = [];
+    const { user, neighborhoodId } = useAuthStore.getState();
+    if (!user || !neighborhoodId) return [];
     
     for (const img of images) {
       try {
-        if (!img.base64) continue;
-        
-        const ext = img.uri.split('.').pop() || 'jpg';
-        const fileKey = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-        
-        const fileResponse = await fetch(img.uri);
-        const blob = await fileResponse.blob();
+        const { url, error } = await uploadImageUtil(img.uri, {
+          bucketName: 'grievance-images',
+          userId: user.id,
+          neighborhoodId: neighborhoodId,
+          serviceType: 'grievance',
+          maxLimit: 10,
+          base64: img.base64 || undefined
+        });
 
-        const { error: uploadError } = await insforge.storage
-          .from('grievance-images')
-          .upload(fileKey, blob);
-          
-        if (uploadError) throw uploadError;
-        
-        const publicUrlData = insforge.storage
-          .from('grievance-images')
-          .getPublicUrl(fileKey);
-          
-        imageUrls.push(publicUrlData as unknown as string);
+        if (error) {
+          showToast(error, 'error');
+          continue;
+        }
+        imageUrls.push(url);
       } catch (err) {
         console.error('Error uploading image:', err);
-        // Continue uploading other images even if one fails
       }
     }
     

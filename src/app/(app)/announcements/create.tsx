@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router';
 
 import * as ImagePicker from 'expo-image-picker';
 import { insforge } from '../../../lib/insforge';
+import { uploadImage as uploadImageUtil } from '../../../lib/upload';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { checkDailyLimit } from '../../../lib/rateLimit';
@@ -58,45 +59,42 @@ export default function CreateAnnouncement() {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
+      aspect: [4, 3],
       quality: 0.8,
+      base64: true,
     });
 
     if (!result.canceled) {
-      setImages([...images, ...result.assets]);
+      setImages([...images, result.assets[0]]);
     }
-  };
+    };
 
-  const removeImage = (indexToRemove: number) => {
-    setImages(images.filter((_, index) => index !== indexToRemove));
-  };
+    const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+    };
 
-  const uploadImagesAndGetUrls = async (): Promise<string[]> => {
+    const uploadImagesAndGetUrls = async (): Promise<string[]> => {
     if (images.length === 0) return [];
-    
+
     const imageUrls: string[] = [];
-    
+    const { user, neighborhoodId } = useAuthStore.getState();
+    if (!user || !neighborhoodId) return [];
+
     for (const img of images) {
       try {
-        // Correctly handle file extension extraction, especially for blob/data URLs
-        let ext = 'jpg';
-        if (img.uri.includes('.') && !img.uri.startsWith('blob:') && !img.uri.startsWith('data:')) {
-          ext = img.uri.split('.').pop()?.split('?')[0] || 'jpg';
+        const { url, error } = await uploadImageUtil(img.uri, {
+          bucketName: 'announcement-media',
+          userId: user.id,
+          neighborhoodId: neighborhoodId,
+          serviceType: 'announcement',
+          maxLimit: 10,
+          base64: img.base64 || undefined
+        });
+        if (error) {
+          showToast(error, 'error');
+          continue;
         }
-
-        const fileKey = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
-        
-        // Fetch the file and create a blob to seamlessly upload to InsForge
-        const fileResponse = await fetch(img.uri);
-        const blob = await fileResponse.blob();
-
-        const { data: uploadData, error: uploadError } = await insforge.storage
-          .from('announcement-media')
-          .upload(fileKey, blob);
-          
-        if (uploadError) throw uploadError;
-        if (uploadData?.url) {
-          imageUrls.push(uploadData.url);
-        }
+        imageUrls.push(url);
       } catch (err) {
         console.error('Error uploading image:', err);
       }

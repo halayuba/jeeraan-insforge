@@ -56,6 +56,16 @@ CREATE POLICY "Neighborhood members can see each other's profiles" ON public.use
         )
     );
 
+-- Allow users to update their own profile
+CREATE POLICY "Users can update their own profile" ON public.user_profiles
+    FOR UPDATE USING (auth.uid() = user_id);
+
+-- Super admins can update all profiles
+CREATE POLICY "Super admins can update all profiles" ON public.user_profiles
+    FOR UPDATE USING (
+        (SELECT global_role FROM public.user_profiles WHERE user_id = auth.uid()) = 'super_admin'
+    );
+
 -- Helper to generate random string for anonymous_id
 CREATE OR REPLACE FUNCTION public.generate_anonymous_id()
 RETURNS TEXT AS $$
