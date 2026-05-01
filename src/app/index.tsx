@@ -53,14 +53,32 @@ export default function SplashScreen() {
   const segments = useSegments()
   const { width } = useWindowDimensions()
   const [modalVisible, setModalVisible] = useState(false)
-  const { session, loading } = useAuthStore()
+  const { session, loading, isInitialized } = useAuthStore()
 
   useEffect(() => {
-    const segs = segments as string[];
-    if (!loading && session && (segs.length === 0 || segs[0] === '(app)')) {
-      router.replace('/(app)');
+    if (isInitialized && !loading && session) {
+      const segs = segments as string[];
+      if (segs.length === 0 || segs[0] === '(app)') {
+        router.replace('/(app)' as any);
+      }
     }
-  }, [loading, session, segments, router]);
+  }, [isInitialized, loading, session, segments]);
+
+  if (!isInitialized || (loading && !session)) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f6f7f8' }}>
+        <ActivityIndicator size="large" color="#1193d4" />
+      </View>
+    );
+  }
+
+  if (session) {
+    const segs = segments as string[];
+    if (segs.length === 0 || segs[0] === '(app)') {
+      return <View style={{ flex: 1, backgroundColor: '#f6f7f8' }} />;
+    }
+  }
+
 
   const SLIDE_WIDTH = width * 0.85 - 40 // 85% modal width minus 20 padding each side
 

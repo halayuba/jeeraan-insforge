@@ -2,7 +2,7 @@ import { BarChart3, Bell, HelpCircle, Home, Menu, User } from 'lucide-react-nati
 import { Tabs, useSegments, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LevelBadge } from '../../components/LevelBadge';
 
@@ -31,44 +31,52 @@ function CustomHeader() {
 }
 
 export default function AppLayout() {
-  const { session, loading, userRole, globalRole, neighborhoodId, isBlocked } = useAuthStore();
+  const { session, loading, isInitialized, userRole, globalRole, neighborhoodId, isBlocked } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
+  const isRedirecting = useRef(false);
 
+  // Use segments only for internal checks, NOT as a dependency for the redirect effect
   const currentPath = segments.join('/');
 
   useEffect(() => {
-    if (loading) return;
+    // Wait until auth is fully initialized and NOT currently transitioning
+    if (!isInitialized || loading) return;
+    if (isRedirecting.current) return;
+
+    // Check if we need to redirect
+    let targetPath: string | null = null;
 
     if (!session) {
-      if (currentPath.includes('(app)')) {
-        router.replace('/');
-      }
-      return;
+      targetPath = '/';
+    } else if (isBlocked && currentPath !== '(app)/blocked' && !currentPath.endsWith('/blocked')) {
+      targetPath = '/blocked';
+    } else if (globalRole === 'super_admin' && !neighborhoodId && !currentPath.includes('create-neighborhood')) {
+      targetPath = '/(auth)/create-neighborhood';
     }
 
-    if (isBlocked && currentPath !== '(app)/blocked' && !currentPath.endsWith('/blocked')) {
-      router.replace('/blocked');
-      return;
+    if (targetPath) {
+      isRedirecting.current = true;
+      router.replace(targetPath as any);
+    } else {
+      // Reset guard only if we are in a valid state
+      isRedirecting.current = false;
     }
+  }, [isInitialized, loading, session, isBlocked, globalRole, neighborhoodId]);
 
-    // If super admin has no neighborhood, they must create or join one
-    if (globalRole === 'super_admin' && !neighborhoodId && !currentPath.includes('create-neighborhood')) {
-      router.replace('/(auth)/create-neighborhood');
-    }
-  }, [session, loading, isBlocked, globalRole, neighborhoodId, currentPath, router]);
-
-  if (loading) {
+  if (!isInitialized || loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f6f7f8' }}>
         <ActivityIndicator size="large" color="#1193d4" />
       </View>
     );
   }
 
-  if (!session) {
-    return null;
+  // Final safety check: if we are supposed to be redirecting, don't render children
+  if (!session || (isBlocked && !currentPath.includes('blocked')) || (globalRole === 'super_admin' && !neighborhoodId && !currentPath.includes('create-neighborhood'))) {
+    return <View style={{ flex: 1, backgroundColor: '#f6f7f8' }} />;
   }
+
 
   return (
     <Tabs 

@@ -132,7 +132,15 @@ export default function ProfileScreen() {
         setGender(data.gender || '');
         setEmail(data.email || '');
         setPhone(data.phone || '');
-        setBirthday(data.birthday || '');
+        
+        // Convert YYYY-MM-DD to MM-DD-YYYY for display
+        if (data.birthday && data.birthday.length === 10) {
+          const [year, month, day] = data.birthday.split('-');
+          setBirthday(`${month}-${day}-${year}`);
+        } else {
+          setBirthday(data.birthday || '');
+        }
+
         setLanguage(data.language || '');
         setWorkTitle(data.work_title || '');
         
@@ -219,6 +227,21 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleBirthdayChange = (text: string) => {
+    // Remove any non-numeric characters
+    const cleaned = text.replace(/[^0-9]/g, '');
+    let formatted = cleaned;
+    
+    if (cleaned.length > 2) {
+      formatted = cleaned.slice(0, 2) + '-' + cleaned.slice(2);
+    }
+    if (cleaned.length > 4) {
+      formatted = cleaned.slice(0, 2) + '-' + cleaned.slice(2, 4) + '-' + cleaned.slice(4, 8);
+    }
+    
+    setBirthday(formatted);
+  };
+
   const handleSave = async () => {
     if (!session?.user?.id) {
       showToast('You must be signed in to save changes', 'error');
@@ -227,12 +250,19 @@ export default function ProfileScreen() {
 
     setSaving(true);
     try {
+      // Convert MM-DD-YYYY back to YYYY-MM-DD for database
+      let dbBirthday = null;
+      if (birthday && birthday.length === 10) {
+        const [month, day, year] = birthday.split('-');
+        dbBirthday = `${year}-${month}-${day}`;
+      }
+
       const updateData = {
         user_id: session.user.id,
         gender,
         email,
         phone,
-        birthday: birthday || null,
+        birthday: dbBirthday,
         language,
         work_title: workTitle,
         is_visible: isVisible,
@@ -257,7 +287,15 @@ export default function ProfileScreen() {
         setGender(data.gender || '');
         setEmail(data.email || '');
         setPhone(data.phone || '');
-        setBirthday(data.birthday || '');
+        
+        // Convert back for display
+        if (data.birthday && data.birthday.length === 10) {
+          const [y, m, d] = data.birthday.split('-');
+          setBirthday(`${m}-${d}-${y}`);
+        } else {
+          setBirthday(data.birthday || '');
+        }
+
         setLanguage(data.language || '');
         setWorkTitle(data.work_title || '');
         setIsVisible(data.is_visible ?? true);
@@ -329,7 +367,6 @@ export default function ProfileScreen() {
                 });
               if (error) throw error;
               await signOut();
-              router.replace('/(auth)/sign-in');
             } catch (err) {
               showToast('Action failed', 'error');
             }
@@ -355,7 +392,6 @@ export default function ProfileScreen() {
               if (error) throw error;
               
               await signOut();
-              router.replace('/(auth)/sign-in');
               showToast('Account deleted successfully');
             } catch (err) {
               console.error('Delete error:', err);
@@ -505,8 +541,10 @@ export default function ProfileScreen() {
                 <TextInput
                   style={styles.textInput}
                   value={birthday}
-                  onChangeText={setBirthday}
-                  placeholder="YYYY-MM-DD"
+                  onChangeText={handleBirthdayChange}
+                  placeholder="MM-DD-YYYY"
+                  maxLength={10}
+                  keyboardType="number-pad"
                 />
               </View>
             </View>
@@ -544,7 +582,7 @@ export default function ProfileScreen() {
               <IconBrandInstagram size={22} color="#E1306C" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={styles.textInput}
-                value={socialLinks.instagram}
+                value={socialLinks.instagram || ''}
                 onChangeText={(val) => updateSocialLink('instagram', val)}
                 placeholder="Instagram username"
                 autoCapitalize="none"
@@ -554,7 +592,7 @@ export default function ProfileScreen() {
               <IconBrandX size={22} color="#000000" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={styles.textInput}
-                value={socialLinks.x}
+                value={socialLinks.x || ''}
                 onChangeText={(val) => updateSocialLink('x', val)}
                 placeholder="X handle"
                 autoCapitalize="none"
@@ -564,7 +602,7 @@ export default function ProfileScreen() {
               <IconBrandLinkedin size={22} color="#0077B5" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={styles.textInput}
-                value={socialLinks.linkedin}
+                value={socialLinks.linkedin || ''}
                 onChangeText={(val) => updateSocialLink('linkedin', val)}
                 placeholder="LinkedIn profile URL"
                 autoCapitalize="none"
@@ -574,7 +612,7 @@ export default function ProfileScreen() {
               <IconBrandFacebook size={22} color="#1877F2" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={styles.textInput}
-                value={socialLinks.facebook}
+                value={socialLinks.facebook || ''}
                 onChangeText={(val) => updateSocialLink('facebook', val)}
                 placeholder="Facebook profile URL"
                 autoCapitalize="none"
@@ -584,7 +622,7 @@ export default function ProfileScreen() {
               <Globe size={22} color="#64748b" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
                 style={styles.textInput}
-                value={socialLinks.website}
+                value={socialLinks.website || ''}
                 onChangeText={(val) => updateSocialLink('website', val)}
                 placeholder="Personal website URL"
                 autoCapitalize="none"

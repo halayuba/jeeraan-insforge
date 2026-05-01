@@ -5,6 +5,7 @@ type AuthState = {
   user: any;
   session: any;
   loading: boolean;
+  isInitialized: boolean;
   fullName: string | null;
   globalRole: string | null;
   userRole: string | null;
@@ -26,6 +27,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   user: null,
   session: null,
   loading: true,
+  isInitialized: false,
   fullName: null,
   globalRole: null,
   userRole: null,
@@ -61,8 +63,11 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   },
 
   signOut: async () => {
+    set({ loading: true });
     try {
       await insforge.auth.signOut();
+    } catch (err) {
+      console.error('Error during signOut:', err);
     } finally {
       get().clearAuthState();
     }
@@ -123,12 +128,12 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       
       if (error) {
         get().handleAuthError(error);
-        set({ loading: false });
+        set({ loading: false, isInitialized: true });
         return;
       }
 
       if (data.session && (get() as any).checkSessionExpiry(data.session)) {
-        set({ loading: false });
+        set({ loading: false, isInitialized: true });
         return;
       }
 
@@ -144,6 +149,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
         session,
         user,
         loading: false,
+        isInitialized: true,
         fullName: null,
         globalRole: null,
         userRole: null,
@@ -154,7 +160,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       });
     } catch (err) {
       get().handleAuthError(err);
-      set({ loading: false });
+      set({ loading: false, isInitialized: true });
     }
   },
 
@@ -164,12 +170,12 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       
       if (error) {
         get().handleAuthError(error);
-        set({ loading: false });
+        set({ loading: false, isInitialized: true });
         return;
       }
 
       if (data.session && (get() as any).checkSessionExpiry(data.session)) {
-        set({ loading: false });
+        set({ loading: false, isInitialized: true });
         return;
       }
 
@@ -185,6 +191,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
         session,
         user,
         loading: false,
+        isInitialized: true,
         fullName: null,
         globalRole: null,
         userRole: null,
@@ -195,7 +202,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       });
     } catch (err) {
       get().handleAuthError(err);
-      set({ loading: false });
+      set({ loading: false, isInitialized: true });
     }
   },
 }));

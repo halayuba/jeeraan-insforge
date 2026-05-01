@@ -30,7 +30,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     initializeAuth();
-  }, [initializeAuth]);
+  }, []); // Run only once on mount
 
   useEffect(() => {
     if (loaded || error) {

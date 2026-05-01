@@ -38,15 +38,15 @@ DROP POLICY IF EXISTS "Users can read their own profile" ON public.user_profiles
 DROP POLICY IF EXISTS "Super admins can read all profiles" ON public.user_profiles;
 DROP POLICY IF EXISTS "Neighborhood members can see each other's profiles" ON public.user_profiles;
 
--- RLS Policies
+-- Allow users to read their own profile
 CREATE POLICY "Users can read their own profile" ON public.user_profiles
     FOR SELECT USING (auth.uid() = user_id);
 
+-- Super admins can read all profiles
 CREATE POLICY "Super admins can read all profiles" ON public.user_profiles
-    FOR SELECT USING (
-        (SELECT global_role FROM public.user_profiles WHERE user_id = auth.uid()) = 'super_admin'
-    );
+    FOR SELECT USING (is_super_admin());
 
+-- Neighborhood members can see each other's profiles
 CREATE POLICY "Neighborhood members can see each other's profiles" ON public.user_profiles
     FOR SELECT USING (
         EXISTS (
@@ -56,15 +56,17 @@ CREATE POLICY "Neighborhood members can see each other's profiles" ON public.use
         )
     );
 
+-- Allow users to insert their own profile
+CREATE POLICY "Users can insert their own profile" ON public.user_profiles
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
 -- Allow users to update their own profile
 CREATE POLICY "Users can update their own profile" ON public.user_profiles
     FOR UPDATE USING (auth.uid() = user_id);
 
--- Super admins can update all profiles
-CREATE POLICY "Super admins can update all profiles" ON public.user_profiles
-    FOR UPDATE USING (
-        (SELECT global_role FROM public.user_profiles WHERE user_id = auth.uid()) = 'super_admin'
-    );
+-- Super admins can manage all profiles
+CREATE POLICY "Super admins can manage all profiles" ON public.user_profiles
+    FOR ALL USING (is_super_admin());
 
 -- Helper to generate random string for anonymous_id
 CREATE OR REPLACE FUNCTION public.generate_anonymous_id()
