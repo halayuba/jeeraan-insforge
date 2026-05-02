@@ -20,17 +20,20 @@ import { insforge } from '../../../lib/insforge';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit, validateInvite } from '../../../lib/rateLimit';
+import { useSubmitInviteRequest } from '../../../hooks/useInvites';
 
 export default function InviteRequestForm() {
   const router = useRouter();
-  const { neighborhoodId, session, refreshAuth, handleAuthError } = useAuthStore();
+  const { neighborhoodId, session, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
   
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [attested, setAttested] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  
+  const submitInviteMutation = useSubmitInviteRequest();
+  const submitting = submitInviteMutation.isPending;
 
   const handleSubmit = async () => {
     if (!name.trim() || !phone.trim()) {
@@ -48,7 +51,6 @@ export default function InviteRequestForm() {
       return;
     }
 
-    setSubmitting(true);
     try {
       // NEW: Check daily limit for invites (5/day)
       if (session?.user?.id) {
@@ -66,21 +68,11 @@ export default function InviteRequestForm() {
         return;
       }
 
-      const { error } = await insforge.database
-        .from('join_requests')
-        .insert([{
-          neighborhood_id: neighborhoodId,
-          name: name.trim(),
-          phone: phone.trim(),
-          email: email.trim() || null,
-          status: 'pending',
-          created_by: session?.user?.id
-        }]);
-
-      if (error) {
-        handleAuthError(error);
-        throw error;
-      }
+      await submitInviteMutation.mutateAsync({
+        name: name.trim(),
+        phone: phone.trim(),
+        email: email.trim() || null,
+      });
       
       showToast('Invite request submitted successfully.', 'success');
       router.back();
@@ -88,8 +80,6 @@ export default function InviteRequestForm() {
       console.error('Submit error:', err);
       handleAuthError(err);
       Alert.alert('Error', err.message || 'Failed to submit invite request.');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -298,15 +288,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(17, 147, 212, 0.2)',
     elevation: 4,
   },
   submitButtonDisabled: {
     backgroundColor: '#94a3b8',
-    shadowOpacity: 0,
+    boxShadow: '0px 0px 0px rgba(0, 0, 0, 0)',
   },
   submitButtonText: {
     fontFamily: 'Manrope-Bold',

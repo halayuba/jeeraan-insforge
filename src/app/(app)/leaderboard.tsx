@@ -1,6 +1,6 @@
 import { ArrowLeft, Trophy, Medal, Search, History, Star, ArrowRight, RotateCw, X } from 'lucide-react-native';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,165 +14,78 @@ import {
   Platform,
   Modal,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import { insforge } from '../../lib/insforge';
 import { useAuthStore } from '../../store/useAuthStore';
 import { LevelBadge } from '../../components/LevelBadge';
 import { useToast } from '../../contexts/ToastContext';
 import { SpinWheel } from '../../components/SpinWheel';
+import { useLeaderboard } from '../../hooks/useLeaderboard';
+import { usePointsLog } from '../../hooks/usePointsLog';
+import { useProfile } from '../../hooks/useProfile';
+import { useGamificationSettings } from '../../hooks/useGamificationSettings';
+import { useSpinEligibility } from '../../hooks/useSpinEligibility';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export default function Leaderboard() {
   const router = useRouter();
-  const { user, neighborhoodId, userRole, handleAuthError, refreshAuth } = useAuthStore();
+  const { user, neighborhoodId, userRole, refreshAuth } = useAuthStore();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   
   const [activeTab, setActiveTab] = useState<'activities' | 'neighbors'>('activities');
-  const [members, setMembers] = useState<any[]>([]);
-  const [pointsLog, setPointsLog] = useState<any[]>([]);
-  const [myStats, setMyStats] = useState<any>(null);
-  const [gamificationSettings, setGamificationSettings] = useState<any>(null);
-  const [spinEligibility, setSpinEligibility] = useState<{ canSpin: boolean; nextSpinIn?: string } | null>(null);
-  
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // React Query Hooks
+  const { data: members = [], isLoading: loadingLeaderboard, refetch: refetchLeaderboard, isRefetching: isRefetchingLeaderboard } = useLeaderboard(neighborhoodId);
+  const { data: pointsLog = [], isLoading: loadingLog, refetch: refetchLog, isRefetching: isRefetchingLog } = usePointsLog(user?.id, neighborhoodId);
+  const { profile: myStats, isLoading: loadingProfile, refetch: refetchProfile, isRefetching: isRefetchingProfile } = useProfile(user?.id);
+  const { settings: gamificationSettings, isLoading: loadingSettings, refetch: refetchSettings, isRefetching: isRefetchingSettings } = useGamificationSettings(neighborhoodId);
+  const { data: spinEligibility, isLoading: loadingEligibility, refetch: refetchEligibility, isRefetching: isRefetchingEligibility } = useSpinEligibility(user?.id, neighborhoodId);
+
+  const loading = loadingLeaderboard || loadingLog || loadingProfile || loadingSettings || loadingEligibility;
+  const refreshing = isRefetchingLeaderboard || isRefetchingLog || isRefetchingProfile || isRefetchingSettings || isRefetchingEligibility;
+
+  const handleRefresh = useCallback(() => {
+    refetchLeaderboard();
+    refetchLog();
+    refetchProfile();
+    refetchSettings();
+    refetchEligibility();
+  }, [refetchLeaderboard, refetchLog, refetchProfile, refetchSettings, refetchEligibility]);
 
   // Spin Wheel State
   const [showSpinModal, setShowSpinModal] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const [targetPoints, setTargetPoints] = useState<number | null>(null);
-  const [spinLoading, setSpinLoading] = useState(false);
 
-  const fetchData = async (isRefreshing = false) => {
-    if (!neighborhoodId || !user?.id) return;
-    
-    if (isRefreshing) setRefreshing(true);
-    else setLoading(true);
-    
-    try {
-      // 1. Fetch Top Neighbors
-      const { data: membersData, error: membersError } = await insforge.database
-        .from('user_neighborhoods')
-        .select(`
-          user_id,
-          role,
-          profiles:user_id (
-            full_name,
-            avatar_url,
-            points,
-            level,
-            global_role
-          )
-        `)
-        .eq('neighborhood_id', neighborhoodId)
-        .in('role', ['resident', 'moderator']);
-
-      if (membersError) throw membersError;
-      
-      const formattedMembers = (membersData || [])
-        .map((item: any) => ({
-          user_id: item.user_id,
-          role: item.role,
-          ...(Array.isArray(item.profiles) ? item.profiles[0] : item.profiles)
-        }))
-        .filter((m: any) => m.global_role !== 'super_admin')
-        .sort((a: any, b: any) => (b.points || 0) - (a.points || 0));
-      
-      setMembers(formattedMembers);
-
-      // 2. Fetch My Points Log
-      const { data: logData, error: logError } = await insforge.database
-        .from('points_log')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('neighborhood_id', neighborhoodId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (logError) throw logError;
-      setPointsLog(logData || []);
-
-      // 3. Fetch My Current Profile (Points/Level)
-      const { data: profileData, error: profileError } = await insforge.database
-        .from('user_profiles')
-        .select('points, level')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-      setMyStats(profileData);
-
-      // 4. Fetch Gamification Settings
-      const { data: settingsData, error: settingsError } = await insforge.database
-        .from('gamification_settings')
-        .select('*')
-        .eq('neighborhood_id', neighborhoodId)
-        .maybeSingle();
-
-      if (settingsError) throw settingsError;
-      setGamificationSettings(settingsData);
-
-      // 5. Check Spin Eligibility
-      const today = new Date().toISOString().split('T')[0];
-      const { data: spinData, error: spinError } = await insforge.database
-        .from('daily_spins')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('neighborhood_id', neighborhoodId)
-        .eq('spin_date', today)
-        .maybeSingle();
-
-      if (spinError) console.error('Error checking spin eligibility:', spinError);
-      
-      if (userRole !== 'resident') {
-        setSpinEligibility({ canSpin: false });
-      } else {
-        setSpinEligibility({ canSpin: !spinData });
-      }
-
-    } catch (err) {
-      console.error('Error fetching leaderboard data:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [neighborhoodId, user?.id])
-  );
-
-  const handleSpinPress = async () => {
-    if (isSpinning || spinLoading) return;
-    
-    setSpinLoading(true);
-    try {
+  const spinMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id || !neighborhoodId) throw new Error('Missing user or neighborhood');
       const { data, error } = await insforge.functions.invoke('spin-wheel', {
         body: {
           userId: user.id,
           neighborhoodId: neighborhoodId
         }
       });
-      
       if (error) throw error;
-      
-      if (data.success === false) {
-        showToast(data.message || 'Could not spin the wheel.', 'error');
-        setSpinLoading(false);
-        return;
-      }
-      
+      if (data.success === false) throw new Error(data.message || 'Could not spin the wheel.');
+      return data;
+    },
+    onSuccess: (data) => {
       setTargetPoints(data.result_points);
       setIsSpinning(true);
-    } catch (err) {
+    },
+    onError: (err: any) => {
       console.error('Error spinning wheel:', err);
-      showToast('Failed to start the spin. Please try again.', 'error');
-      setSpinLoading(false);
+      showToast(err.message || 'Failed to start the spin. Please try again.', 'error');
     }
+  });
+
+  const handleSpinPress = () => {
+    if (isSpinning || spinMutation.isPending) return;
+    spinMutation.mutate();
   };
 
   const onSpinResult = (points: number) => {
@@ -182,19 +95,18 @@ export default function Leaderboard() {
       showToast('Better luck tomorrow!', 'info');
     }
     
-    // Refresh data and auth context to reflect new points/level
-    fetchData(true);
+    // Refresh data and auth context
+    handleRefresh();
     refreshAuth();
     
     // Wait a bit before closing modal
     setTimeout(() => {
       setShowSpinModal(false);
       setTargetPoints(null);
-      setSpinLoading(false);
     }, 2000);
   };
 
-  const getPointsToNextLevel = () => {
+  const getPointsToNextLevel = useMemo(() => {
     if (!myStats || !gamificationSettings) return 0;
     const currentPoints = myStats.points || 0;
     const currentLevel = myStats.level || 1;
@@ -206,7 +118,14 @@ export default function Leaderboard() {
       : gamificationSettings.level_3_threshold;
       
     return Math.max(0, nextLevelThreshold - currentPoints);
-  };
+  }, [myStats, gamificationSettings]);
+
+  const filteredMembers = useMemo(() => {
+    return members.filter(member => {
+      const fullName = member.full_name || 'Unknown Member';
+      return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [members, searchQuery]);
 
   const renderRankIcon = (index: number) => {
     if (index === 0) return <Trophy size={24} color="#eab308" strokeWidth={2} />;
@@ -236,11 +155,6 @@ export default function Leaderboard() {
       </View>
     );
   };
-
-  const filteredMembers = members.filter(member => {
-    const fullName = member.full_name || 'Unknown Member';
-    return fullName.toLowerCase().includes(searchQuery.toLowerCase());
-  });
 
   return (
     <View style={styles.container}>
@@ -275,7 +189,7 @@ export default function Leaderboard() {
         style={styles.scrollContainer} 
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => fetchData(true)} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
         {loading && !refreshing ? (
@@ -391,7 +305,7 @@ export default function Leaderboard() {
               </View>
               <View style={styles.statsCard}>
                 <Text style={styles.statsLabel}>Next Level</Text>
-                <Text style={styles.statsValue}>{getPointsToNextLevel()} pts</Text>
+                <Text style={styles.statsValue}>{getPointsToNextLevel} pts</Text>
                 <Text style={styles.statsSubtext}>remaining</Text>
               </View>
             </View>
@@ -464,11 +378,11 @@ export default function Leaderboard() {
             <View style={styles.modalFooter}>
               {!isSpinning && targetPoints === null ? (
                 <TouchableOpacity 
-                  style={[styles.spinButton, spinLoading && styles.spinButtonDisabled]}
+                  style={[styles.spinButton, spinMutation.isPending && styles.spinButtonDisabled]}
                   onPress={handleSpinPress}
-                  disabled={spinLoading}
+                  disabled={spinMutation.isPending}
                 >
-                  {spinLoading ? (
+                  {spinMutation.isPending ? (
                     <ActivityIndicator color="#ffffff" />
                   ) : (
                     <>
@@ -605,10 +519,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
   goldCard: {
@@ -755,10 +666,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1193d4',
     marginBottom: 24,
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    boxShadow: '0px 4px 12px rgba(17, 147, 212, 0.1)',
     elevation: 4,
   },
   spinCTAIcon: {

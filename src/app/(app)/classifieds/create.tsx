@@ -16,41 +16,35 @@ import {
 import { useRouter } from 'expo-router';
 
 import * as ImagePicker from 'expo-image-picker';
-import { decode } from 'base64-arraybuffer';
 import { useStripe } from '../../../lib/stripe';
 
 import { insforge } from '../../../lib/insforge';
-import { uploadImage as uploadImageUtil } from '../../../lib/upload';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { checkDailyLimit } from '../../../lib/rateLimit';
 import { calculateListingFee, getListingLimit } from '../../../lib/classifieds';
+import { useCreateClassifiedAd } from '../../../hooks/useClassifieds';
+import { useNeighborhoodSettings } from '../../../hooks/useNeighborhoodSettings';
 
 export default function CreateClassifiedAd() {
   const router = useRouter();
   const { showToast } = useToast();
   const { handleAuthError, neighborhoodId, userRole, user } = useAuthStore();
-  const { refreshAuth } = useAuthStore();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [contactInfo, setContactInfo] = useState('');
-  
   const [imageUri, setImageUri] = useState<string | null>(null);
-  
-  const [submitting, setSubmitting] = useState(false);
-  
-  // Monetization state
-  const [monetizationEnabled, setMonetizationEnabled] = useState(false);
-  const [fee, setFee] = useState(0);
+  const [imageBase64, setImageBase64] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [settings, setSettings] = useState<any>(null);
 
-  useEffect(() => {
-    fetchSettings();
-  }, [neighborhoodId]);
+  const { settings, isLoading: loadingSettings } = useNeighborhoodSettings(neighborhoodId);
+  const { createAd, isCreating: submitting } = useCreateClassifiedAd(neighborhoodId);
+
+  const monetizationEnabled = settings?.classifieds_monetization_enabled ?? false;
+  const [fee, setFee] = useState(0);
 
   useEffect(() => {
     if (monetizationEnabled) {
@@ -60,25 +54,6 @@ export default function CreateClassifiedAd() {
       setFee(0);
     }
   }, [price, monetizationEnabled]);
-
-  const fetchSettings = async () => {
-    if (!neighborhoodId) return;
-    try {
-      const { data, error } = await insforge.database
-        .from('neighborhood_settings')
-        .select('*')
-        .eq('neighborhood_id', neighborhoodId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      if (data) {
-        setSettings(data);
-        setMonetizationEnabled(data.classifieds_monetization_enabled);
-      }
-    } catch (err) {
-      console.error('Error fetching settings:', err);
-    }
-  };
 
   const handleGamificationReward = (rewardData: any) => {
     if (rewardData?.success && rewardData.points_added > 0) {
@@ -108,12 +83,9 @@ export default function CreateClassifiedAd() {
       }
     } catch (err) {
       console.error('Image picking failed:', err);
-      Alert.alert('Error', 'Failed to pick image.');
+      showToast('Failed to pick image.', 'error');
     }
   };
-
-  // Add state for base64
-  const [imageBase64, setImageBase64] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!title.trim() || !price.trim() || !contactInfo.trim()) {
@@ -126,165 +98,44 @@ export default function CreateClassifiedAd() {
       return;
     }
 
-    setSubmitting(true);
-    let uploadedImageUrl = null;
-
     try {
       if (!user) throw new Error('Not authenticated');
-
-      // 1. Check user role limits
-      const limit = getListingLimit(userRole || 'resident');
-      const { count, error: countError } = await insforge.database
-        .from('classified_ads')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('neighborhood_id', neighborhoodId)
-        .eq('status', 'active');
-
-      if (countError) throw countError;
-      if ((count || 0) >= limit) {
-        showToast(`You have reached your limit of ${limit} active ads.`, 'error');
-        setSubmitting(false);
-        return;
-      }
 
       const { allowed } = await checkDailyLimit('classified_ads', user.id);
       if (!allowed) {
         showToast('You have reached your limit for the day.', 'error');
-        setSubmitting(false);
         return;
       }
 
-      // 2. Upload Image if present
-      if (imageUri && user?.id) {
-        const { url: newImageUrl, error: uploadError } = await uploadImageUtil(imageUri, {
-          bucketName: 'classified-media',
-          folderPath: 'classifieds',
-          userId: user.id,
-          neighborhoodId: neighborhoodId!,
-          serviceType: 'classified_ad',
-          base64: imageBase64 || undefined
-        });
-
-        if (uploadError) {
-          showToast(uploadError, 'error');
-          setSubmitting(false);
-          return;
-        }
-        uploadedImageUrl = newImageUrl;
-      }
-
-      // 3. Handle Payment if fee > 0
-      if (fee > 0) {
-        // Create ad with pending_payment status
-        const { data: pendingAd, error: pendingError } = await insforge.database
-          .from('classified_ads')
-          .insert([{
-            user_id: user.id,
-            neighborhood_id: neighborhoodId,
-            title: title.trim(),
-            price: price.trim(),
-            price_numeric: parseFloat(price),
-            description: description.trim(),
-            contact_info: contactInfo.trim(),
-            image_url: uploadedImageUrl,
-            category: 'General',
-            status: 'pending_payment'
-          }])
-          .select()
-          .single();
-
-        if (pendingError) throw pendingError;
-
-        // Call edge function to create checkout session/intent
-        const { data: paymentData, error: paymentFuncError } = await insforge.functions.invoke('create-ad-checkout-session', {
-          body: {
-            userId: user.id,
-            neighborhoodId: neighborhoodId,
-            price: parseFloat(price),
-            adId: pendingAd.id,
-            adTitle: title.trim()
-          }
-        });
-
-        if (paymentFuncError) throw paymentFuncError;
-
-        if (paymentData.success === false) {
-          throw new Error(paymentData.message || 'Payment initiation failed');
-        }
-
-        // Initialize and present Payment Sheet
-        const { error: initError } = await initPaymentSheet({
-          merchantDisplayName: 'Jeeraan Neighborhood',
-          paymentIntentClientSecret: paymentData.paymentIntentClientSecret,
-          // Set to true if you want to support Apple Pay or Google Pay
-          defaultBillingDetails: {
-            name: user.email,
-          },
-        });
-
-        if (initError) throw initError;
-
-        const { error: presentError } = await presentPaymentSheet();
-
-        if (presentError) {
-          if (presentError.code === 'Canceled') {
-            showToast('Payment cancelled. Your ad is saved as pending.', 'info');
-            router.back();
-            return;
-          }
-          throw presentError;
-        }
-
-        showToast('Payment successful! Your ad is being published.', 'success');
-      } else {
-        // Create ad immediately as active
-        const { data: newAd, error: dbError } = await insforge.database
-          .from('classified_ads')
-          .insert([{
-            user_id: user.id,
-            neighborhood_id: neighborhoodId,
-            title: title.trim(),
-            price: price.trim(),
-            price_numeric: parseFloat(price) || 0,
-            description: description.trim(),
-            contact_info: contactInfo.trim(),
-            image_url: uploadedImageUrl,
-            category: 'General',
-            status: 'active'
-          }])
-          .select()
-          .single();
-
-        if (dbError) throw dbError;
-
-        // Award Points
-        try {
-          const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
-            body: {
-              userId: user.id,
-              actionType: 'classified_ad',
-              neighborhoodId: neighborhoodId,
-              entityId: newAd.id
-            }
-          });
-          handleGamificationReward(rewardData);
-        } catch (rewardErr) {
-          console.error('Failed to award classified points:', rewardErr);
-        }
-
-        showToast('Ad posted successfully.');
-      }
+      await createAd({
+        title,
+        price,
+        description,
+        contactInfo,
+        imageUri,
+        imageBase64: imageBase64 || undefined,
+        fee,
+        user,
+        initPaymentSheet,
+        presentPaymentSheet,
+        onReward: handleGamificationReward
+      });
 
       router.back();
     } catch (err: any) {
       console.error('Submit error:', err);
       handleAuthError(err);
       showToast(err.message || 'Failed to post ad.', 'error');
-    } finally {
-      setSubmitting(false);
     }
   };
+
+  if (loadingSettings) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#1193d4" />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView 
@@ -611,10 +462,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1193d4',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(17, 147, 212, 0.2)',
     elevation: 4,
   },
   submitButtonDisabled: {

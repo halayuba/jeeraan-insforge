@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
+import { useCreateForumTopic } from '../../../hooks/useForum';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuthStore } from '../../../store/useAuthStore';
 
@@ -35,7 +35,7 @@ export default function CreateForumPost() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState(CATEGORIES[0]);
-  const [submitting, setSubmitting] = useState(false);
+  const createTopic = useCreateForumTopic();
 
   const handleGamificationReward = (rewardData: any) => {
     if (rewardData?.success && rewardData.points_added > 0) {
@@ -55,7 +55,6 @@ export default function CreateForumPost() {
       return;
     }
 
-    setSubmitting(true);
     try {
       // 1. Get authenticated user
       const { data: userData, error: userErr } = await insforge.auth.getCurrentUser();
@@ -64,18 +63,12 @@ export default function CreateForumPost() {
       if (!userData?.user) throw new Error('Not authenticated');
 
       // 2. Save Forum Post
-      const { data: newPost, error } = await insforge.database
-        .from('forum_posts')
-        .insert([{
-          title: title.trim(),
-          content: content.trim(),
-          category,
-          user_id: userData.user.id,
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
+      const newPost = await createTopic.mutateAsync({
+        title: title.trim(),
+        content: content.trim(),
+        category,
+        user_id: userData.user.id,
+      });
       
       // 3. Award Points
       try {
@@ -96,13 +89,11 @@ export default function CreateForumPost() {
       router.replace('/forum');
     } catch (err: any) {
       console.error('Submit error:', err);
-      
-      handleAuthError(err);
       showToast(err.message || 'Failed to post topic.', 'error');
-    } finally {
-      setSubmitting(false);
     }
   };
+
+  const submitting = createTopic.isPending;
 
   return (
     <KeyboardAvoidingView 
@@ -270,15 +261,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(17, 147, 212, 0.3)',
     elevation: 4,
   },
   submitButtonDisabled: {
     backgroundColor: '#94a3b8',
-    shadowOpacity: 0,
+    boxShadow: '0px 0px 0px rgba(0, 0, 0, 0)',
   },
   submitButtonText: {
     fontFamily: 'Manrope-Bold',

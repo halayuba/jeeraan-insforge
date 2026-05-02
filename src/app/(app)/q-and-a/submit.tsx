@@ -15,16 +15,17 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
+import { useSubmitQuestion } from '../../../hooks/useCommunityQuestions';
 
 export default function QuestionSubmit() {
   const router = useRouter();
-  const { user, neighborhoodId, handleAuthError } = useAuthStore();
+  const { neighborhoodId } = useAuthStore();
   const { showToast } = useToast();
   const [questionText, setQuestionText] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const { mutateAsync: submitQuestion, isPending: loading } = useSubmitQuestion();
 
   const handleSubmit = async () => {
     if (!questionText.trim()) {
@@ -37,40 +38,13 @@ export default function QuestionSubmit() {
       return;
     }
 
-    setLoading(true);
     try {
-      // 1. Insert question into database
-      const { data, error } = await insforge.database
-        .from('questions')
-        .insert({
-          neighborhood_id: neighborhoodId,
-          member_id: user?.id,
-          question_text: questionText.trim(),
-          is_public: false, // Default to private
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // 2. Trigger notification edge function (Async)
-      insforge.functions.invoke('notify-new-question', {
-        body: {
-          questionId: data.id,
-          neighborhoodId: neighborhoodId,
-          memberName: user?.full_name || 'A neighbor',
-          questionSnippet: questionText.trim().substring(0, 100),
-        }
-      }).catch(err => console.error('Error triggering notification:', err));
-
+      await submitQuestion(questionText);
       showToast('Question submitted successfully!', 'success');
       router.back();
     } catch (err: any) {
       console.error('Error submitting question:', err);
-      handleAuthError(err);
       showToast('Failed to submit question. Please try again.', 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -173,10 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
   label: {

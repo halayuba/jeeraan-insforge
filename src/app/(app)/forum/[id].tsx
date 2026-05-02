@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
+import { useForumTopic, useForumReplies, useCreateForumReply } from '../../../hooks/useForum';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
@@ -26,85 +26,31 @@ export default function ForumThread() {
   const { showToast } = useToast();
   const { handleAuthError } = useAuthStore();
 
-  const [thread, setThread] = useState<any>(null);
-  const [replies, setReplies] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: thread, isLoading: loadingThread } = useForumTopic(id);
+  const { data: replies = [], isLoading: loadingReplies } = useForumReplies(id);
   
   const [newReply, setNewReply] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetchThreadData();
-  }, [id]);
-
-  const fetchThreadData = async () => {
-    setLoading(true);
-    try {
-      // 1. Fetch Post Details
-      const { data: postData, error: postErr } = await insforge.database
-        .from('forum_posts')
-        .select(`*, author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)`)
-        .eq('id', id)
-        .single();
-      if (postErr) throw postErr;
-      
-      // Ensure author is not an array (PostgREST sometimes returns it as one for certain relations)
-      const formattedPost = {
-        ...postData,
-        author: Array.isArray(postData.author) ? postData.author[0] : postData.author
-      };
-      setThread(formattedPost);
-
-      // 2. Fetch Replies
-      const { data: replyData, error: replyErr } = await insforge.database
-        .from('forum_replies')
-        .select(`*, author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)`)
-        .eq('post_id', id)
-        .order('created_at', { ascending: true });
-      if (replyErr) throw replyErr;
-      
-      const formattedReplies = (replyData || []).map((reply: any) => ({
-        ...reply,
-        author: Array.isArray(reply.author) ? reply.author[0] : reply.author
-      }));
-      setReplies(formattedReplies);
-
-    } catch (err) {
-      console.error('Error fetching thread:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const createReply = useCreateForumReply();
 
   const handleReplySubmit = async () => {
     if (!newReply.trim()) return;
 
-    setSubmitting(true);
     try {
       const { data: userData, error: userErr } = await insforge.auth.getCurrentUser();
       
       if (userErr) throw userErr;
       if (!userData?.user) throw new Error('Not authenticated');
 
-      const { error } = await insforge.database
-        .from('forum_replies')
-        .insert([{
-          post_id: id,
-          user_id: userData.user.id,
-          content: newReply.trim(),
-        }]);
+      await createReply.mutateAsync({
+        post_id: id,
+        user_id: userData.user.id,
+        content: newReply.trim(),
+      });
 
-      if (error) throw error;
-      
       setNewReply(''); // Clear input
-      fetchThreadData(); // Refresh list to get the new message
     } catch (err: any) {
       console.error('Reply error:', err);
-      handleAuthError(err);
       showToast(err.message || 'Failed to post reply.', 'error');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -113,6 +59,9 @@ export default function ForumThread() {
     const date = new Date(dateString).toLocaleDateString([], { month: 'short', day: 'numeric' });
     return `${date} at ${time}`;
   };
+
+  const loading = loadingThread || loadingReplies;
+  const submitting = createReply.isPending;
 
   if (loading && !thread) {
     return (

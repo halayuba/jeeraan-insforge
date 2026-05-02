@@ -1,60 +1,34 @@
 import { ArrowLeft, Eye, MessageCircle, PlusCircle, Search } from 'lucide-react-native';
 
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Image,
   StyleSheet,
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
-import { useAuthStore } from '../../../store/useAuthStore';
+import { useGrievances } from '../../../hooks/useGrievances';
 
 const FILTER_OPTIONS = ['All', 'Pending', 'Resolved', 'In Progress'];
 
 export default function GrievancesIndex() {
   const router = useRouter();
-  const { handleAuthError } = useAuthStore();
-  const [grievances, setGrievances] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const { data: grievances = [], isLoading: loading, refetch } = useGrievances(activeFilter);
+
   useFocusEffect(
     useCallback(() => {
-      fetchGrievances();
-    }, [activeFilter])
+      refetch();
+    }, [refetch])
   );
-
-  const fetchGrievances = async () => {
-    setLoading(true);
-    try {
-      let query = insforge.database
-        .from('grievances')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (activeFilter !== 'All') {
-        query = query.eq('status', activeFilter);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      setGrievances(data || []);
-    } catch (err) {
-      console.error('Error fetching grievances:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {

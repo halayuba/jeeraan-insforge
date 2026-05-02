@@ -1,7 +1,4 @@
-import { ArrowLeft, CheckCircle2 } from 'lucide-react-native';
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,43 +10,20 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react-native';
 
-import { insforge } from '../../../../lib/insforge';
 import { useAuthStore } from '../../../../store/useAuthStore';
+import { useElectionCandidates, useCastVote } from '../../../../hooks/useElections';
 
 export default function BallotScreen() {
   const { poll_id } = useLocalSearchParams<{ poll_id: string }>();
   const router = useRouter();
-  const { session, handleAuthError } = useAuthStore();
-  const [candidates, setCandidates] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { session } = useAuthStore();
+  
+  const { data: candidates = [], isLoading: loading } = useElectionCandidates(poll_id);
+  const { mutateAsync: castVote, isPending: submitting } = useCastVote();
+
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetchCandidates();
-  }, [poll_id]);
-
-  const fetchCandidates = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await insforge.database
-        .from('candidates')
-        .select(`
-          *,
-          user_profiles(full_name, avatar_url)
-        `)
-        .eq('poll_id', poll_id);
-
-      if (error) throw error;
-      setCandidates(data || []);
-    } catch (err) {
-      console.error('Error fetching candidates:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const submitVote = async () => {
     if (!selectedCandidate) {
@@ -58,28 +32,20 @@ export default function BallotScreen() {
     }
 
     try {
-      setSubmitting(true);
-      const { error } = await insforge.database.from('poll_votes').insert([{
-        poll_id,
+      await castVote({
+        poll_id: poll_id as string,
         candidate_id: selectedCandidate,
-        user_id: session?.user?.id,
-      }]);
-
-      if (error) {
-        if (error.code === '23505') {
-          Alert.alert('Error', 'You have already voted in this poll.');
-          return;
-        }
-        throw error;
-      }
+        user_id: session?.user?.id as string,
+      });
 
       router.push(`/(app)/voting/${poll_id}/confirmation` as any);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Vote submission error', err);
-      handleAuthError(err);
-      Alert.alert('Error', 'Failed to submit vote. Please try again.');
-    } finally {
-      setSubmitting(false);
+      if (err.code === '23505') {
+        Alert.alert('Error', 'You have already voted in this poll.');
+      } else {
+        Alert.alert('Error', 'Failed to submit vote. Please try again.');
+      }
     }
   };
 
@@ -103,8 +69,8 @@ export default function BallotScreen() {
           ) : candidates.length === 0 ? (
             <Text style={styles.emptyText}>No candidates available yet.</Text>
           ) : (
-            candidates.map((c, index) => {
-              const profile = Array.isArray(c.user_profiles) ? c.user_profiles[0] : c.user_profiles;
+            candidates.map((c: any, index: number) => {
+              const profile = c.user_profiles;
               const userName = profile?.full_name || 'Anonymous Candidate';
               const isSelected = selectedCandidate === c.id;
               const isLast = index === candidates.length - 1;
@@ -216,10 +182,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f6f7f8',
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
+    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.06)',
     elevation: 2,
   },
   candidateRow: {
@@ -293,15 +256,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    boxShadow: '0px 4px 6px rgba(17, 147, 212, 0.3)',
     elevation: 4,
   },
   voteButtonDisabled: {
     backgroundColor: '#9ca3af',
-    shadowOpacity: 0,
+    boxShadow: '0px 0px 0px rgba(0, 0, 0, 0)',
     elevation: 0,
   },
   voteButtonText: {

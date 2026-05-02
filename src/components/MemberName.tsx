@@ -102,10 +102,7 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '100%',
     maxWidth: 300,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
     elevation: 5,
   },
   tooltipHeader: {

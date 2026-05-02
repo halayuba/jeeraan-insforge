@@ -1,7 +1,4 @@
-import { ArrowLeft, ChevronRight, MessageSquare, Phone, Share2 } from 'lucide-react-native';
-
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,57 +9,15 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowLeft, ChevronRight, MessageSquare, Phone, Share2 } from 'lucide-react-native';
 
-import { insforge } from '../../../../../lib/insforge';
-import { useAuthStore } from '../../../../../store/useAuthStore';
+import { useCandidateDetails } from '../../../../../hooks/useElections';
 
 export default function CandidateProfileScreen() {
   const { poll_id, candidate_id } = useLocalSearchParams<{ poll_id: string; candidate_id: string }>();
   const router = useRouter();
-  const { handleAuthError } = useAuthStore();
-  const [candidate, setCandidate] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ questions: 0, endorsements: 0, responseRate: 98 });
-
-  useEffect(() => {
-    fetchCandidateDetails();
-    fetchStats();
-  }, [candidate_id]);
-
-  const fetchCandidateDetails = async () => {
-    try {
-      const { data, error } = await insforge.database
-        .from('candidates')
-        .select('*, user_profiles(full_name, avatar_url)')
-        .eq('id', candidate_id)
-        .single();
-
-      if (error) throw error;
-      setCandidate(data);
-    } catch (err) {
-      console.error('Error fetching candidate:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const { count, error } = await insforge.database
-        .from('candidate_questions')
-        .select('*', { count: 'exact', head: true })
-        .eq('candidate_id', candidate_id);
-
-      if (!error) {
-        setStats((prev) => ({ ...prev, questions: count || 0 }));
-      }
-      setStats((prev) => ({ ...prev, endorsements: Math.floor(Math.random() * 50) + 10 }));
-    } catch (err) {
-      console.error(err);
-      handleAuthError(err);
-    }
-  };
+  
+  const { data: candidate, isLoading: loading } = useCandidateDetails(candidate_id);
 
   if (loading) {
     return (
@@ -83,8 +38,15 @@ export default function CandidateProfileScreen() {
     );
   }
 
-  const profile = Array.isArray(candidate?.user_profiles) ? candidate.user_profiles[0] : candidate?.user_profiles;
+  const profile = candidate.user_profiles;
   const userName = profile?.full_name || 'Anonymous Candidate';
+  
+  // Stats
+  const stats = {
+    questions: candidate.questions?.length || 0,
+    endorsements: Math.floor(Math.random() * 50) + 10, // Mocked for now as in original
+    responseRate: 98 // Mocked for now
+  };
 
   return (
     <View style={styles.container}>
@@ -339,10 +301,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.04)',
     elevation: 1,
     marginRight: 12,
   },
@@ -428,10 +387,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     padding: 14,
     borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 1,
   },
   qaViewAllText: {

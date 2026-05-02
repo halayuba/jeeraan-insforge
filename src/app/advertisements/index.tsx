@@ -253,10 +253,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
+    boxShadow: '0px 10px 15px rgba(0, 0, 0, 0.1)',
     elevation: 8,
   },
   adImage: {

@@ -21,10 +21,12 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { checkDailyLimit } from '../../../lib/rateLimit';
 
+import { useCreateEvent } from '../../../hooks/useEvents';
+
 export default function CreateEvent() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { refreshAuth, handleAuthError } = useAuthStore();
+  const { handleAuthError, user } = useAuthStore();
 
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
@@ -34,10 +36,7 @@ export default function CreateEvent() {
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState('Upcoming');
   
-  const [submitting, setSubmitting] = useState(false);
-
-  // In a full implementation, we'd use a DateTimePicker.
-  // We'll mock text entry for datetime in the MVP to prevent external dependency breaking via web simulators
+  const { createEvent, isCreating: submitting } = useCreateEvent();
 
   const handleSubmit = async () => {
     if (!title.trim() || !details.trim() || !organizer.trim() || !venue.trim() || !datetime.trim()) {
@@ -45,45 +44,32 @@ export default function CreateEvent() {
       return;
     }
 
-    setSubmitting(true);
     try {
-      const { data: userData, error: authError } = await insforge.auth.getCurrentUser();
-      if (authError) throw authError;
-      if (!userData?.user) throw new Error('Not authenticated');
+      if (!user) throw new Error('Not authenticated');
 
-      const { allowed } = await checkDailyLimit('events', userData.user.id);
+      const { allowed } = await checkDailyLimit('events', user.id);
       if (!allowed) {
         showToast('You have reached your limit for the day. You can submit again on a future day.', 'error');
         return;
       }
 
-      const { error } = await insforge.database
-        .from('events')
-        .insert([{
-          user_id: userData.user.id,
-          title: title.trim(),
-          details: details.trim(),
-          organizer: organizer.trim(),
-          venue: venue.trim(),
-          event_datetime: new Date(datetime).toISOString(),
-          status,
-          notes: notes.trim() || null,
-        }]);
-
-      if (error) {
-        handleAuthError(error);
-        throw error;
-      }
+      await createEvent({
+        title,
+        details,
+        organizer,
+        venue,
+        datetime,
+        status,
+        notes: notes.trim() || undefined,
+        userId: user.id
+      });
       
       showToast('Event created successfully.', 'success');
       router.back();
     } catch (err: any) {
       console.error('Submit error:', err);
-      
       handleAuthError(err);
       Alert.alert('Error', err.message || 'Failed to create event. Make sure the date format is valid (e.g. 2024-08-10 14:00)');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -326,10 +312,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1193d4',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(17, 147, 212, 0.2)',
     elevation: 4,
   },
   submitButtonDisabled: {

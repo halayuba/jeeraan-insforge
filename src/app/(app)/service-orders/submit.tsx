@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
+import { useSubmitServiceOrder } from '../../../hooks/useServiceOrders';
 import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit } from '../../../lib/rateLimit';
 import { useAuthStore } from '../../../store/useAuthStore';
@@ -32,7 +32,7 @@ export default function SubmitServiceOrder() {
   const [completeOn, setCompleteOn] = useState('');
   const [feedback, setFeedback] = useState('');
   const [satisfaction, setSatisfaction] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
+  const submitOrder = useSubmitServiceOrder();
 
   const handleGamificationReward = (rewardData: any) => {
     if (rewardData?.success && rewardData.points_added > 0) {
@@ -52,7 +52,6 @@ export default function SubmitServiceOrder() {
       return;
     }
 
-    setSubmitting(true);
     try {
       const { data: userData } = await insforge.auth.getCurrentUser();
       if (!userData?.user) throw new Error('Not authenticated');
@@ -72,23 +71,17 @@ export default function SubmitServiceOrder() {
         }
       }
 
-      const { data: newOrder, error } = await insforge.database
-        .from('service_orders')
-        .insert([{
-          user_id: userData.user.id,
-          unit_address: unitAddress.trim(),
-          occupant_name: occupantName.trim(),
-          issue_description: issueDescription.trim(),
-          maintenance_person: maintenancePerson || null,
-          complete_on: formattedCompleteOn,
-          feedback: feedback.trim() || null,
-          satisfaction_rating: satisfaction > 0 ? satisfaction : null,
-          status: 'Pending',
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
+      const newOrder = await submitOrder.mutateAsync({
+        user_id: userData.user.id,
+        unit_address: unitAddress.trim(),
+        occupant_name: occupantName.trim(),
+        issue_description: issueDescription.trim(),
+        maintenance_person: maintenancePerson || null,
+        complete_on: formattedCompleteOn,
+        feedback: feedback.trim() || null,
+        satisfaction_rating: satisfaction > 0 ? satisfaction : null,
+        status: 'Pending',
+      });
       
       // Award Points for feedback/submission
       try {
@@ -110,10 +103,10 @@ export default function SubmitServiceOrder() {
     } catch (err: any) {
       console.error('Submit error:', err);
       showToast(err.message || 'Failed to submit service order.', 'error');
-    } finally {
-      setSubmitting(false);
     }
   };
+
+  const submitting = submitOrder.isPending;
 
   const renderStar = (index: number) => {
     const isSelected = index <= satisfaction;
@@ -439,10 +432,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(17, 147, 212, 0.2)',
     elevation: 4,
   },
   submitButtonDisabled: {

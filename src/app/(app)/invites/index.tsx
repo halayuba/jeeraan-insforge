@@ -12,10 +12,10 @@ import {
   RefreshControl,
   Platform,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
 import { useAuthStore } from '../../../store/useAuthStore';
+import { useInvites } from '../../../hooks/useInvites';
 
 type JoinRequest = {
   id: string;
@@ -28,43 +28,8 @@ type JoinRequest = {
 
 export default function InvitesIndex() {
   const router = useRouter();
-  const { neighborhoodId, refreshAuth, handleAuthError } = useAuthStore();
-  const [requests, setRequests] = useState<JoinRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchRequests = async (isRefreshing = false) => {
-    if (!neighborhoodId) return;
-    
-    if (isRefreshing) setRefreshing(true);
-    else setLoading(true);
-    
-    try {
-      const { data, error } = await insforge.database
-        .from('join_requests')
-        .select('*')
-        .eq('neighborhood_id', neighborhoodId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        handleAuthError(error);
-        throw error;
-      }
-      setRequests(data || []);
-    } catch (err) {
-      console.error('Error fetching join requests:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchRequests();
-    }, [neighborhoodId])
-  );
+  const { neighborhoodId } = useAuthStore();
+  const { data: requests = [], isLoading: loading, isRefetching: refreshing, refetch } = useInvites();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -94,7 +59,7 @@ export default function InvitesIndex() {
         style={styles.scrollContainer} 
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => fetchRequests(true)} />
+          <RefreshControl refreshing={refreshing} onRefresh={refetch} />
         }
       >
         {/* Request Invite Button */}
@@ -190,10 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1193d4',
     paddingVertical: 14,
     borderRadius: 12,
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(17, 147, 212, 0.2)',
     elevation: 4,
   },
   inviteButtonText: {

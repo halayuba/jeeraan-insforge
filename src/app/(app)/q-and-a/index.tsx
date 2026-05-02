@@ -1,7 +1,7 @@
 import { ArrowLeft, ChevronDown, ChevronUp, Clock, HelpCircle, Info, PlusCircle, ShieldAlert } from 'lucide-react-native';
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,11 +13,10 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
 import { useAuthStore } from '../../../store/useAuthStore';
-import { useToast } from '../../../contexts/ToastContext';
+import { useCommunityQuestions } from '../../../hooks/useCommunityQuestions';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -25,33 +24,16 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function QandAIndex() {
   const router = useRouter();
-  const { user, handleAuthError } = useAuthStore();
-  const { showToast } = useToast();
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchQuestions();
-  }, []);
+  const { data: questions = [], isLoading: loading, refetch } = useCommunityQuestions();
 
-  const fetchQuestions = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await insforge.database
-        .from('questions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setQuestions(data || []);
-    } catch (err: any) {
-      console.error('Error fetching questions:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const toggleExpand = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -208,10 +190,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderLeftWidth: 4,
     borderLeftColor: '#1193d4',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
     elevation: 3,
   },
   introTitle: {
@@ -230,10 +209,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
     overflow: 'hidden',
   },

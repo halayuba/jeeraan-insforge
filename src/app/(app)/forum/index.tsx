@@ -22,7 +22,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
+import { useForumTopics } from '../../../hooks/useForum';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { LevelBadge } from '../../../components/LevelBadge';
@@ -32,42 +32,8 @@ export default function ForumIndex() {
   const router = useRouter();
   const { handleAuthError } = useAuthStore();
   const { showToast } = useToast();
-  const [posts, setPosts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: posts = [], isLoading: loading } = useForumTopics();
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  const fetchPosts = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await insforge.database
-        .from('forum_posts')
-        .select(`
-          *,
-          forum_replies (count),
-          author:user_profiles(full_name, avatar_url, level, is_visible, anonymous_id, global_role),
-          membership:user_neighborhoods!user_id(role)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const formattedData = (data || []).map((post: any) => ({
-        ...post,
-        author: Array.isArray(post.author) ? post.author[0] : post.author,
-        authorNeighborhoodRole: Array.isArray(post.membership) ? post.membership[0]?.role : post.membership?.role
-      }));
-      setPosts(formattedData);
-    } catch (err: any) {
-      console.error('Error fetching forum posts:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getCategoryIcon = (category: string) => {
     const cat = category?.toLowerCase() || '';
@@ -278,10 +244,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
   iconContainer: {

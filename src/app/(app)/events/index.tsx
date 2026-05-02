@@ -14,58 +14,20 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
+import { useEvents } from '../../../hooks/useEvents';
 import { useAuthStore } from '../../../store/useAuthStore';
 
 const TABS = ['Upcoming', 'Past', 'Ongoing'];
 
 export default function EventsIndex() {
   const router = useRouter();
-  const { refreshAuth, handleAuthError } = useAuthStore();
-  const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const { neighborhoodId } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Upcoming');
 
-  const fetchEvents = async (isRefreshing = false) => {
-    if (isRefreshing) setRefreshing(true);
-    else setLoading(true);
-    
-    try {
-      let query = insforge.database
-        .from('events')
-        .select('*')
-        .order('event_datetime', { ascending: activeTab !== 'Past' });
-
-      // Apply initial status filtering to align with the active tab.
-      if (activeTab === 'Upcoming') {
-        query = query.eq('status', 'Upcoming');
-      } else if (activeTab === 'Past') {
-        query = query.eq('status', 'Past');
-      } else if (activeTab === 'Ongoing') {
-        query = query.eq('status', 'Ongoing');
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        handleAuthError(error);
-        throw error;
-      }
-      setEvents(data || []);
-    } catch (err) {
-      console.error('Error fetching events:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchEvents();
-    }, [activeTab])
+  const { data: events = [], isLoading, isRefetching, refetch } = useEvents(
+    neighborhoodId, 
+    activeTab as any
   );
 
   const filteredEvents = events.filter(
@@ -114,7 +76,7 @@ export default function EventsIndex() {
         style={styles.scrollView} 
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => fetchEvents(true)} />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
         }
       >
         
@@ -152,7 +114,7 @@ export default function EventsIndex() {
         </ScrollView>
 
         {/* Events Feed */}
-        {loading ? (
+        {isLoading ? (
           <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 32 }} />
         ) : filteredEvents.length === 0 ? (
           <Text style={styles.emptyText}>No events match your criteria.</Text>
@@ -256,10 +218,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
   tabChipActive: {
@@ -281,10 +240,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
   eventTitle: {

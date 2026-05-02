@@ -23,6 +23,7 @@ import { uploadImage as uploadImageUtil } from '../../../lib/upload';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { checkDailyLimit } from '../../../lib/rateLimit';
+import { useCreateAnnouncement } from '../../../hooks/useAnnouncements';
 
 const CATEGORIES = [
   'General Info',
@@ -36,6 +37,7 @@ export default function CreateAnnouncement() {
   const router = useRouter();
   const { showToast } = useToast();
   const { refreshAuth, handleAuthError, neighborhoodId, userRole } = useAuthStore();
+  const { mutateAsync: createAnnouncement } = useCreateAnnouncement();
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -130,22 +132,15 @@ export default function CreateAnnouncement() {
       const isPrivileged = userRole === 'admin' || userRole === 'moderator';
       const status = isPrivileged ? 'approved' : 'pending';
 
-      const { data: newAnnouncement, error } = await insforge.database
-        .from('announcements')
-        .insert([{
-          neighborhood_id: neighborhoodId,
-          title: title.trim(),
-          content: content.trim(),
-          category,
-          images: uploadedImageUrls,
-          author_id: userData.user.id,
-          status,
-        }])
-        .select()
-        .single();
+      const newAnnouncement = await createAnnouncement({
+        title: title.trim(),
+        content: content.trim(),
+        category,
+        images: uploadedImageUrls,
+        author_id: userData.user.id,
+        status,
+      });
 
-      if (error) throw error;
-      
       // 4. Award Points
       try {
         const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
@@ -434,15 +429,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(17, 147, 212, 0.3)',
     elevation: 4,
   },
   submitButtonDisabled: {
     backgroundColor: '#94a3b8',
-    shadowOpacity: 0,
+    boxShadow: '0px 0px 0px rgba(0, 0, 0, 0)',
   },
   submitButtonText: {
     fontFamily: 'Manrope-Bold',

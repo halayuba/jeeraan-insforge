@@ -1,7 +1,4 @@
-import { ArrowLeft, Calendar, ChevronRight } from 'lucide-react-native';
-
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -11,83 +8,23 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { ArrowLeft, Calendar, ChevronRight } from 'lucide-react-native';
 
-import { insforge } from '../../../lib/insforge';
 import { useAuthStore } from '../../../store/useAuthStore';
+import { usePolls } from '../../../hooks/usePolls';
+import { useBoardPositions } from '../../../hooks/useBoardPositions';
+import { useElectionInfo } from '../../../hooks/useElectionInfo';
 
 export default function VotingIndex() {
   const router = useRouter();
-  const { neighborhoodId, handleAuthError } = useAuthStore();
-  const [polls, setPolls] = useState<any[]>([]);
-  const [boardPositions, setBoardPositions] = useState<any[]>([]);
-  const [votingDate, setVotingDate] = useState<string | null>(null);
-  const [electionPollId, setElectionPollId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingElection, setLoadingElection] = useState(true);
+  const { neighborhoodId } = useAuthStore();
+  
+  const { data: polls = [], isLoading: loadingPolls } = usePolls(neighborhoodId, 'all');
+  const { data: boardPositions = [], isLoading: loadingPositions } = useBoardPositions(neighborhoodId, true);
+  const { data: electionInfo, isLoading: loadingInfo } = useElectionInfo(neighborhoodId);
 
-  useEffect(() => {
-    if (neighborhoodId) {
-      fetchPolls();
-      fetchElectionData();
-    }
-  }, [neighborhoodId]);
-
-  const fetchPolls = async () => {
-    try {
-      const { data, error } = await insforge.database
-        .from('polls')
-        .select('*')
-        .eq('neighborhood_id', neighborhoodId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setPolls(data || []);
-
-      // Find the latest active election poll
-      const electionPoll = data?.find(p => p.type === 'election');
-      if (electionPoll) {
-        setElectionPollId(electionPoll.id);
-      }
-    } catch (err) {
-      console.error('Error fetching polls:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchElectionData = async () => {
-    setLoadingElection(true);
-    try {
-      // 1. Fetch Board Positions
-      const { data: posData, error: posError } = await insforge.database
-        .from('board_positions')
-        .select('*')
-        .eq('neighborhood_id', neighborhoodId)
-        .eq('is_open', true)
-        .order('created_at', { ascending: true });
-
-      if (!posError && posData) {
-        setBoardPositions(posData);
-      }
-
-      // 2. Fetch Voting Date
-      const { data: dateData, error: dateError } = await insforge.database
-        .from('neighborhood_election_info')
-        .select('voting_date')
-        .eq('neighborhood_id', neighborhoodId)
-        .single();
-
-      if (!dateError && dateData) {
-        setVotingDate(dateData.voting_date);
-      }
-    } catch (err) {
-      console.error('Error fetching election data:', err);
-      handleAuthError(err);
-    } finally {
-      setLoadingElection(false);
-    }
-  };
+  const votingDate = electionInfo?.voting_date;
+  const electionPollId = polls.find(p => p.type === 'election')?.id;
 
   const formatDate = (dateStr: string) => {
     try {
@@ -117,7 +54,7 @@ export default function VotingIndex() {
         {/* Open Board Positions */}
         <Text style={styles.sectionTitle}>Open Board Positions</Text>
         <View style={styles.sectionContent}>
-          {loadingElection ? (
+          {loadingPositions ? (
             <ActivityIndicator size="small" color="#1193d4" style={{ marginVertical: 12 }} />
           ) : boardPositions.length === 0 ? (
             <Text style={styles.emptyText}>No open positions defined yet.</Text>
@@ -134,7 +71,7 @@ export default function VotingIndex() {
         {/* Voting Date */}
         <Text style={styles.sectionTitle}>Voting Date</Text>
         <View style={styles.votingDateCard}>
-          {loadingElection ? (
+          {loadingInfo ? (
             <ActivityIndicator size="small" color="#1193d4" />
           ) : (
             <Text style={styles.votingDateText}>
@@ -146,7 +83,7 @@ export default function VotingIndex() {
 
         {/* Active Polls */}
         <Text style={styles.sectionTitle}>Active Polls</Text>
-        {loading ? (
+        {loadingPolls ? (
           <ActivityIndicator size="large" color="#1193d4" style={styles.loader} />
         ) : polls.length === 0 ? (
           <Text style={styles.emptyText}>No active polls available at the moment.</Text>
@@ -193,6 +130,7 @@ export default function VotingIndex() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -249,10 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 1,
     borderWidth: 1,
     borderColor: '#f0f3f4',
@@ -279,10 +214,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 1,
     borderColor: '#f0f3f4',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 1,
   },
   votingDateText: {
@@ -310,10 +242,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderColor: '#f0f3f4',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 1,
   },
   pollCardContent: {

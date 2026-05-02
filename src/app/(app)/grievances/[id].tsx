@@ -16,110 +16,40 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
-import { useAuthStore } from '../../../store/useAuthStore';
+import { 
+  useGrievance, 
+  useGrievanceComments, 
+  useCreateGrievanceComment,
+  useIncrementGrievanceViewCount 
+} from '../../../hooks/useGrievances';
 
 export default function GrievanceDetails() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { handleAuthError } = useAuthStore();
   
-  const [grievance, setGrievance] = useState<any>(null);
-  const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+
+  const { data: grievance, isLoading: grievanceLoading } = useGrievance(id as string);
+  const { data: comments = [], isLoading: commentsLoading } = useGrievanceComments(id as string);
+  const { mutateAsync: postComment, isPending: submitting } = useCreateGrievanceComment();
+  const { mutate: incrementViews } = useIncrementGrievanceViewCount();
 
   useEffect(() => {
-    fetchData();
+    if (id) {
+      incrementViews(id as string);
+    }
   }, [id]);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      // 1. Fetch grievance details
-      const { data: grievanceData, error: grievanceError } = await insforge.database
-        .from('grievances')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (grievanceError) throw grievanceError;
-      setGrievance(grievanceData);
-
-      // Increment view count in background
-      if (grievanceData) {
-        insforge.database.rpc('increment_view_count', { row_id: id }).then(({ error }) => {
-          if (error) {
-            console.error('Increment view count error:', error);
-            handleAuthError(error);
-          }
-        });
-        // Fallback if RPC doesn't exist, we just do a direct update
-        insforge.database.from('grievances')
-          .update({ views_count: ((grievanceData as any).views_count || 0) + 1 })
-          .eq('id', id)
-          .then(({ error }) => {
-            if (error) {
-              console.error('Fallback view count update error:', error);
-              handleAuthError(error);
-            }
-          });
-      }
-
-      // 2. Fetch comments
-      await fetchComments();
-      
-    } catch (err) {
-      console.error('Error fetching grievance details:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchComments = async () => {
-    try {
-      const { data, error } = await insforge.database
-        .from('grievance_comments')
-        .select('*')
-        .eq('grievance_id', id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setComments(data || []);
-    } catch (err) {
-      console.error('Error fetching comments:', err);
-      handleAuthError(err);
-    }
-  };
+  const loading = grievanceLoading || (commentsLoading && !comments.length);
 
   const handlePostComment = async () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !id) return;
     
-    setSubmitting(true);
     try {
-      const { data: userData } = await insforge.auth.getCurrentUser();
-      if (!userData?.user) throw new Error('Not authenticated');
-
-      const { error } = await insforge.database
-        .from('grievance_comments')
-        .insert([{
-          grievance_id: id,
-          user_id: userData.user.id,
-          content: newComment.trim(),
-        }]);
-
-      if (error) throw error;
-      
+      await postComment({ grievanceId: id as string, content: newComment.trim() });
       setNewComment('');
-      // Refresh comments
-      await fetchComments();
     } catch (err) {
       console.error('Error posting comment:', err);
-      handleAuthError(err);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -555,14 +485,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#1193d4',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(17, 147, 212, 0.2)',
     elevation: 4,
   },
   sendButtonDisabled: {
     backgroundColor: '#94a3b8',
-    shadowOpacity: 0,
+    boxShadow: '0px 0px 0px rgba(0, 0, 0, 0)',
   },
 });

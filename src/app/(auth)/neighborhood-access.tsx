@@ -944,10 +944,7 @@ const styles = StyleSheet.create({
     borderColor: '#1193d4',
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    boxShadow: '0px 4px 12px rgba(17, 147, 212, 0.05)',
     elevation: 2,
   },
   sectionSubtitle: {
@@ -1107,10 +1104,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 420,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.25)',
     elevation: 5,
   },
   modalTitle: {

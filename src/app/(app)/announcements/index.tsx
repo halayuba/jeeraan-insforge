@@ -27,58 +27,15 @@ import {
 
 import { useAuthStore } from '../../../store/useAuthStore'
 import { insforge } from '../../../lib/insforge'
+import { useAnnouncements } from '../../../hooks/useAnnouncements'
 
 const FILTER_OPTIONS = ['Year', 'Month', 'Category', 'Status']
 
 export default function AnnouncementsIndex() {
   const router = useRouter()
-  const { handleAuthError, neighborhoodId, userRole } = useAuthStore()
-  const [announcements, setAnnouncements] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
+  const { neighborhoodId } = useAuthStore()
+  const { data: announcements = [], isLoading, refetch, isRefetching } = useAnnouncements(neighborhoodId)
   const [searchQuery, setSearchQuery] = useState('')
-
-  const fetchAnnouncements = async (isRefreshing = false) => {
-    if (!neighborhoodId) return;
-    if (isRefreshing) setRefreshing(true)
-    else setLoading(true)
-
-    try {
-      let query = insforge.database
-        .from('announcements')
-        .select(`
-          *,
-          author:user_profiles(full_name, is_visible, anonymous_id)
-        `)
-        .eq('neighborhood_id', neighborhoodId)
-        .order('created_at', { ascending: false });
-      
-      const { data, error } = await query;
-
-      if (error) {
-        handleAuthError(error)
-        return
-      }
-
-      const formatted = (data || []).map((a: any) => ({
-        ...a,
-        author: Array.isArray(a.author) ? a.author[0] : a.author
-      }));
-      setAnnouncements(formatted)
-    } catch (err) {
-      console.error('Error fetching announcements:', err)
-      handleAuthError(err)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchAnnouncements()
-    }, []),
-  )
 
   const getCategoryStyles = (category: string) => {
     const cat = category?.toLowerCase() || ''
@@ -183,14 +140,14 @@ export default function AnnouncementsIndex() {
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => fetchAnnouncements(true)}
+            refreshing={isRefetching}
+            onRefresh={() => refetch()}
           />
         }
       >
         <Text style={styles.sectionHeading}>Current Month</Text>
 
-        {loading ? (
+        {isLoading ? (
           <ActivityIndicator
             size="large"
             color="#1193d4"

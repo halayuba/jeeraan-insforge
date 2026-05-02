@@ -19,52 +19,21 @@ import { insforge } from '../../../lib/insforge';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
 import { useToast } from '../../../contexts/ToastContext';
+import { useClassifiedAd, useUpdateClassifiedAd } from '../../../hooks/useClassifieds';
 
 const { width } = Dimensions.get('window');
 
 export default function AdDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { user, neighborhoodId, handleAuthError } = useAuthStore();
+  const { user, neighborhoodId } = useAuthStore();
   const { showToast } = useToast();
   
-  const [ad, setAd] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-
-  useEffect(() => {
-    fetchAdDetail();
-  }, [id]);
-
-  const fetchAdDetail = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await insforge.database
-        .from('classified_ads')
-        .select(`
-          *,
-          author:user_profiles(user_id, full_name, avatar_url, is_visible, anonymous_id)
-        `)
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      
-      const formattedAd = {
-        ...data,
-        author: Array.isArray(data.author) ? data.author[0] : data.author
-      };
-      setAd(formattedAd);
-    } catch (err) {
-      console.error('Error fetching ad details:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: ad, isLoading: loading } = useClassifiedAd(id);
+  const { mutateAsync: updateAd, isPending: updating } = useUpdateClassifiedAd();
+  const reportMutation = useReportContent();
 
   const handleStatusUpdate = async (newStatus: string) => {
-    setUpdating(true);
     try {
       const updateData: any = { status: newStatus };
       
@@ -75,20 +44,12 @@ export default function AdDetail() {
         updateData.expires_at = newExpiry.toISOString();
       }
 
-      const { error } = await insforge.database
-        .from('classified_ads')
-        .update(updateData)
-        .eq('id', id);
-
-      if (error) throw error;
+      await updateAd({ id: id as string, ...updateData });
       
       showToast(`Ad marked as ${newStatus}.`, 'success');
-      fetchAdDetail();
     } catch (err) {
       console.error('Error updating status:', err);
       showToast('Failed to update ad status.', 'error');
-    } finally {
-      setUpdating(false);
     }
   };
 
@@ -130,22 +91,11 @@ export default function AdDetail() {
   };
 
   const submitReport = async (reason: string) => {
-    try {
-      const { error } = await insforge.database
-        .from('content_reports')
-        .insert({
-          reporter_id: user?.id,
-          neighborhood_id: neighborhoodId,
-          entity_type: 'classified_ad',
-          entity_id: id,
-          reason: reason.trim()
-        });
-      if (error) throw error;
-      showToast('Ad reported successfully. Thank you!', 'success');
-    } catch (err) {
-      console.error('Failed to report ad:', err);
-      showToast('Failed to submit report.', 'error');
-    }
+    await reportMutation.mutateAsync({
+      entityId: id as string,
+      entityType: 'classified_ad',
+      reason
+    });
   };
 
   if (loading && !ad) {

@@ -34,35 +34,9 @@ export default function AppLayout() {
   const { session, loading, isInitialized, userRole, globalRole, neighborhoodId, isBlocked } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
-  const isRedirecting = useRef(false);
 
-  // Use segments only for internal checks, NOT as a dependency for the redirect effect
+  // Use segments only for internal checks
   const currentPath = segments.join('/');
-
-  useEffect(() => {
-    // Wait until auth is fully initialized and NOT currently transitioning
-    if (!isInitialized || loading) return;
-    if (isRedirecting.current) return;
-
-    // Check if we need to redirect
-    let targetPath: string | null = null;
-
-    if (!session) {
-      targetPath = '/';
-    } else if (isBlocked && currentPath !== '(app)/blocked' && !currentPath.endsWith('/blocked')) {
-      targetPath = '/blocked';
-    } else if (globalRole === 'super_admin' && !neighborhoodId && !currentPath.includes('create-neighborhood')) {
-      targetPath = '/(auth)/create-neighborhood';
-    }
-
-    if (targetPath) {
-      isRedirecting.current = true;
-      router.replace(targetPath as any);
-    } else {
-      // Reset guard only if we are in a valid state
-      isRedirecting.current = false;
-    }
-  }, [isInitialized, loading, session, isBlocked, globalRole, neighborhoodId]);
 
   if (!isInitialized || loading) {
     return (
@@ -72,10 +46,8 @@ export default function AppLayout() {
     );
   }
 
-  // Final safety check: if we are supposed to be redirecting, don't render children
-  if (!session || (isBlocked && !currentPath.includes('blocked')) || (globalRole === 'super_admin' && !neighborhoodId && !currentPath.includes('create-neighborhood'))) {
-    return <View style={{ flex: 1, backgroundColor: '#f6f7f8' }} />;
-  }
+  // NOTE: We used to return null here during redirects, but that caused a blank screen.
+  // We now rely on UnifiedAuthGuard to handle the redirect while this layout continues to render.
 
 
   return (

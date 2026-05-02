@@ -22,6 +22,8 @@ import { uploadImage as uploadImageUtil } from '../../../lib/upload';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { MemberName } from '../../../components/MemberName';
+import { useMessages, useRecipient, useSendMessage } from '../../../hooks/useDMs';
+import { checkDailyLimit } from '../../../lib/rateLimit';
 
 export default function MessageThread() {
   const router = useRouter();
@@ -29,77 +31,18 @@ export default function MessageThread() {
   const { user, neighborhoodId, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
   
-  const [messages, setMessages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [attachment, setAttachment] = useState<any>(null);
-  const [recipient, setRecipient] = useState<any>(null);
   const [conversationId, setConversationId] = useState<string | null>(id === 'new' ? null : id);
 
+  const { data: messages = [], isLoading: loadingMessages } = useMessages(conversationId);
+  const { data: recipient, isLoading: loadingRecipient } = useRecipient(recipientId, conversationId);
+  const sendMessageMutation = useSendMessage();
+
+  const loading = loadingMessages || (id === 'new' && loadingRecipient);
+  const sending = sendMessageMutation.isPending;
+
   const scrollViewRef = useRef<ScrollView>(null);
-
-  useEffect(() => {
-    if (id === 'new' && recipientId) {
-      fetchRecipient(recipientId);
-      setLoading(false);
-    } else if (id && id !== 'new') {
-      fetchMessages();
-    }
-  }, [id, recipientId]);
-
-  const fetchRecipient = async (uid: string) => {
-    try {
-      const { data, error } = await insforge.database
-        .from('user_profiles')
-        .select('user_id, full_name, avatar_url, is_visible, anonymous_id')
-        .eq('user_id', uid)
-        .single();
-      
-      if (error) throw error;
-      setRecipient(data);
-    } catch (err) {
-      console.error('Error fetching recipient:', err);
-    }
-  };
-
-  const fetchMessages = async () => {
-    if (!id || id === 'new') return;
-    setLoading(true);
-    try {
-      // 1. Fetch messages
-      const { data: msgs, error: msgsError } = await insforge.database
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', id)
-        .order('created_at', { ascending: true });
-
-      if (msgsError) throw msgsError;
-      setMessages(msgs || []);
-
-      // 2. Fetch recipient info from conversation
-      const { data: conv, error: convError } = await insforge.database
-        .from('conversations')
-        .select(`
-            participant_1:user_profiles!participant_1_id(user_id, full_name, avatar_url, is_visible, anonymous_id),
-            participant_2:user_profiles!participant_2_id(user_id, full_name, avatar_url, is_visible, anonymous_id)
-        `)
-        .eq('id', id)
-        .single();
-      
-      if (convError) throw convError;
-      const c = conv as any;
-      const otherParticipant = c.participant_1.user_id === user?.id ? c.participant_2 : c.participant_1;
-      setRecipient(otherParticipant);
-
-      // 3. Mark unread messages as read (optional MVP)
-    } catch (err) {
-      console.error('Error fetching messages:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -162,73 +105,35 @@ export default function MessageThread() {
     if (!messageText.trim() && !attachment) return;
     if (!user || !neighborhoodId) return;
 
-    setSending(true);
     try {
-      // 1. Check daily limit (this is also enforced by RLS but good to check UI side)
-      const { data: usage, error: usageError } = await insforge.database
-        .from('user_daily_usage')
-        .select('messages_sent_count')
-        .eq('user_id', user.id)
-        .eq('usage_date', new Date().toISOString().split('T')[0])
-        .single();
+      // 1. Check daily limit
+      const { allowed } = await checkDailyLimit('messages', user.id);
       
-      if (!usageError && usage && usage.messages_sent_count >= 10) {
+      if (!allowed) {
         showToast('Daily message limit reached (10/day)', 'error');
-        setSending(false);
         return;
       }
 
-      // 2. Ensure conversation exists
-      let currentConvId = conversationId;
-      if (!currentConvId && recipientId) {
-        // Create new conversation
-        const p1 = user.id < recipientId ? user.id : recipientId;
-        const p2 = user.id < recipientId ? recipientId : user.id;
-
-        const { data: newConv, error: convError } = await insforge.database
-          .from('conversations')
-          .insert([{
-            participant_1_id: p1,
-            participant_2_id: p2,
-            neighborhood_id: neighborhoodId
-          }])
-          .select()
-          .single();
-        
-        if (convError) throw convError;
-        currentConvId = newConv.id;
-        setConversationId(currentConvId);
-      }
-
-      if (!currentConvId) throw new Error('Failed to identify conversation');
-
-      // 3. Upload attachment if exists
+      // 2. Upload attachment if exists
       const attachmentUrl = await uploadAttachment();
 
-      // 4. Send message
-      const { data: newMessage, error: sendError } = await insforge.database
-        .from('messages')
-        .insert([{
-          conversation_id: currentConvId,
-          sender_id: user.id,
-          neighborhood_id: neighborhoodId,
-          content: messageText.trim(),
-          attachment_url: attachmentUrl,
-          attachment_type: attachment?.type
-        }])
-        .select()
-        .single();
+      // 3. Send message using mutation
+      const result = await sendMessageMutation.mutateAsync({
+        conversationId,
+        recipientId,
+        content: messageText.trim(),
+        attachmentUrl,
+        attachmentType: attachment?.type
+      });
 
-      if (sendError) throw sendError;
-
-      // 5. Update local state
-      setMessages([...messages, newMessage]);
+      // 4. Update local state
       setMessageText('');
       setAttachment(null);
       
-      // If it was a new conversation, update route so back button works correctly
-      if (id === 'new') {
-          router.setParams({ id: currentConvId });
+      // If it was a new conversation, update route and local state
+      if (id === 'new' && result.conversationId) {
+          setConversationId(result.conversationId);
+          router.setParams({ id: result.conversationId });
       }
 
     } catch (err: any) {
@@ -239,8 +144,6 @@ export default function MessageThread() {
           showToast(err.message || 'Failed to send message', 'error');
       }
       handleAuthError(err);
-    } finally {
-      setSending(false);
     }
   };
 
@@ -449,10 +352,7 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
     padding: 12,
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 1,
   },
   myBubble: {

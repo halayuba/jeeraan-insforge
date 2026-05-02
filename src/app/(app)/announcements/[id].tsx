@@ -22,48 +22,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
 import { useAuthStore } from '../../../store/useAuthStore';
+import { useAnnouncement } from '../../../hooks/useAnnouncements';
 
 export default function AnnouncementDetails() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { handleAuthError } = useAuthStore();
-  
-  const [announcement, setAnnouncement] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchAnnouncement();
-  }, [id]);
-
-  const fetchAnnouncement = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await insforge.database
-        .from('announcements')
-        .select(`
-          *,
-          author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)
-        `)
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        handleAuthError(error);
-        return;
-      }
-      
-      const formatted = {
-        ...data,
-        author: Array.isArray(data.author) ? data.author[0] : data.author
-      };
-      setAnnouncement(formatted);
-    } catch (err) {
-      console.error('Error fetching announcement details:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: announcement, isLoading } = useAnnouncement(id);
 
   const getCategoryStyles = (category: string) => {
     const cat = category?.toLowerCase() || '';
@@ -94,7 +58,7 @@ export default function AnnouncementDetails() {
     });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color="#1193d4" />

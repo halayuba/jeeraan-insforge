@@ -7,21 +7,8 @@ export default function AuthLayout() {
   const { session, loading, isInitialized } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
-  const isRedirecting = useRef(false);
 
   const currentSegment = segments[segments.length - 1];
-
-  useEffect(() => {
-    if (!isInitialized || loading) return;
-    if (isRedirecting.current) return;
-
-    if (session && currentSegment !== 'create-neighborhood' && currentSegment !== 'admin-sign-in') {
-      isRedirecting.current = true;
-      router.replace('/(app)' as any);
-    } else {
-      isRedirecting.current = false;
-    }
-  }, [isInitialized, loading, session]);
 
   if (!isInitialized || loading) {
     return (
@@ -31,10 +18,8 @@ export default function AuthLayout() {
     );
   }
 
-  // Prevent rendering stack during redirect
-  if (session && currentSegment !== 'create-neighborhood' && currentSegment !== 'admin-sign-in') {
-    return <View style={{ flex: 1, backgroundColor: '#f6f7f8' }} />;
-  }
+  // NOTE: We now rely on UnifiedAuthGuard for redirects. 
+  // Rendering the stack here avoids the "blank screen" during the transition to (app).
 
 
   return (

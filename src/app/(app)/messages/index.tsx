@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,99 +11,32 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { ArrowLeft, Search, Mail, MessageSquare, Plus, X } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+import { ArrowLeft, Search, Mail, Plus, X } from 'lucide-react-native';
 
-import { insforge } from '../../../lib/insforge';
 import { useAuthStore } from '../../../store/useAuthStore';
+import { useConversations } from '../../../hooks/useDMs';
+import { useMemberSearch } from '../../../hooks/useMemberSearch';
 import { MemberName } from '../../../components/MemberName';
 
 export default function MessagesIndex() {
   const router = useRouter();
-  const { user, neighborhoodId, handleAuthError } = useAuthStore();
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user, neighborhoodId } = useAuthStore();
+  const { data: conversations = [], isLoading: loading } = useConversations();
   const [searchQuery, setSearchQuery] = useState('');
   
   // Search Modal State
   const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
   const [memberSearchQuery, setMemberSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearchingMembers, setIsSearchingMembers] = useState(false);
-
-  const fetchConversations = async () => {
-    if (!user || !neighborhoodId) return;
-    setLoading(true);
-    try {
-      // In a real app, we'd use a more complex query or a view to get conversations with last message and unread count
-      // For MVP, we'll fetch conversations where user is participant 1 or 2
-      const { data, error } = await insforge.database
-        .from('conversations')
-        .select(`
-          *,
-          participant_1:user_profiles!participant_1_id(full_name, avatar_url, is_visible, anonymous_id),
-          participant_2:user_profiles!participant_2_id(full_name, avatar_url, is_visible, anonymous_id)
-        `)
-        .eq('neighborhood_id', neighborhoodId)
-        .or(`participant_1_id.eq.${user.id},participant_2_id.eq.${user.id}`)
-        .order('last_message_at', { ascending: false });
-
-      if (error) throw error;
-      setConversations(data || []);
-    } catch (err) {
-      console.error('Error fetching conversations:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchConversations();
-    }, [user, neighborhoodId])
+  
+  const { data: searchResults = [], isLoading: isSearchingMembers } = useMemberSearch(
+    neighborhoodId, 
+    memberSearchQuery
   );
-
-  const searchMembers = async (query: string) => {
-    setMemberSearchQuery(query);
-    if (query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
-    setIsSearchingMembers(true);
-    try {
-      const { data, error } = await insforge.database
-        .from('user_neighborhoods')
-        .select(`
-          user_id,
-          profiles:user_profiles(full_name, avatar_url, is_visible, anonymous_id, global_role)
-        `)
-        .eq('neighborhood_id', neighborhoodId)
-        .neq('user_id', user?.id)
-        .ilike('user_profiles.full_name', `%${query}%`); // Simplified search for now
-
-      if (error) throw error;
-      
-      const formattedData = (data || [])
-        .map((m: any) => ({
-          ...m,
-          profiles: Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
-        }))
-        .filter((m: any) => m.profiles?.global_role !== 'super_admin');
-
-      setSearchResults(formattedData);
-    } catch (err) {
-      console.error('Error searching members:', err);
-    } finally {
-      setIsSearchingMembers(false);
-    }
-  };
 
   const startConversation = (recipientId: string) => {
     setIsSearchModalVisible(false);
     setMemberSearchQuery('');
-    setSearchResults([]);
     // Navigate to conversation thread
     router.push({
         pathname: '/(app)/messages/[id]',
@@ -232,7 +165,7 @@ export default function MessagesIndex() {
                 placeholder="Search neighbor name..."
                 placeholderTextColor="#64748b"
                 value={memberSearchQuery}
-                onChangeText={searchMembers}
+                onChangeText={setMemberSearchQuery}
                 autoFocus
               />
             </View>

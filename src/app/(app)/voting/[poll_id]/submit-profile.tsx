@@ -1,6 +1,3 @@
-import { Camera, X } from 'lucide-react-native';
-
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -16,48 +13,31 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Camera, X } from 'lucide-react-native';
 
-import { insforge } from '../../../../lib/insforge';
 import { useAuthStore } from '../../../../store/useAuthStore';
+import { useProfile } from '../../../../hooks/useProfile';
+import { useSubmitCandidateProfile } from '../../../../hooks/useElections';
 
 export default function SubmitProfileScreen() {
   const { poll_id } = useLocalSearchParams<{ poll_id: string }>();
   const router = useRouter();
   const { session } = useAuthStore();
+  const { profile, isLoading: loadingProfile } = useProfile();
+  const { mutateAsync: submitProfile, isPending: submitting } = useSubmitCandidateProfile();
+
   const [bio, setBio] = useState('');
   const [assets, setAssets] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await insforge.database
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', session?.user?.id)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-
-      if (data && data.is_visible === false) {
-        Alert.alert(
-          'Ineligible for Board',
-          'Anonymous members are not eligible for board positions. Please make your profile visible in settings to continue.',
-          [{ text: 'OK', onPress: () => router.back() }]
-        );
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-    } finally {
-      setLoadingProfile(false);
+    if (profile && profile.is_visible === false) {
+      Alert.alert(
+        'Ineligible for Board',
+        'Anonymous members are not eligible for board positions. Please make your profile visible in settings to continue.',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
     }
-  };
+  }, [profile]);
 
   const handleSubmit = async () => {
     if (!bio.trim() || !assets.trim()) {
@@ -66,31 +46,24 @@ export default function SubmitProfileScreen() {
     }
 
     try {
-      setSubmitting(true);
-      const { error } = await insforge.database.from('candidates').insert([{
+      await submitProfile({
         poll_id,
         user_id: session?.user?.id,
         bio: bio.trim(),
         assets: assets.trim(),
         image_url: profile?.avatar_url || null,
-      }]);
+      });
 
-      if (error) {
-        if (error.code === '23505') {
-          Alert.alert('Error', 'You have already submitted a profile for this election.');
-        } else {
-          throw error;
-        }
-      } else {
-        Alert.alert('Success', 'Profile submitted successfully!', [
-          { text: 'OK', onPress: () => router.back() },
-        ]);
-      }
-    } catch (err) {
+      Alert.alert('Success', 'Profile submitted successfully!', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch (err: any) {
       console.error('Profile submission error:', err);
-      Alert.alert('Error', 'Failed to submit profile. Please try again.');
-    } finally {
-      setSubmitting(false);
+      if (err.code === '23505') {
+        Alert.alert('Error', 'You have already submitted a profile for this election.');
+      } else {
+        Alert.alert('Error', 'Failed to submit profile. Please try again.');
+      }
     }
   };
 

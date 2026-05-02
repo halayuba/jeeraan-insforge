@@ -1,7 +1,4 @@
-import { ArrowLeft, MessageCircle, MessageSquarePlus, Search, ThumbsUp, UserCircle2 } from 'lucide-react-native';
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,9 +8,9 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowLeft, MessageCircle, MessageSquarePlus, Search, ThumbsUp, UserCircle2 } from 'lucide-react-native';
 
-import { insforge } from '../../../../../../lib/insforge';
-import { useAuthStore } from '../../../../../../store/useAuthStore';
+import { useCandidateDetails } from '../../../../../../hooks/useElections';
 
 type QAItem = {
   id: string;
@@ -30,32 +27,11 @@ const TABS = ['All Questions', 'Answered', 'Pending'];
 export default function CandidateQAScreen() {
   const { poll_id, candidate_id } = useLocalSearchParams<{ poll_id: string; candidate_id: string }>();
   const router = useRouter();
-  const { handleAuthError } = useAuthStore();
-  const [qaItems, setQaItems] = useState<QAItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  const { data: candidate, isLoading: loading } = useCandidateDetails(candidate_id);
+  const qaItems: QAItem[] = candidate?.questions || [];
+
   const [activeTab, setActiveTab] = useState(0);
-
-  useEffect(() => {
-    fetchQA();
-  }, [candidate_id]);
-
-  const fetchQA = async () => {
-    try {
-      const { data, error } = await insforge.database
-        .from('candidate_questions')
-        .select('*')
-        .eq('candidate_id', candidate_id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setQaItems(data || []);
-    } catch (err) {
-      console.error('Error fetching Q&A:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredItems = qaItems.filter((item) => {
     if (activeTab === 0) return true;
@@ -245,10 +221,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f1f5f9',
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 1,
     marginBottom: 12,
   },
@@ -338,10 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1193d4',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    boxShadow: '0px 4px 6px rgba(17, 147, 212, 0.3)',
     elevation: 6,
   },
 });

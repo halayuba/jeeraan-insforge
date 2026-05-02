@@ -12,6 +12,9 @@ import {
 } from '@expo-google-fonts/manrope';
 import { useMemo, useEffect } from 'react';
 import { StripeProvider } from '../lib/stripe';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../lib/queryClient';
+import { UnifiedAuthGuard } from '../components/UnifiedAuthGuard';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -44,13 +47,17 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <ToastProvider>
-        <StripeProvider
-          publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
-        >
-          <Slot />
-        </StripeProvider>
-      </ToastProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <StripeProvider
+            publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
+          >
+            <UnifiedAuthGuard>
+              <Slot />
+            </UnifiedAuthGuard>
+          </StripeProvider>
+        </ToastProvider>
+      </QueryClientProvider>
     </SafeAreaProvider>
   );
 }

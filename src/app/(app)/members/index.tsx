@@ -14,55 +14,16 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
+import { useMembers } from '../../../hooks/useMembers';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
 
 export default function MembersIndex() {
   const router = useRouter();
-  const { neighborhoodId, handleAuthError } = useAuthStore();
-  const [members, setMembers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { neighborhoodId } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    if (neighborhoodId) {
-      fetchMembers();
-    }
-  }, [neighborhoodId]);
-
-  const fetchMembers = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await insforge.database
-        .from('user_neighborhoods')
-        .select(`
-          user_id,
-          role,
-          profiles:user_profiles(full_name, avatar_url, is_visible, anonymous_id, global_role)
-        `)
-        .eq('neighborhood_id', neighborhoodId)
-        .in('role', ['resident', 'moderator']); // Only regular members and moderators
-
-      if (error) throw error;
-      
-      const formattedData = (data || [])
-        .map((m: any) => ({
-          ...m,
-          profiles: Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
-        }))
-        // Explicitly exclude any profile with global_role = 'super_admin' 
-        // regardless of their local neighborhood role
-        .filter((m: any) => m.profiles?.global_role !== 'super_admin');
-
-      setMembers(formattedData);
-    } catch (err) {
-      console.error('Error fetching members:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: members = [], isLoading: loading } = useMembers(neighborhoodId);
 
   const filteredMembers = members.filter(member => {
     const fullName = member.profiles?.full_name || '';

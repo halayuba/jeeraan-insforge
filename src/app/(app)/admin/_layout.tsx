@@ -2,26 +2,27 @@ import { Shield } from 'lucide-react-native';
 
 
 import * as LocalAuthentication from 'expo-local-authentication';
-import { Redirect, Slot } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { Slot, useRouter, useSegments } from 'expo-router';
+import React, { useEffect, useState, useRef } from 'react';
 import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../store/useAuthStore';
 
 export default function AdminLayout() {
-  const { userRole, globalRole, loading } = useAuthStore();
+  const { userRole, globalRole, loading, isInitialized, neighborhoodId } = useAuthStore();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
+  const router = useRouter();
 
   const isPrivileged = userRole === 'admin' || userRole === 'moderator' || globalRole === 'super_admin';
 
   useEffect(() => {
-    if (!loading && isPrivileged) {
+    if (!isInitialized || loading) return;
+
+    if (isPrivileged) {
       authenticate();
-    } else if (!loading) {
-      setIsAuthenticating(false);
     }
-  }, [loading, isPrivileged]);
+  }, [loading, isInitialized, isPrivileged]);
 
   const authenticate = async () => {
     // Biometric bypass for Web platform
@@ -57,7 +58,7 @@ export default function AdminLayout() {
     }
   };
 
-  if (loading || isAuthenticating) {
+  if (!isInitialized || loading || isAuthenticating) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#1193d4" />
@@ -68,7 +69,7 @@ export default function AdminLayout() {
 
   // Not privileged? 
   if (!isPrivileged) {
-    return <Redirect href="/(app)" />;
+    return null;
   }
 
   // Admin but failed biometric authentication?

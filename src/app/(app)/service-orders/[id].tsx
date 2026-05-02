@@ -13,40 +13,14 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
+import { useServiceOrder } from '../../../hooks/useServiceOrders';
 import { useAuthStore } from '../../../store/useAuthStore';
 
 export default function ServiceOrderDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { handleAuthError } = useAuthStore();
-  const [order, setOrder] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (id) {
-      fetchOrderDetail();
-    }
-  }, [id]);
-
-  const fetchOrderDetail = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await insforge.database
-        .from('service_orders')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      setOrder(data);
-    } catch (err) {
-      console.error('Error fetching service order details:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: order, isLoading: loading } = useServiceOrder(id);
 
   const getStatusStyles = (status: string) => {
     switch (status?.toLowerCase()) {

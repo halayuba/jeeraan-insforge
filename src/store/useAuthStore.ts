@@ -37,6 +37,11 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
 
   // Actions
   clearAuthState: () => {
+    const state = get();
+    // Don't trigger a re-render if we're already cleared and not loading
+    if (!state.session && !state.user && !state.loading && state.isInitialized) {
+      return;
+    }
     set({
       user: null,
       session: null,

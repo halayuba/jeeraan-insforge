@@ -21,6 +21,7 @@ import { uploadImage as uploadImageUtil } from '../../../lib/upload';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useToast } from '../../../contexts/ToastContext';
 import { checkDailyLimit } from '../../../lib/rateLimit';
+import { useCreateGrievance } from '../../../hooks/useGrievances';
 
 const CATEGORIES = [
   { id: 'Maintenance', icon: Wrench },
@@ -30,14 +31,15 @@ const CATEGORIES = [
 
 export default function SubmitGrievance() {
   const router = useRouter();
-  const { handleAuthError, neighborhoodId } = useAuthStore();
+  const { neighborhoodId, user } = useAuthStore();
   const { showToast } = useToast();
   
   const [category, setCategory] = useState(CATEGORIES[0].id);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
-  const [submitting, setSubmitting] = useState(false);
+
+  const { mutateAsync: createGrievance, isPending: submitting } = useCreateGrievance();
 
   const handleGamificationReward = (rewardData: any) => {
     if (rewardData?.success && rewardData.points_added > 0) {
@@ -107,13 +109,13 @@ export default function SubmitGrievance() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      // 1. Get user
-      const { data: userData } = await insforge.auth.getCurrentUser();
-      if (!userData?.user) throw new Error('Not authenticated');
+    if (!user) {
+      showToast('You must be logged in to submit a grievance.', 'error');
+      return;
+    }
 
-      const { allowed } = await checkDailyLimit('grievances', userData.user.id);
+    try {
+      const { allowed } = await checkDailyLimit('grievances', user.id);
       if (!allowed) {
         showToast('Daily limit reached. Please try again tomorrow.', 'error');
         return;
@@ -122,27 +124,20 @@ export default function SubmitGrievance() {
       // 2. Upload images if any
       const uploadedImageUrls = await uploadImagesAndGetUrls();
 
-      // 3. Insert record
-      const { data: newGrievance, error } = await insforge.database
-        .from('grievances')
-        .insert([{
-          title: title.trim(),
-          description: description.trim(),
-          category,
-          status: 'Pending',
-          images: uploadedImageUrls,
-          user_id: userData.user.id,
-        }])
-        .select()
-        .single();
+      // 3. Insert record using mutation
+      const newGrievance = await createGrievance({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        status: 'Pending',
+        images: uploadedImageUrls,
+      });
 
-      if (error) throw error;
-      
       // 4. Award Points
       try {
         const { data: rewardData } = await insforge.functions.invoke('award-points-v1', {
           body: {
-            userId: userData.user.id,
+            userId: user.id,
             actionType: 'grievance_submission',
             neighborhoodId: neighborhoodId,
             entityId: newGrievance.id
@@ -157,10 +152,7 @@ export default function SubmitGrievance() {
       router.push('/(app)/grievances');
     } catch (err: any) {
       console.error('Submit error:', err);
-      handleAuthError(err);
       showToast(err.message || 'Failed to submit grievance.', 'error');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -465,15 +457,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    boxShadow: '0px 4px 8px rgba(17, 147, 212, 0.2)',
     elevation: 4,
   },
   submitButtonDisabled: {
     backgroundColor: '#94a3b8',
-    shadowOpacity: 0,
+    boxShadow: '0px 0px 0px rgba(0, 0, 0, 0)',
   },
   submitButtonText: {
     fontFamily: 'Manrope-Bold',

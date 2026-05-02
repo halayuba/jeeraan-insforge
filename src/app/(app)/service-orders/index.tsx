@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { insforge } from '../../../lib/insforge';
+import { useServiceOrders } from '../../../hooks/useServiceOrders';
 import { useAuthStore } from '../../../store/useAuthStore';
 
 const FILTER_OPTIONS = ['Year', 'Month', 'Rating'];
@@ -21,31 +21,8 @@ const FILTER_OPTIONS = ['Year', 'Month', 'Rating'];
 export default function ServiceOrdersIndex() {
   const router = useRouter();
   const { handleAuthError } = useAuthStore();
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: orders = [], isLoading: loading } = useServiceOrders();
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await insforge.database
-        .from('service_orders')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setOrders(data || []);
-    } catch (err) {
-      console.error('Error fetching service orders:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredOrders = orders.filter(
     (order) =>

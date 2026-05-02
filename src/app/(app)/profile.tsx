@@ -46,6 +46,9 @@ import {
   IconBrandLinkedin, 
   IconBrandFacebook 
 } from '@tabler/icons-react-native';
+import { useProfile } from '../../hooks/useProfile';
+import { useGamificationSettings } from '../../hooks/useGamificationSettings';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 type SocialLinks = {
   instagram?: string;
@@ -59,11 +62,13 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { session, signOut, neighborhoodId, userRole, handleAuthError } = useAuthStore();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
 
-  const [loading, setLoading] = useState(true);
+  const { profile, isLoading: loadingProfile, updateProfile, isUpdating: updatingProfile } = useProfile();
+  const { settings: gamificationSettings, isLoading: loadingSettings } = useGamificationSettings(neighborhoodId);
+
+  const loading = loadingProfile || loadingSettings;
   const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
-  const [gamificationSettings, setGamificationSettings] = useState<any>(null);
 
   // Editable fields state
   const [gender, setGender] = useState('');
@@ -77,91 +82,63 @@ export default function ProfileScreen() {
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
 
   useEffect(() => {
-    if (session?.user?.id) {
-      fetchData();
-    }
-  }, [session?.user?.id, neighborhoodId]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    await Promise.all([
-      fetchProfile(),
-      fetchGamificationSettings(),
-    ]);
-    setLoading(false);
-  };
-
-  const fetchGamificationSettings = async () => {
-    if (!neighborhoodId) return;
-    try {
-      const { data, error } = await insforge.database
-        .from('gamification_settings')
-        .select('*')
-        .eq('neighborhood_id', neighborhoodId)
-        .maybeSingle();
-
-      if (error) {
-        handleAuthError(error);
-        return;
-      }
-
-      if (data) {
-        setGamificationSettings(data);
-      }
-    } catch (err) {
-      console.error('Error fetching gamification settings:', err);
-      handleAuthError(err);
-    }
-  };
-
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await insforge.database
-        .from('user_profiles')
-        .select('*')
-        .eq('user_id', session?.user?.id)
-        .maybeSingle();
-
-      if (error) {
-        handleAuthError(error);
-        return;
-      }
-
-      if (data) {
-        setProfile(data);
-        setGender(data.gender || '');
-        setEmail(data.email || '');
-        setPhone(data.phone || '');
-        
-        // Convert YYYY-MM-DD to MM-DD-YYYY for display
-        if (data.birthday && data.birthday.length === 10) {
-          const [year, month, day] = data.birthday.split('-');
-          setBirthday(`${month}-${day}-${year}`);
-        } else {
-          setBirthday(data.birthday || '');
-        }
-
-        setLanguage(data.language || '');
-        setWorkTitle(data.work_title || '');
-        
-        // Filter out invalid URLs that might have been saved due to previous bugs
-        const savedUrl = data.avatar_url;
-        const isValidUrl = savedUrl && typeof savedUrl === 'string' && savedUrl.startsWith('http') && savedUrl !== '[object Object]';
-        setAvatarUrl(isValidUrl ? savedUrl : '');
-        
-        setIsVisible(data.is_visible ?? true);
-        setSocialLinks(data.social_links || {});
+    if (profile) {
+      setGender(profile.gender || '');
+      setEmail(profile.email || '');
+      setPhone(profile.phone || '');
+      
+      // Convert YYYY-MM-DD to MM-DD-YYYY for display
+      if (profile.birthday && profile.birthday.length === 10) {
+        const [year, month, day] = profile.birthday.split('-');
+        setBirthday(`${month}-${day}-${year}`);
       } else {
-        // If no profile exists yet, we can initialize with some defaults if needed
-        // but the upsert in handleSave will create it anyway
-        console.log('No profile found for user, will be created on first save');
+        setBirthday(profile.birthday || '');
       }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      handleAuthError(err);
-      showToast('Failed to load profile', 'error');
+
+      setLanguage(profile.language || '');
+      setWorkTitle(profile.work_title || '');
+      
+      // Filter out invalid URLs
+      const savedUrl = profile.avatar_url;
+      const isValidUrl = savedUrl && typeof savedUrl === 'string' && savedUrl.startsWith('http') && savedUrl !== '[object Object]';
+      setAvatarUrl(isValidUrl ? savedUrl : '');
+      
+      setIsVisible(profile.is_visible ?? true);
+      setSocialLinks(profile.social_links || {});
     }
-  };
+  }, [profile]);
+
+  const uploadMutation = useMutation({
+    mutationFn: async ({ uri, base64 }: { uri: string, base64?: string }) => {
+      if (!session?.user?.id || !neighborhoodId) return;
+
+      const { url: newAvatarUrl, error: uploadError } = await uploadImageUtil(uri, {
+        bucketName: 'avatars',
+        oldImageUrl: avatarUrl,
+        userId: session.user.id,
+        neighborhoodId: neighborhoodId,
+        serviceType: 'profile_picture',
+        base64: base64
+      });
+
+      if (uploadError) {
+        throw new Error(uploadError);
+      }
+
+      await updateProfile({ avatar_url: newAvatarUrl });
+      return newAvatarUrl;
+    },
+    onSuccess: (newUrl) => {
+      if (newUrl) {
+        setAvatarUrl(newUrl);
+        showToast('Profile picture updated');
+      }
+    },
+    onError: (err: any) => {
+      console.error('Error uploading image:', err);
+      showToast(err.message || 'Failed to upload image', 'error');
+    }
+  });
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -179,51 +156,10 @@ export default function ProfileScreen() {
     });
 
     if (!result.canceled) {
-      uploadImage(result.assets[0].uri, result.assets[0].base64 || undefined);
-    }
-  };
-
-  const uploadImage = async (uri: string, base64?: string) => {
-    if (!session?.user?.id || !neighborhoodId) return;
-
-    setSaving(true);
-    try {
-      const { url: newAvatarUrl, error: uploadError } = await uploadImageUtil(uri, {
-        bucketName: 'avatars',
-        oldImageUrl: avatarUrl,
-        userId: session.user.id,
-        neighborhoodId: neighborhoodId,
-        serviceType: 'profile_picture',
-        base64: base64
+      uploadMutation.mutate({ 
+        uri: result.assets[0].uri, 
+        base64: result.assets[0].base64 || undefined 
       });
-
-      if (uploadError) {
-        showToast(uploadError, 'error');
-        return;
-      }
-
-      const { error: updateError } = await insforge.database
-        .from('user_profiles')
-        .upsert({ 
-          user_id: session.user.id,
-          avatar_url: newAvatarUrl,
-          updated_at: new Date().toISOString()
-        });
-
-      if (updateError) {
-        handleAuthError(updateError);
-        throw updateError;
-      }
-
-      setAvatarUrl(newAvatarUrl);
-      setProfile((prev: any) => prev ? ({ ...prev, avatar_url: newAvatarUrl }) : null);
-      showToast('Profile picture updated');
-    } catch (err: any) {
-      console.error('Error uploading image:', err);
-      handleAuthError(err);
-      showToast(err.message || 'Failed to upload image', 'error');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -258,7 +194,6 @@ export default function ProfileScreen() {
       }
 
       const updateData = {
-        user_id: session.user.id,
         gender,
         email,
         phone,
@@ -267,46 +202,13 @@ export default function ProfileScreen() {
         work_title: workTitle,
         is_visible: isVisible,
         social_links: socialLinks,
-        updated_at: new Date().toISOString(),
       };
 
-      const { data, error } = await insforge.database
-        .from('user_profiles')
-        .upsert(updateData)
-        .select()
-        .single();
-
-      if (error) {
-        handleAuthError(error);
-        throw error;
-      }
-
-      if (data) {
-        setProfile(data);
-        // Refresh local states with confirmed data from server
-        setGender(data.gender || '');
-        setEmail(data.email || '');
-        setPhone(data.phone || '');
-        
-        // Convert back for display
-        if (data.birthday && data.birthday.length === 10) {
-          const [y, m, d] = data.birthday.split('-');
-          setBirthday(`${m}-${d}-${y}`);
-        } else {
-          setBirthday(data.birthday || '');
-        }
-
-        setLanguage(data.language || '');
-        setWorkTitle(data.work_title || '');
-        setIsVisible(data.is_visible ?? true);
-        setSocialLinks(data.social_links || {});
-      }
-
+      await updateProfile(updateData);
       showToast('Profile updated successfully');
     } catch (err: any) {
       console.error('Error saving profile:', err);
-      handleAuthError(err);
-      showToast(err.message || 'Failed to update profile', 'error');
+      // Error handled by hook
     } finally {
       setSaving(false);
     }
@@ -358,14 +260,7 @@ export default function ProfileScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const { error } = await insforge.database
-                .from('user_profiles')
-                .upsert({ 
-                  user_id: session?.user?.id,
-                  is_active: false,
-                  updated_at: new Date().toISOString()
-                });
-              if (error) throw error;
+              await updateProfile({ is_active: false });
               await signOut();
             } catch (err) {
               showToast('Action failed', 'error');
@@ -413,6 +308,8 @@ export default function ProfileScreen() {
     );
   }
 
+  const isActuallySaving = saving || updatingProfile || uploadMutation.isPending;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -420,8 +317,8 @@ export default function ProfileScreen() {
           <ArrowLeft size={24} color="#1e293b" strokeWidth={2} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Profile</Text>
-        <TouchableOpacity onPress={handleSave} disabled={saving} style={styles.saveButton}>
-          {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.saveText}>Save</Text>}
+        <TouchableOpacity onPress={handleSave} disabled={isActuallySaving} style={styles.saveButton}>
+          {isActuallySaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.saveText}>Save</Text>}
         </TouchableOpacity>
       </View>
 
@@ -813,10 +710,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
   row: {

@@ -10,59 +10,20 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { insforge } from '../../../lib/insforge';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
+import { useClassifieds } from '../../../hooks/useClassifieds';
 
 export default function ClassifiedsIndex() {
   const router = useRouter();
-  const { handleAuthError, neighborhoodId, user } = useAuthStore();
-  const [ads, setAds] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { neighborhoodId } = useAuthStore();
+  const { data: ads = [], isLoading, refetch, isRefetching } = useClassifieds(neighborhoodId);
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    fetchAds();
-  }, [neighborhoodId]);
-
-  const fetchAds = async () => {
-    if (!neighborhoodId) return;
-    setLoading(true);
-    try {
-      const { data, error } = await insforge.database
-        .from('classified_ads')
-        .select(`
-          *,
-          author:user_profiles(full_name, avatar_url, is_visible, anonymous_id)
-        `)
-        .eq('neighborhood_id', neighborhoodId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const formattedData = (data || []).map((ad: any) => ({
-        ...ad,
-        author: Array.isArray(ad.author) ? ad.author[0] : ad.author
-      }));
-
-      // Filter: Show all active/sold ads, but only show pending/inactive to the owner
-      const visibleAds = formattedData.filter((ad: any) => 
-        ad.status === 'active' || 
-        ad.status === 'sold' || 
-        ad.user_id === user?.id
-      );
-
-      setAds(visibleAds);
-    } catch (err) {
-      console.error('Error fetching ads:', err);
-      handleAuthError(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredAds = ads.filter(ad => 
     (ad.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,7 +46,13 @@ export default function ClassifiedsIndex() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} />
+        }
+      >
         
         {/* Search */}
         <View style={styles.searchContainer}>
@@ -99,7 +66,7 @@ export default function ClassifiedsIndex() {
           />
         </View>
 
-        {loading ? (
+        {isLoading ? (
           <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 32 }} />
         ) : filteredAds.length === 0 ? (
           <Text style={styles.emptyText}>No ads found.</Text>
@@ -220,10 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
   imageContainer: {

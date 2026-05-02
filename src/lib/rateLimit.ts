@@ -6,7 +6,8 @@ export type RateLimitType =
   | 'service_orders' 
   | 'classified_ads' 
   | 'grievances'
-  | 'join_requests'; // For invites
+  | 'join_requests' // For invites
+  | 'messages';
 
 export async function checkDailyLimit(type: RateLimitType, userId: string): Promise<{ allowed: boolean; remaining?: number }> {
   const oneDayAgo = new Date();
@@ -16,7 +17,7 @@ export async function checkDailyLimit(type: RateLimitType, userId: string): Prom
   let query = insforge.database.from(type).select('id', { count: 'exact', head: true });
   
   // Map internal table names to author column names if necessary
-  const authorColumn = type === 'announcements' ? 'author_id' : (type === 'join_requests' ? 'created_by' : 'user_id');
+  const authorColumn = type === 'announcements' ? 'author_id' : (type === 'join_requests' ? 'created_by' : (type === 'messages' ? 'sender_id' : 'user_id'));
   
   query = query.eq(authorColumn, userId).gte('created_at', oneDayAgoIso);
 
@@ -27,7 +28,10 @@ export async function checkDailyLimit(type: RateLimitType, userId: string): Prom
     return { allowed: true }; // Fail open but log error
   }
 
-  const limit = type === 'join_requests' ? 5 : 1;
+  let limit = 1;
+  if (type === 'join_requests') limit = 5;
+  if (type === 'messages') limit = 10;
+  
   const currentCount = count || 0;
 
   return {

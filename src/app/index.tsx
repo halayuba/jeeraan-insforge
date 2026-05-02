@@ -3,6 +3,7 @@ import { IconPlayerPlayFilled } from '@tabler/icons-react-native';
 import { useRouter, useSegments } from 'expo-router'
 import React, { useState, useEffect } from 'react'
 import {
+  ActivityIndicator,
   ImageBackground,
   Modal,
   ScrollView,
@@ -50,19 +51,9 @@ const SLIDES = [
 
 export default function SplashScreen() {
   const router = useRouter()
-  const segments = useSegments()
   const { width } = useWindowDimensions()
   const [modalVisible, setModalVisible] = useState(false)
   const { session, loading, isInitialized } = useAuthStore()
-
-  useEffect(() => {
-    if (isInitialized && !loading && session) {
-      const segs = segments as string[];
-      if (segs.length === 0 || segs[0] === '(app)') {
-        router.replace('/(app)' as any);
-      }
-    }
-  }, [isInitialized, loading, session, segments]);
 
   if (!isInitialized || (loading && !session)) {
     return (
@@ -71,14 +62,6 @@ export default function SplashScreen() {
       </View>
     );
   }
-
-  if (session) {
-    const segs = segments as string[];
-    if (segs.length === 0 || segs[0] === '(app)') {
-      return <View style={{ flex: 1, backgroundColor: '#f6f7f8' }} />;
-    }
-  }
-
 
   const SLIDE_WIDTH = width * 0.85 - 40 // 85% modal width minus 20 padding each side
 
@@ -394,10 +377,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     elevation: 3,
   },
   secondaryButton: {

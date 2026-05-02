@@ -3,8 +3,8 @@ import {
   FileText,
 } from 'lucide-react-native'
 
-import { useFocusEffect, useRouter } from 'expo-router'
-import React, { useCallback, useState } from 'react'
+import { useRouter } from 'expo-router'
+import React from 'react'
 import {
   ActivityIndicator,
   RefreshControl,
@@ -16,47 +16,12 @@ import {
 } from 'react-native'
 
 import { useAuthStore } from '../../../store/useAuthStore'
-import { insforge } from '../../../lib/insforge'
+import { useNeighborhoodNotes } from '../../../hooks/useNeighborhoodNotes'
 
 export default function NotesIndex() {
   const router = useRouter()
-  const { handleAuthError, neighborhoodId } = useAuthStore()
-  const [notes, setNotes] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-
-  const fetchNotes = async (isRefreshing = false) => {
-    if (!neighborhoodId) return;
-    if (isRefreshing) setRefreshing(true)
-    else setLoading(true)
-
-    try {
-      const { data, error } = await insforge.database
-        .from('neighborhood_notes')
-        .select('*')
-        .eq('neighborhood_id', neighborhoodId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        handleAuthError(error)
-        return
-      }
-
-      setNotes(data || [])
-    } catch (err) {
-      console.error('Error fetching notes:', err)
-      handleAuthError(err)
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchNotes()
-    }, [neighborhoodId]),
-  )
+  const { neighborhoodId } = useAuthStore()
+  const { data: notes = [], isLoading: loading, isRefetching: refreshing, refetch } = useNeighborhoodNotes()
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -87,7 +52,7 @@ export default function NotesIndex() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => fetchNotes(true)}
+            onRefresh={refetch}
           />
         }
       >
@@ -192,10 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: '#e2e8f0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
   noteHeader: {
