@@ -69,7 +69,7 @@ export default function AppLayout() {
       }}
     >
       <Tabs.Screen 
-        name="index" 
+        name="hub" 
         options={{ 
           title: 'Home',
           tabBarIcon: ({ color }) => <Home size={24} color={color} strokeWidth={2} />

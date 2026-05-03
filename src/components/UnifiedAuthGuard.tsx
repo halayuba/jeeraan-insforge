@@ -42,7 +42,7 @@ export function UnifiedAuthGuard({ children }: { children: React.ReactNode }) {
         // EXCEPT for special flows
         const isSpecialAuthPage = segments.includes('create-neighborhood') || segments.includes('admin-sign-in');
         if (!isSpecialAuthPage) {
-          targetPath = '/(app)';
+          targetPath = '/(app)/hub';
         }
       }
 

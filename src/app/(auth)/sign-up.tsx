@@ -52,7 +52,7 @@ export default function SignUp() {
         await linkUserToNeighborhood(userId);
       }
       await refreshAuth();
-      router.replace('/(app)');
+      router.replace('/(app)/hub');
     }
   };
 
@@ -122,7 +122,7 @@ export default function SignUp() {
         await linkUserToNeighborhood(userId);
       }
       await refreshAuth();
-      router.replace('/(app)');
+      router.replace('/(app)/hub');
     }
   };
 

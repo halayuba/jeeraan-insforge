@@ -130,7 +130,7 @@ export default function CreateNeighborhoodScreen() {
     await refreshAuth();
     setLoading(false);
     Alert.alert('Success', 'Neighborhood created successfully!', [
-      { text: 'Enter', onPress: () => router.replace('/(app)') }
+      { text: 'Enter', onPress: () => router.replace('/(app)/hub') }
     ]);
   };
 

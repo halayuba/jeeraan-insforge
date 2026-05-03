@@ -14,7 +14,9 @@ import {
   IconUserQuestion,
   IconClipboardSearch,
   IconTrophy,
-  IconMessageUser
+  IconMessageUser,
+  IconChalkboard,
+  IconPhoto
 } from '@tabler/icons-react-native';
 
 const GRID_ITEMS = [
@@ -29,6 +31,8 @@ const GRID_ITEMS = [
   { id: 'classifieds', title: 'Classified Ads', icon: IconTag },
   { id: 'notes', title: 'Notes', icon: IconPencilFilled },
   { id: 'grievances', title: 'Grievances', icon: IconUserQuestion },
+  { id: 'whiteboard', title: 'Whiteboard', icon: IconChalkboard },
+  { id: 'gallery', title: 'Community Gallery', icon: IconPhoto },
   { id: 'leaderboard', title: 'Leaderboard', icon: IconTrophy },
   { id: 'q-and-a', title: 'Q & A', icon: IconClipboardSearch },
   { id: 'faq', title: 'FAQ', icon: IconHelp },
@@ -66,6 +70,10 @@ export default function HomeIndex() {
       router.push('/(app)/q-and-a' as any);
     } else if (id === 'leaderboard') {
       router.push('/(app)/leaderboard' as any);
+    } else if (id === 'whiteboard') {
+      router.push('/(app)/whiteboard' as any);
+    } else if (id === 'gallery') {
+      router.push('/(app)/gallery' as any);
     }
   };
 

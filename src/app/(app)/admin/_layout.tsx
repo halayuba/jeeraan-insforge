@@ -21,6 +21,8 @@ export default function AdminLayout() {
 
     if (isPrivileged) {
       authenticate();
+    } else {
+      router.replace('/(app)/hub' as any);
     }
   }, [loading, isInitialized, isPrivileged]);
 
