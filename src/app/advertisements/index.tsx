@@ -71,8 +71,9 @@ export default function AdvertisementsIndex() {
       setAds(data || []);
     } catch (err: any) {
       console.error('Error fetching ads:', err);
-      // Don't call handleAuthError if we're in a public route and it might be a 401 we expect
-      if (neighborhoodId) {
+      // Don't call handleAuthError for 401s if we're in a public route
+      const is401 = err.code === 'PGRST301' || err.statusCode === 401 || err.message?.includes('JWT expired');
+      if (neighborhoodId || !is401) {
         handleAuthError(err);
       }
     } finally {

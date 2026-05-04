@@ -1,12 +1,10 @@
 import { ArrowLeft, ShieldAlert } from 'lucide-react-native';
 
 
-
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -19,17 +17,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../store/useAuthStore';
 import { insforge } from '../../lib/insforge';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function AdminSignInScreen() {
   const router = useRouter();
   const { refreshAuth } = useAuthStore();
+  const { showToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleAdminSignIn = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password.');
+      showToast('Please enter both email and password.', 'error');
       return;
     }
 
@@ -41,7 +41,7 @@ export default function AdminSignInScreen() {
 
     if (error) {
       setLoading(false);
-      Alert.alert('Sign In Error', error.message);
+      showToast(error.message || 'Authentication failed.', 'error');
       return;
     }
 

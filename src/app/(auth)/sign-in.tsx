@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { insforge } from '../../lib/insforge';
 import { Link } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { JeeraanLogo } from '../../components/JeeraanLogo';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function SignIn() {
   const { refreshAuth } = useAuthStore();
+  const { showToast } = useToast();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSignIn = async () => {
     if (!phone || !password) {
-      Alert.alert('Error', 'Please enter both phone number and password.');
+      showToast('Please enter both phone number and password.', 'error');
       return;
     }
 
@@ -26,20 +28,20 @@ export default function SignIn() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Sign In Error', error.message);
+      showToast(error.message || 'Sign in failed. Please check your credentials.', 'error');
     } else {
       await refreshAuth();
     }
   };
 
   const handleOAuth = async (provider: 'google' | 'facebook') => {
-    const { data, error } = await insforge.auth.signInWithOAuth({
+    const { error } = await insforge.auth.signInWithOAuth({
       provider,
       redirectTo: 'http://localhost:8081/(app)' // Needs proper deep linking configuration based on environment later
     });
 
     if (error) {
-      Alert.alert('OAuth Error', error.message);
+      showToast(error.message || 'OAuth authentication failed.', 'error');
     } 
   };
 

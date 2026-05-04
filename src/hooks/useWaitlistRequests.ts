@@ -42,7 +42,7 @@ export function useWaitlistRequests(neighborhoodId: string | null, filter: strin
 
   return {
     ...query,
-    requests: query.data,
+    requests: query.data || [],
     updateStatus: updateStatusMutation.mutateAsync,
   };
 }

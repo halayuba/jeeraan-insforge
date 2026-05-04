@@ -74,7 +74,7 @@ export default function SplashScreen() {
         {/* Navigation / Top Bar */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <JeeraanLogo width={120} height={42} />
+            <JeeraanLogo width={180} height={64} />
           </View>
           <TouchableOpacity 
             style={styles.helpButton}

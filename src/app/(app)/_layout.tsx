@@ -105,6 +105,8 @@ export default function AppLayout() {
       <Tabs.Screen name="members" options={{ href: null }} />
       <Tabs.Screen name="invites" options={{ href: null }} />
       <Tabs.Screen name="blocked" options={{ href: null }} />
+      <Tabs.Screen name="whiteboard" options={{ href: null }} />
+      <Tabs.Screen name="gallery" options={{ href: null }} />
       
       {/* Admin Screen (Conditional) */}
       <Tabs.Screen 

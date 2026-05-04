@@ -126,7 +126,12 @@ export default function AdminDashboard() {
       Alert.alert('Error', 'Please enter both name and phone number.');
       return;
     }
-    const success = await sendProactiveInvite({ name: proactiveName, phone: proactivePhone });
+    const success = await sendProactiveInvite({ 
+      name: proactiveName, 
+      phone: proactivePhone,
+      adminName: fullName || 'Admin',
+      neighborhoodName: neighborhood?.name || 'Your Neighborhood'
+    });
     if (success) {
       setProactiveName('');
       setProactivePhone('');
@@ -629,7 +634,7 @@ export default function AdminDashboard() {
               </View>
               
               <View style={styles.actionGroupVertical}>
-                <TouchableOpacity style={styles.approveBtn} onPress={() => approve(req)}>
+                <TouchableOpacity style={styles.approveBtn} onPress={() => approve({ request: req, adminName: fullName || 'Admin', neighborhoodName: neighborhood?.name || 'Your Neighborhood' })}>
                   <Text style={styles.approveText}>Approve</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.declineBtn} onPress={() => decline(req.id)}>
