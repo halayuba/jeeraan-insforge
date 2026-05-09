@@ -77,22 +77,50 @@ export default function SignUp() {
       const { data: inviteData } = await insforge.database.from('invites')
         .update({ used_at: new Date().toISOString() })
         .eq('code', inviteCode)
-        .select('created_by')
+        .select('created_by, phone, neighborhood_id')
         .single();
 
-      if (inviteData?.created_by) {
-        // Award points to the person who created the invite
-        try {
-          await insforge.functions.invoke('award-points-v1', {
-            body: {
-              userId: inviteData.created_by,
-              actionType: 'invite_accepted',
-              neighborhoodId: neighborhoodId,
-              entityId: userId // The new user's ID is the entity
-            }
-          });
-        } catch (rewardErr) {
-          console.error('Failed to award invite points:', rewardErr);
+      if (inviteData) {
+        // 4. Update join request status to completed
+        await insforge.database.from('join_requests')
+          .update({ status: 'completed', updated_at: new Date().toISOString() })
+          .eq('phone', inviteData.phone)
+          .eq('neighborhood_id', inviteData.neighborhood_id)
+          .eq('status', 'approved');
+
+        // 5. Notify the admin
+        if (inviteData.created_by) {
+          try {
+            // Get neighborhood name
+            const { data: nData } = await insforge.database
+              .from('neighborhoods')
+              .select('name')
+              .eq('id', neighborhoodId)
+              .single();
+
+            await insforge.database.from('notifications').insert([{
+              user_id: inviteData.created_by,
+              title: 'New Member Joined',
+              message: `${name} has successfully joined ${nData?.name || 'the neighborhood'}. They have been removed from the Approved tab and added to the Members tab.`,
+              type: 'info'
+            }]);
+          } catch (notifErr) {
+            console.error('Failed to create admin notification:', notifErr);
+          }
+
+          // Award points to the person who created the invite
+          try {
+            await insforge.functions.invoke('award-points-v1', {
+              body: {
+                userId: inviteData.created_by,
+                actionType: 'invite_accepted',
+                neighborhoodId: neighborhoodId,
+                entityId: userId // The new user's ID is the entity
+              }
+            });
+          } catch (rewardErr) {
+            console.error('Failed to award invite points:', rewardErr);
+          }
         }
       }
     } catch (err) {

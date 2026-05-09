@@ -22,13 +22,23 @@ export function useJoinRequests(neighborhoodId: string | null) {
   });
 
   const approveMutation = useMutation({
-    mutationFn: async ({ request, adminName, neighborhoodName }: { request: any, adminName: string, neighborhoodName: string }) => {
+    mutationFn: async ({ request, adminName, neighborhoodName, adminId }: { request: any, adminName: string, neighborhoodName: string, adminId: string }) => {
       console.log(`[APPROVE] Starting approval for request ID: ${request.id}, Phone: ${request.phone}`);
       
+      // 2. We generate an invite code
+      const inviteCode = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log(`[APPROVE] Generated invite code: ${inviteCode}`);
+
       // 1. Mark request as approved
       const { error: updateError } = await insforge.database
         .from('join_requests')
-        .update({ status: 'approved', updated_at: new Date().toISOString() })
+        .update({ 
+          status: 'approved', 
+          updated_at: new Date().toISOString(),
+          approval_method: 'twilio',
+          approved_by: adminId,
+          invite_code: inviteCode
+        })
         .eq('id', request.id);
       
       if (updateError) {
@@ -36,10 +46,6 @@ export function useJoinRequests(neighborhoodId: string | null) {
         throw updateError;
       }
         
-      // 2. We generate an invite code
-      const inviteCode = Math.floor(100000 + Math.random() * 900000).toString();
-      console.log(`[APPROVE] Generated invite code: ${inviteCode}`);
-      
       // 3. Insert invite into database
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
@@ -50,7 +56,8 @@ export function useJoinRequests(neighborhoodId: string | null) {
           code: inviteCode,
           neighborhood_id: request.neighborhood_id,
           phone: request.phone,
-          expires_at: expiresAt.toISOString()
+          expires_at: expiresAt.toISOString(),
+          created_by: adminId
         }]);
 
       if (inviteError) {
@@ -105,6 +112,70 @@ export function useJoinRequests(neighborhoodId: string | null) {
     }
   });
 
+  const adminApproveMutation = useMutation({
+    mutationFn: async ({ request, adminName, neighborhoodName, adminId }: { request: any, adminName: string, neighborhoodName: string, adminId: string }) => {
+      console.log(`[ADMIN APPROVE] Starting manual approval for request ID: ${request.id}`);
+      
+      // 1. Generate an invite code
+      const inviteCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // 2. Mark request as approved with manual method
+      const { error: updateError } = await insforge.database
+        .from('join_requests')
+        .update({ 
+          status: 'approved', 
+          updated_at: new Date().toISOString(),
+          approval_method: 'manual',
+          approved_by: adminId,
+          invite_code: inviteCode
+        })
+        .eq('id', request.id);
+      
+      if (updateError) throw updateError;
+        
+      // 3. Insert invite into database
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+      
+      const { error: inviteError } = await insforge.database
+        .from('invites')
+        .insert([{
+          code: inviteCode,
+          neighborhood_id: request.neighborhood_id,
+          phone: request.phone,
+          expires_at: expiresAt.toISOString(),
+          created_by: adminId
+        }]);
+
+      if (inviteError) throw inviteError;
+      
+      return { inviteCode };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['joinRequests', neighborhoodId] });
+      Alert.alert('Success', 'Request approved manually. You can now copy the SMS invite from the Approved tab.');
+    },
+    onError: (err: any) => {
+      Alert.alert('Error', err.message || 'Failed to approve request.');
+    }
+  });
+
+  const removeRequestMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await insforge.database
+        .from('join_requests')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['joinRequests', neighborhoodId] });
+    },
+    onError: (err) => {
+      Alert.alert('Error', 'Failed to remove request.');
+    }
+  });
+
   const declineMutation = useMutation({
     mutationFn: async (id: string) => {
       console.log(`[DECLINE] Starting decline for request ID: ${id}`);
@@ -128,7 +199,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
   });
 
   const sendProactiveInviteMutation = useMutation({
-    mutationFn: async ({ name, phone, adminName, neighborhoodName }: { name: string, phone: string, adminName: string, neighborhoodName: string }) => {
+    mutationFn: async ({ name, phone, adminName, neighborhoodName, adminId }: { name: string, phone: string, adminName: string, neighborhoodName: string, adminId: string }) => {
       console.log(`[PROACTIVE] Sending proactive invite to: ${name} (${phone})`);
       
       // 1. Check if user is already a member of this neighborhood
@@ -179,7 +250,8 @@ export function useJoinRequests(neighborhoodId: string | null) {
           code: inviteCode,
           neighborhood_id: neighborhoodId,
           phone: phone,
-          expires_at: expiresAt.toISOString()
+          expires_at: expiresAt.toISOString(),
+          created_by: adminId
         }]);
 
       if (inviteError) {
@@ -238,6 +310,10 @@ export function useJoinRequests(neighborhoodId: string | null) {
     rejectedRequests: (query.data || []).filter(r => r.status === 'declined'),
     approve: approveMutation.mutateAsync,
     isApproving: approveMutation.isPending,
+    adminApprove: adminApproveMutation.mutateAsync,
+    isAdminApproving: adminApproveMutation.isPending,
+    removeRequest: removeRequestMutation.mutateAsync,
+    isRemoving: removeRequestMutation.isPending,
     decline: declineMutation.mutateAsync,
     isDeclining: declineMutation.isPending,
     sendProactiveInvite: sendProactiveInviteMutation.mutateAsync,

@@ -1,8 +1,8 @@
 import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, Eye, HelpCircle, Layout, MessageCircle, Plus, Shield, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle, DollarSign, Flag } from 'lucide-react-native';
-import { IconCalendarUser, IconArrowsSort, IconFilter, IconPencilFilled } from '@tabler/icons-react-native';
+import { IconCalendarUser, IconArrowsSort, IconFilter, IconPencilFilled, IconCopyCheckFilled } from '@tabler/icons-react-native';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image, Switch, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Alert, Image, Switch, Platform, Clipboard } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 
 import * as ImagePicker from 'expo-image-picker';
@@ -30,8 +30,8 @@ import { useNeighborhood } from '../../../hooks/useNeighborhood';
 
 export default function AdminDashboard() {
   const router = useRouter();
-  const { fullName, globalRole, neighborhoodId } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'pending' | 'members' | 'rejected' | 'moderation'>('pending');
+  const { user, fullName, globalRole, neighborhoodId } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'members' | 'rejected' | 'moderation'>('pending');
   
   // Tab/UI State
   const [activeGamificationTab, setActiveGamificationTab] = useState<'points' | 'levels' | 'moderation'>('points');
@@ -57,7 +57,7 @@ export default function AdminDashboard() {
   // Hooks Integration
   const { 
     pendingRequests, approvedRequests, rejectedRequests, isLoading: loadingRequests, 
-    approve, decline, sendProactiveInvite, isSendingProactiveInvite 
+    approve, adminApprove, removeRequest, decline, sendProactiveInvite, isSendingProactiveInvite 
   } = useJoinRequests(neighborhoodId);
 
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -68,11 +68,37 @@ export default function AdminDashboard() {
       await approve({ 
         request: req, 
         adminName: fullName || 'Admin', 
-        neighborhoodName: neighborhood?.name || 'Your Neighborhood' 
+        neighborhoodName: neighborhood?.name || 'Your Neighborhood',
+        adminId: user?.id
       });
     } finally {
       setProcessingId(null);
     }
+  };
+
+  const handleAdminApprove = async (req: any) => {
+    setProcessingId(req.id);
+    try {
+      await adminApprove({ 
+        request: req, 
+        adminName: fullName || 'Admin', 
+        neighborhoodName: neighborhood?.name || 'Your Neighborhood',
+        adminId: user?.id
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleRemoveRequest = async (id: string) => {
+    Alert.alert(
+      'Remove Request',
+      'Are you sure you want to remove this approved request from the list?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Remove', style: 'destructive', onPress: () => removeRequest(id) }
+      ]
+    );
   };
 
   const handleDecline = async (id: string) => {
@@ -127,6 +153,44 @@ export default function AdminDashboard() {
     }
   }, [electionInfo]);
 
+  // Notifications Check
+  useEffect(() => {
+    const checkNotifications = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data: notifications, error } = await insforge.database
+          .from('notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_read', false)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (notifications && notifications.length > 0) {
+          notifications.forEach(async (notif: any) => {
+            Alert.alert(notif.title, notif.message, [
+              { 
+                text: 'OK', 
+                onPress: async () => {
+                  await insforge.database
+                    .from('notifications')
+                    .update({ is_read: true })
+                    .eq('id', notif.id);
+                }
+              }
+            ]);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to check notifications:', err);
+      }
+    };
+
+    checkNotifications();
+  }, [user?.id]);
+
   const existingUserPhones = new Set(allMembers.map(m => m.profile?.phone).filter(Boolean));
 
   const saveDmSettings = async () => {
@@ -161,11 +225,12 @@ export default function AdminDashboard() {
       return;
     }
     try {
-      await sendProactiveInvite({ 
-        name: proactiveName, 
+      await sendProactiveInvite({
+        name: proactiveName,
         phone: proactivePhone,
         adminName: fullName || 'Admin',
-        neighborhoodName: neighborhood?.name || 'Your Neighborhood'
+        neighborhoodName: neighborhood?.name || 'Your Neighborhood',
+        adminId: user?.id
       });
       setProactiveName('');
       setProactivePhone('');
@@ -173,7 +238,6 @@ export default function AdminDashboard() {
       // Error is already handled by useMutation onError
     }
   };
-
         const renderNotesSection = () => (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
@@ -738,7 +802,13 @@ export default function AdminDashboard() {
                 ) : (
                   <>
                     <TouchableOpacity style={styles.approveBtn} onPress={() => handleApprove(req)}>
-                      <Text style={styles.approveText}>Approve</Text>
+                      <Text style={styles.approveText}>Twilio Approve</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.approveBtn, { backgroundColor: '#10b981' }]} 
+                      onPress={() => handleAdminApprove(req)}
+                    >
+                      <Text style={styles.approveText}>Admin Approve</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.declineBtn} onPress={() => handleDecline(req.id)}>
                       <Text style={styles.declineText}>Decline</Text>
@@ -749,6 +819,63 @@ export default function AdminDashboard() {
             </View>
           );
         })}
+      </View>
+    );
+  };
+
+  const renderApprovedTab = () => {
+    if (loadingRequests) {
+      return <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />;
+    }
+
+    if (approvedRequests.length === 0) {
+      return <Text style={styles.emptyText}>No approved requests found.</Text>;
+    }
+
+    const copyToClipboard = (req: any) => {
+      const adminName = fullName || 'Bashir';
+      const neighborhoodName = neighborhood?.name || 'LVW Neighborhood';
+      const code = req.invite_code || 'XXXXXX';
+      const message = `Hi ${req.name}, this is your Admin ${adminName} from ${neighborhoodName}. You’re invited to join our neighborhood on Jeeraan — a private space for updates, discussions, and community decisions. Code: ${code} (valid for a limited time). Join: Jeeraan [https://jeeraan.insforge.site/]`;
+      
+      Clipboard.setString(message);
+      Alert.alert('Copied', 'SMS message copied to clipboard.');
+    };
+
+    return (
+      <View style={styles.requestsContainer}>
+        {approvedRequests.map((req) => (
+          <View key={req.id} style={styles.requestRowExtended}>
+            <View style={styles.requestInfo}>
+              <View style={styles.requestMainInfo}>
+                <Text style={styles.requestName}>{req.name}</Text>
+                {req.approval_method === 'manual' && (
+                  <View style={[styles.badge, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                    <Text style={[styles.badgeText, { color: '#10b981' }]}>MANUAL</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.requestDetail}>Phone: {req.phone}</Text>
+              <Text style={styles.requestDetail}>Code: {req.invite_code || 'N/A'}</Text>
+              <Text style={styles.requestDetail}>Approved: {new Date(req.updated_at).toLocaleDateString()}</Text>
+            </View>
+            
+            <View style={styles.actionGroup}>
+              <TouchableOpacity 
+                style={[styles.declineBtn, { borderColor: '#1193d4' }]} 
+                onPress={() => copyToClipboard(req)}
+              >
+                <IconCopyCheckFilled size={18} color="#1193d4" />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.declineBtn} 
+                onPress={() => handleRemoveRequest(req.id)}
+              >
+                <Trash2 size={18} color="#ef4444" strokeWidth={2} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
       </View>
     );
   };
@@ -969,6 +1096,12 @@ export default function AdminDashboard() {
               <Text style={[styles.tabText, activeTab === 'members' && styles.activeTabText]}>Members</Text>
             </TouchableOpacity>
             <TouchableOpacity 
+              style={[styles.tabButton, activeTab === 'approved' && styles.activeTabButton]} 
+              onPress={() => setActiveTab('approved')}
+            >
+              <Text style={[styles.tabText, activeTab === 'approved' && styles.activeTabText]}>Approved</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
               style={[styles.tabButton, activeTab === 'rejected' && styles.activeTabButton]} 
               onPress={() => setActiveTab('rejected')}
             >
@@ -989,6 +1122,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'pending' && renderRequestsTab()}
           {activeTab === 'members' && renderMembersTab()}
+          {activeTab === 'approved' && renderApprovedTab()}
           {activeTab === 'rejected' && renderRejectedTab()}
           {activeTab === 'moderation' && renderModerationTab()}
 
