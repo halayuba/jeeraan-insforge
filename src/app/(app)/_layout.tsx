@@ -1,19 +1,65 @@
-import { BarChart3, Bell, HelpCircle, Home, Menu, User } from 'lucide-react-native';
+import { BarChart3, Bell, HelpCircle, Home, Menu, User, X } from 'lucide-react-native';
+import { IconInfoSquareRounded, IconHome } from '@tabler/icons-react-native';
 import { Tabs, useSegments, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
-import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import React, { useEffect, useRef } from 'react';
+import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet, Modal, ScrollView } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LevelBadge } from '../../components/LevelBadge';
+import { insforge } from '../../lib/insforge';
 
 function CustomHeader() {
   const { userLevel, userRole, globalRole } = useAuthStore();
+  const router = useRouter();
+  const segments = useSegments();
+  
+  const [modalVisible, setModalVisible] = useState(false);
+  const [featureInfo, setFeatureInfo] = useState<{title: string, summary: string} | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleHomePress = () => {
+    router.replace('/(app)/hub');
+  };
+
+  const handleInfoPress = async () => {
+    setModalVisible(true);
+    setLoading(true);
+    
+    // Determine feature key from segments
+    // segments usually look like ['(app)', 'hub'] or ['(app)', 'announcements', '[id]']
+    const lastSegment = segments[segments.length - 1];
+    let featureKey = lastSegment === '(app)' ? 'hub' : lastSegment;
+    
+    // Handle dynamic routes or nested segments
+    if (featureKey?.startsWith('[') || !featureKey) {
+      featureKey = segments[segments.length - 2] || 'hub';
+    }
+
+    // Special cases
+    if (featureKey === 'profile' || featureKey === 'faq') featureKey = 'hub';
+
+    try {
+      const { data, error } = await insforge.database
+        .from('feature_info')
+        .select('title, summary')
+        .eq('feature_key', featureKey)
+        .maybeSingle();
+
+      if (error) throw error;
+      setFeatureInfo(data || { title: 'Information', summary: 'Information for this feature is coming soon!' });
+    } catch (err) {
+      console.error('Failed to fetch feature info:', err);
+      setFeatureInfo({ title: 'Error', summary: 'Failed to load feature information.' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView edges={['top']} style={styles.headerContainer}>
       <View style={styles.header}>
-        <TouchableOpacity>
-          <Menu size={28} color="#0f172a" strokeWidth={2} />
+        <TouchableOpacity onPress={handleHomePress}>
+          <IconHome size={28} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>Neighborhood Hub</Text>
@@ -22,10 +68,43 @@ function CustomHeader() {
             <LevelBadge level={userLevel} size="small" />
           )}
         </View>
-        <TouchableOpacity>
-          <Bell size={28} color="#0f172a" strokeWidth={2} />
+        <TouchableOpacity onPress={handleInfoPress}>
+          <IconInfoSquareRounded size={28} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
       </View>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{featureInfo?.title || 'Information'}</Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)}>
+                <X size={24} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody}>
+              {loading ? (
+                <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 20 }} />
+              ) : (
+                <Text style={styles.modalSummary}>{featureInfo?.summary}</Text>
+              )}
+            </ScrollView>
+            
+            <TouchableOpacity 
+              style={styles.closeButton} 
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Got it!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -141,5 +220,55 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    width: '100%',
+    maxHeight: '80%',
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontFamily: 'Manrope-Bold',
+    color: '#0f172a',
+  },
+  modalBody: {
+    marginBottom: 24,
+  },
+  modalSummary: {
+    fontSize: 16,
+    fontFamily: 'Manrope-Medium',
+    color: '#334155',
+    lineHeight: 24,
+  },
+  closeButton: {
+    backgroundColor: '#1193d4',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontFamily: 'Manrope-Bold',
   }
 });
