@@ -15,6 +15,7 @@ import { StripeProvider } from '../lib/stripe';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '../lib/queryClient';
 import { UnifiedAuthGuard } from '../components/UnifiedAuthGuard';
+import { Platform } from 'react-native';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -47,6 +48,14 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      {Platform.OS === 'web' && (
+        <style type="text/css">{`
+          input:focus, textarea:focus, select:focus {
+            outline-color: #cbd5e1 !important;
+            outline-width: 2px !important;
+          }
+        `}</style>
+      )}
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <StripeProvider

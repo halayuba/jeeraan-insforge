@@ -48,6 +48,7 @@ export default function NeighborhoodAccess() {
   // Early Access Modal State
   const [showEarlyAccessModal, setShowEarlyAccessModal] = useState(false)
   const [earlyAccessChecked, setEarlyAccessChecked] = useState(false)
+  const [modalAction, setModalAction] = useState<'request' | 'invite' | null>(null)
 
   // Waitlist State
   const [waitlistName, setWaitlistName] = useState('')
@@ -87,21 +88,31 @@ export default function NeighborhoodAccess() {
 
   const handleProceedEarlyAccess = () => {
     setShowEarlyAccessModal(false)
-    // Once acknowledged and proceeded, perform the actual submission
-    performJoinRequestSubmission()
+    // Once acknowledged and proceeded, perform the actual action
+    if (modalAction === 'request') {
+      performJoinRequestSubmission()
+    } else if (modalAction === 'invite') {
+      performInviteCodeValidation()
+    }
   }
 
   const handleCancelEarlyAccess = () => {
     setShowEarlyAccessModal(false)
     setEarlyAccessChecked(false)
+    setModalAction(null)
   }
 
-  const handleJoinViaCode = async () => {
+  const handleJoinViaCode = () => {
     if (!invitePhone || !inviteCode || inviteCode.length !== 6) {
       Alert.alert('Invalid Input', 'Please enter both your phone number and the 6-digit invite code.')
       return
     }
 
+    setModalAction('invite')
+    setShowEarlyAccessModal(true)
+  }
+
+  const performInviteCodeValidation = async () => {
     setValidatingCode(true)
     try {
       // Call the Edge Function to validate the invite
@@ -130,6 +141,7 @@ export default function NeighborhoodAccess() {
       Alert.alert('Error', 'Failed to validate invite code.')
     } finally {
       setValidatingCode(false)
+      setModalAction(null)
     }
   }
 
@@ -151,6 +163,7 @@ export default function NeighborhoodAccess() {
     }
 
     // Show disclaimer modal before actual submission
+    setModalAction('request')
     setShowEarlyAccessModal(true)
   }
 
@@ -758,6 +771,7 @@ export default function NeighborhoodAccess() {
             {/* Horizontal Divider */}
             <View style={styles.divider} />
 
+            {/* 
             <View style={{ marginTop: 24, alignItems: 'center', paddingBottom: 20 }}>
               <Text
                 style={{
@@ -770,6 +784,7 @@ export default function NeighborhoodAccess() {
                 Create a new Neighborhood (Admin) - Coming soon
               </Text>
             </View>
+            */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

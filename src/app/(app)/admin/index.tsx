@@ -59,6 +59,30 @@ export default function AdminDashboard() {
     pendingRequests, approvedRequests, rejectedRequests, isLoading: loadingRequests, 
     approve, decline, sendProactiveInvite, isSendingProactiveInvite 
   } = useJoinRequests(neighborhoodId);
+
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  
+  const handleApprove = async (req: any) => {
+    setProcessingId(req.id);
+    try {
+      await approve({ 
+        request: req, 
+        adminName: fullName || 'Admin', 
+        neighborhoodName: neighborhood?.name || 'Your Neighborhood' 
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleDecline = async (id: string) => {
+    setProcessingId(id);
+    try {
+      await decline(id);
+    } finally {
+      setProcessingId(null);
+    }
+  };
   
   const { data: activeMembersCount = 0 } = useActiveMembersCount();
   const { members: allMembers, isLoading: loadingMembers, toggleBlock, promoteToModerator, eligibleModerators: eligibleUsers } = useAllMembers(neighborhoodId);
@@ -93,6 +117,16 @@ export default function AdminDashboard() {
     }
   }, [neighborhoodSettings]);
 
+  useEffect(() => {
+    if (electionInfo?.voting_date) {
+      // Convert YYYY-MM-DD to MM-DD-YYYY for UI
+      const [year, month, day] = electionInfo.voting_date.split('-');
+      if (year && month && day) {
+        setVotingDate(`${month}-${day}-${year}`);
+      }
+    }
+  }, [electionInfo]);
+
   const existingUserPhones = new Set(allMembers.map(m => m.profile?.phone).filter(Boolean));
 
   const saveDmSettings = async () => {
@@ -126,15 +160,17 @@ export default function AdminDashboard() {
       Alert.alert('Error', 'Please enter both name and phone number.');
       return;
     }
-    const success = await sendProactiveInvite({ 
-      name: proactiveName, 
-      phone: proactivePhone,
-      adminName: fullName || 'Admin',
-      neighborhoodName: neighborhood?.name || 'Your Neighborhood'
-    });
-    if (success) {
+    try {
+      await sendProactiveInvite({ 
+        name: proactiveName, 
+        phone: proactivePhone,
+        adminName: fullName || 'Admin',
+        neighborhoodName: neighborhood?.name || 'Your Neighborhood'
+      });
       setProactiveName('');
       setProactivePhone('');
+    } catch (err) {
+      // Error is already handled by useMutation onError
     }
   };
 
@@ -180,11 +216,12 @@ export default function AdminDashboard() {
                 placeholder="Note Title (e.g. Board Minutes)"
               />
               <TextInput
-                style={[styles.adminInput, { marginTop: 8, height: 80, textAlignVertical: 'top', paddingTop: 8 }]}
+                style={[styles.adminInput, { marginTop: 8, height: 100, textAlignVertical: 'top', paddingTop: 12 }]}
                 value={newNote.message}
                 onChangeText={(text) => setNewNote({ ...newNote, message: text })}
                 placeholder="Note Message"
                 multiline
+                numberOfLines={4}
               />
               
               <TouchableOpacity 
@@ -307,60 +344,60 @@ export default function AdminDashboard() {
       <View style={styles.adminSection}>
         <Text style={styles.adminLabel}>Points Awarded per Action</Text>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>New Announcement</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_announcement)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_announcement: parseInt(text) || 0 })}
           />
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>Invite Accepted</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_invite_accepted)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_invite_accepted: parseInt(text) || 0 })}
           />
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>Work Order Feedback</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_work_order_feedback)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_work_order_feedback: parseInt(text) || 0 })}
           />
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>New Forum Topic</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_forum_topic)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_forum_topic: parseInt(text) || 0 })}
           />
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>New Classified Ad</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_classified_ad)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_classified_ad: parseInt(text) || 0 })}
           />
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>Grievance Submission</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_grievance_submission)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, points_grievance_submission: parseInt(text) || 0 })}
@@ -385,30 +422,30 @@ export default function AdminDashboard() {
       <View style={styles.adminSection}>
         <Text style={styles.adminLabel}>Level Thresholds (Points Required)</Text>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>Level 2 Threshold</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.level_2_threshold)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, level_2_threshold: parseInt(text) || 0 })}
           />
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>Level 3 Threshold</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.level_3_threshold)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, level_3_threshold: parseInt(text) || 0 })}
           />
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>Maximum Levels</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.max_levels)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, max_levels: parseInt(text) || 1 })}
@@ -433,20 +470,20 @@ export default function AdminDashboard() {
       <View style={styles.adminSection}>
         <Text style={styles.adminLabel}>Moderation & Rules</Text>
         
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>Moderator Eligibility Threshold (Points)</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.moderator_threshold)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, moderator_threshold: parseInt(text) || 0 })}
           />
         </View>
 
-        <View style={styles.inputGroup}>
+        <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={styles.inputLabel}>Daily Points Cap (0 for No Cap)</Text>
           <TextInput
-            style={styles.adminInput}
+            style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.daily_points_cap || 0)}
             keyboardType="number-pad"
             onChangeText={(text) => setGamificationSettings({ ...gamificationSettings, daily_points_cap: parseInt(text) || null })}
@@ -535,7 +572,21 @@ export default function AdminDashboard() {
       Alert.alert('Error', 'Please enter a voting date');
       return;
     }
-    await updateVotingDate(votingDate);
+
+    // Validate format MM-DD-YYYY
+    const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
+    const match = votingDate.match(dateRegex);
+    
+    if (!match) {
+      Alert.alert('Error', 'Please use the format MM-DD-YYYY (e.g. 11-15-2024)');
+      return;
+    }
+
+    // Convert MM-DD-YYYY to YYYY-MM-DD for database
+    const [month, day, year] = match.slice(1);
+    const dbDate = `${year}-${month}-${day}`;
+    
+    await updateVotingDate(dbDate);
   };
 
   const handleAddPosition = async () => {
@@ -594,9 +645,57 @@ export default function AdminDashboard() {
       Alert.alert('Error', 'Business name is required');
       return;
     }
-    await createAd({ ...newAd, imageUri });
+    await createAd({ adData: newAd, imageUri });
     setNewAd({ business_name: '', industry: '', address: '', contact_info: '', website_url: '', image_url: '' });
     setImageUri(null);
+  };
+
+  const handleDeleteAd = async (id: string) => {
+    Alert.alert(
+      'Delete Advertisement',
+      'Are you sure you want to delete this advertisement?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteAd(id) }
+      ]
+    );
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    Alert.alert(
+      'Delete Note',
+      'Are you sure you want to delete this note?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteNote(id) }
+      ]
+    );
+  };
+
+  const handleDeletePosition = async (id: string) => {
+    Alert.alert(
+      'Delete Position',
+      'Are you sure you want to delete this position?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deletePosition(id) }
+      ]
+    );
+  };
+
+  const handleApproveAnnouncement = async (id: string) => {
+    await approveAnnouncement(id);
+  };
+
+  const handleDeleteAnnouncement = async (id: string) => {
+    Alert.alert(
+      'Delete Announcement',
+      'Are you sure you want to delete this announcement?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => deleteAnnouncement(id) }
+      ]
+    );
   };
 
   const toggleAdDetails = (id: string) => {
@@ -634,12 +733,18 @@ export default function AdminDashboard() {
               </View>
               
               <View style={styles.actionGroupVertical}>
-                <TouchableOpacity style={styles.approveBtn} onPress={() => approve({ request: req, adminName: fullName || 'Admin', neighborhoodName: neighborhood?.name || 'Your Neighborhood' })}>
-                  <Text style={styles.approveText}>Approve</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.declineBtn} onPress={() => decline(req.id)}>
-                  <Text style={styles.declineText}>Decline</Text>
-                </TouchableOpacity>
+                {processingId === req.id ? (
+                  <ActivityIndicator size="small" color="#1193d4" style={{ padding: 10 }} />
+                ) : (
+                  <>
+                    <TouchableOpacity style={styles.approveBtn} onPress={() => handleApprove(req)}>
+                      <Text style={styles.approveText}>Approve</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.declineBtn} onPress={() => handleDecline(req.id)}>
+                      <Text style={styles.declineText}>Decline</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
               </View>
             </View>
           );
@@ -648,18 +753,20 @@ export default function AdminDashboard() {
     );
   };
 
-  const renderMembersTab = () => {
-    if (loadingMembers) {
-      return <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />;
-    }
+    const renderMembersTab = () => {
+      if (loadingMembers) {
+        return <ActivityIndicator style={{ padding: 20 }} color="#1193d4" />;
+      }
 
-    if (allMembers.length === 0) {
-      return <Text style={styles.emptyText}>No members found.</Text>;
-    }
+      const filteredMembers = allMembers.filter(m => m.profile?.global_role !== 'super_admin');
 
-    return (
-      <View style={styles.requestsContainer}>
-        {allMembers.map((member) => (
+      if (filteredMembers.length === 0) {
+        return <Text style={styles.emptyText}>No members found.</Text>;
+      }
+
+      return (
+        <View style={styles.requestsContainer}>
+          {filteredMembers.map((member) => (
           <View key={member.user_id} style={[styles.requestRowExtended, member.is_blocked && styles.blockedRow]}>
             <View style={styles.requestInfo}>
               <View style={styles.requestMainInfo}>
@@ -813,7 +920,7 @@ export default function AdminDashboard() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Resident Name</Text>
               <TextInput
-                style={styles.adminInput}
+                style={styles.adminInput60}
                 placeholder="Jane Doe"
                 value={proactiveName}
                 onChangeText={setProactiveName}
@@ -823,7 +930,7 @@ export default function AdminDashboard() {
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Phone Number</Text>
               <TextInput
-                style={styles.adminInput}
+                style={styles.adminInput60}
                 placeholder="(555) 000-0000"
                 keyboardType="phone-pad"
                 value={proactivePhone}
@@ -977,10 +1084,10 @@ export default function AdminDashboard() {
                 />
               </View>
 
-              <View style={styles.inputGroup}>
+              <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
                 <Text style={styles.inputLabel}>Max Daily Messages per User</Text>
                 <TextInput
-                  style={styles.adminInput}
+                  style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
                   value={String(maxDailyMessages)}
                   keyboardType="number-pad"
                   onChangeText={(text) => setMaxDailyMessages(parseInt(text) || 0)}
@@ -1012,13 +1119,13 @@ export default function AdminDashboard() {
 
             {/* Voting Date */}
             <View style={styles.adminSection}>
-              <Text style={styles.adminLabel}>Voting Date (YYYY-MM-DD)</Text>
+              <Text style={[styles.adminLabel, { marginBottom: 0 }]}>Voting Date (MM-DD-YYYY)</Text>
               <View style={styles.inputRow}>
                 <TextInput
                   style={styles.adminInput}
                   value={votingDate}
                   onChangeText={setVotingDate}
-                  placeholder="2024-11-15"
+                  placeholder="11-15-2024"
                 />
                 <TouchableOpacity 
                   style={[styles.saveBtn, savingElection && styles.disabledBtn]} 
@@ -1034,9 +1141,11 @@ export default function AdminDashboard() {
               </View>
             </View>
 
+            <View style={{ height: 24 }} />
+
             {/* Board Positions */}
             <View style={styles.adminSection}>
-              <Text style={styles.adminLabel}>Open Board Positions</Text>
+              <Text style={[styles.adminLabel, { marginBottom: 4 }]}>Open Board Positions</Text>
               {boardPositions.map((pos) => (
                 <View key={pos.id} style={styles.positionItem}>
                   <View style={{ flex: 1 }}>
@@ -1057,11 +1166,12 @@ export default function AdminDashboard() {
                   placeholder="Position Title (e.g. Treasurer)"
                 />
                 <TextInput
-                  style={[styles.adminInput, { marginTop: 8 }]}
+                  style={[styles.adminInput, { marginTop: 8, height: 80, textAlignVertical: 'top', paddingTop: 8 }]}
                   value={newPositionDesc}
                   onChangeText={setNewPositionDesc}
                   placeholder="Brief Description"
                   multiline
+                  numberOfLines={3}
                 />
                 <TouchableOpacity style={styles.addBtn} onPress={handleAddPosition}>
                   <Plus size={20} color="#fff" strokeWidth={2} />
@@ -1278,31 +1388,31 @@ export default function AdminDashboard() {
 
               <View style={styles.addPositionForm}>
                 <TextInput
-                  style={styles.adminInput}
+                  style={styles.adminInput60}
                   value={newAd.business_name}
                   onChangeText={(text) => setNewAd({ ...newAd, business_name: text })}
                   placeholder="Business Name"
                 />
                 <TextInput
-                  style={[styles.adminInput, { marginTop: 8 }]}
+                  style={[styles.adminInput60, { marginTop: 8 }]}
                   value={newAd.industry}
                   onChangeText={(text) => setNewAd({ ...newAd, industry: text })}
                   placeholder="Industry"
                 />
                 <TextInput
-                  style={[styles.adminInput, { marginTop: 8 }]}
+                  style={[styles.adminInput60, { marginTop: 8 }]}
                   value={newAd.address}
                   onChangeText={(text) => setNewAd({ ...newAd, address: text })}
                   placeholder="Business Address"
                 />
                 <TextInput
-                  style={[styles.adminInput, { marginTop: 8 }]}
+                  style={[styles.adminInput60, { marginTop: 8 }]}
                   value={newAd.contact_info}
                   onChangeText={(text) => setNewAd({ ...newAd, contact_info: text })}
                   placeholder="Contact Info"
                 />
                 <TextInput
-                  style={[styles.adminInput, { marginTop: 8 }]}
+                  style={[styles.adminInput60, { marginTop: 8 }]}
                   value={newAd.website_url}
                   onChangeText={(text) => setNewAd({ ...newAd, website_url: text })}
                   placeholder="Website URL"
@@ -1611,8 +1721,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   adminInput: {
-    flex: 1,
-    height: 44,
+    height: 40,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#e2e8f0',
@@ -1620,6 +1729,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     fontFamily: 'Manrope-Medium',
     fontSize: 14,
+    color: '#0f172a',
+  },
+  adminInput60: {
+    width: '100%',
+    height: 60,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontFamily: 'Manrope-Medium',
+    fontSize: 16,
     color: '#0f172a',
   },
   saveBtn: {

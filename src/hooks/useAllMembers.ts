@@ -16,7 +16,7 @@ export function useAllMembers(neighborhoodId: string | null) {
           role,
           is_blocked,
           joined_at,
-          profile:user_profiles(full_name, phone, avatar_url, is_visible, anonymous_id)
+          profile:user_profiles(full_name, phone, avatar_url, is_visible, anonymous_id, global_role)
         `)
         .eq('neighborhood_id', neighborhoodId)
         .order('joined_at', { ascending: false });
@@ -33,6 +33,17 @@ export function useAllMembers(neighborhoodId: string | null) {
 
   const toggleBlockMutation = useMutation({
     mutationFn: async ({ userId, isBlocked }: { userId: string, isBlocked: boolean }) => {
+      // Security check: Don't allow blocking super admins
+      const { data: profile } = await insforge.database
+        .from('user_profiles')
+        .select('global_role')
+        .eq('user_id', userId)
+        .single();
+      
+      if (profile?.global_role === 'super_admin') {
+        throw new Error('Cannot modify super admin status');
+      }
+
       const { error } = await insforge.database
         .from('user_neighborhoods')
         .update({ is_blocked: isBlocked })

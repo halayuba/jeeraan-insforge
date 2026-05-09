@@ -11,10 +11,7 @@ export function useModerationQueue(neighborhoodId: string | null) {
       if (!neighborhoodId) return [];
       const { data, error } = await insforge.database
         .from('image_moderation_queue')
-        .select(`
-          *,
-          user:user_profiles!user_id(full_name)
-        `)
+        .select('*, user:user_profiles!user_id(full_name)')
         .eq('neighborhood_id', neighborhoodId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });

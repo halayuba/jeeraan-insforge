@@ -58,12 +58,67 @@ export default async function(req: Request): Promise<Response> {
     }
 
     // 2. Validate the invite code
-    const { data: invite, error: inviteError } = await insforge.database
-      .from('invites')
-      .select('*')
-      .eq('code', code.toUpperCase())
-      .eq('phone', phone)
-      .single();
+    const twilioVerifySid = Deno.env.get('TWILIO_VERIFY_SERVICE_SID');
+    const twilioAccountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+    const twilioAuthToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+
+    let invite;
+    let inviteError;
+
+    if (twilioVerifySid && twilioAccountSid && twilioAuthToken) {
+      console.log(`[TWILIO VERIFY] Checking code for: ${phone}`);
+      const verifyUrl = `https://verify.twilio.com/v2/Services/${twilioVerifySid}/VerificationCheck`;
+      const auth = btoa(`${twilioAccountSid}:${twilioAuthToken}`);
+      
+      const params = new URLSearchParams();
+      params.append('To', phone);
+      params.append('Code', code);
+
+      const twilioResponse = await fetch(verifyUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+      });
+
+      const twilioData = await twilioResponse.json();
+
+      if (!twilioResponse.ok || twilioData.status !== 'approved') {
+        return new Response(JSON.stringify({ 
+          error: 'Invalid or expired verification code.',
+          twilioError: twilioData.message 
+        }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // If code is valid, find the matching invite in the DB by phone
+      const { data: dbInvite, error: dbError } = await insforge.database
+        .from('invites')
+        .select('*')
+        .eq('phone', phone)
+        .is('used_at', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      invite = dbInvite;
+      inviteError = dbError;
+    } else {
+      // Fallback to database-only validation
+      const { data: dbInvite, error: dbError } = await insforge.database
+        .from('invites')
+        .select('*')
+        .eq('code', code.toUpperCase())
+        .eq('phone', phone)
+        .single();
+      
+      invite = dbInvite;
+      inviteError = dbError;
+    }
 
     if (inviteError || !invite) {
       return new Response(JSON.stringify({ error: 'Invalid or expired invite code.' }), {

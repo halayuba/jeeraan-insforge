@@ -478,7 +478,7 @@ export default function ProfileScreen() {
             <View style={styles.inputRow}>
               <IconBrandInstagram size={22} color="#E1306C" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, styles.socialTextInput]}
                 value={socialLinks.instagram || ''}
                 onChangeText={(val) => updateSocialLink('instagram', val)}
                 placeholder="Instagram username"
@@ -488,7 +488,7 @@ export default function ProfileScreen() {
             <View style={styles.inputRow}>
               <IconBrandX size={22} color="#000000" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, styles.socialTextInput]}
                 value={socialLinks.x || ''}
                 onChangeText={(val) => updateSocialLink('x', val)}
                 placeholder="X handle"
@@ -498,7 +498,7 @@ export default function ProfileScreen() {
             <View style={styles.inputRow}>
               <IconBrandLinkedin size={22} color="#0077B5" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, styles.socialTextInput]}
                 value={socialLinks.linkedin || ''}
                 onChangeText={(val) => updateSocialLink('linkedin', val)}
                 placeholder="LinkedIn profile URL"
@@ -508,7 +508,7 @@ export default function ProfileScreen() {
             <View style={styles.inputRow}>
               <IconBrandFacebook size={22} color="#1877F2" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, styles.socialTextInput]}
                 value={socialLinks.facebook || ''}
                 onChangeText={(val) => updateSocialLink('facebook', val)}
                 placeholder="Facebook profile URL"
@@ -518,7 +518,7 @@ export default function ProfileScreen() {
             <View style={[styles.inputRow, { borderBottomWidth: 0 }]}>
               <Globe size={22} color="#64748b" style={styles.inputIcon} strokeWidth={2} />
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, styles.socialTextInput]}
                 value={socialLinks.website || ''}
                 onChangeText={(val) => updateSocialLink('website', val)}
                 placeholder="Personal website URL"
@@ -759,7 +759,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 18,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
   },
@@ -785,7 +785,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
     color: '#1e293b',
     padding: 0,
-    height: 40,
+    height: 48,
+  },
+  socialTextInput: {
+    flex: 1,
   },
   managementText: {
     fontSize: 15,

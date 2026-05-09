@@ -1,0 +1,21 @@
+issue_May6-1: similar to field height adjustment that was applied to the fields under the personal information section of the profile screen, please apply the same height to the resident name and phone number fields in the send proactive invites section of the analytics screen.
+issue_May6-2: in the analytics screen -> notes management: change the input field for the note message to be a textarea.
+issue_May6-3: in the analytics screen -> engagement & gamification settings -> points: change these fields to number input fields and position them on the same line on the opposite side (justify-content CSS property: space-between). Apply the same thing for the levels and moderation.
+issue_May6-4: in the analytics screen -> direct messaging settings -> max daily messages per user: change this field to a number input field and position it on the same line on the opposite side (justify-content CSS property: space-between).
+issue_May6-5: in the analytics screen -> election management: change the input field for the brief description to be a textarea.
+issue_May6-6: in the analytics screen -> advertisenet management: adjust the height for all the input fields.
+==========================================================================================================================================
+issue_May6-7: the super admin must not appear under the member tab and must never be allowed to be removed - see @super-admin.png
+issue_May6-8: using the proactive invites on the dashboard, I was able create multiple invites for the same phone number - see duplicate-invites.png. Duplicate invites must not be allowed.
+issue_May6-9: review @implementation-plan-neighborhood-access.md and confirm the code associated with this implementation plan is complete and cover the different options in the workflow. Also, confirm the logic for Twilio is not missing any hook configuration or anything else because as I'm testing this functionality by creating invites I'm not getting any notifications on my phone for any of the test invites.
+==========================================================================================================================================
+issue_May7-1: the fields in the Social Links section should be made full width - see @social-links.png
+issue_May7-2: increase the height of the fields in the Personal Information section - see @personal-information.png.
+issue_May7-3: replace the input field's border color to gray and apply this across the entire app - see @personal-information.png.
+issue_May7-4: make it light gray for all the border and the height does not appear to be increased so investigate what is casuing the css not to render correctly.
+issue_May7-5: review @technical-preview.png - I would like the Technical Preview modal used in "Request to Join" to also be implemented for "Join via Invite Code" when the form is submitted.
+issue_May7-6: comment the text "Create a new Neighborhood .." in the @neighborhood-access.tsx. Also, move the "Add me to the waitlist" section to the bottom of the screen
+issue_May7-7: @election-management.png: decrease the margin between the Voting Date label and the input field. Change the Date format to MM-DD-YYYY. Leave moreespace between the Voting date and the label "Open Board Position". And move the label "Open Board Position" closer to the list of positions below.
+==========================================================================================================================================
+issue_May8-1: I have been testing neighborhood access with invites and Twilio but have never been successful. can you perform more unit testing to determine the issue? also, can you console log some kind of a flag for me to know if the app is at least sending a request to Twilio and if the request is accepted or rejected or whatever response is received. Because as a neighborhood admin when I approve an invite that came in on my dashboard I'm not getting any feedback so I truly do not know anything about what's going on behind the scene.
+issue_May8-2: Although the console logs are now showing , . I don't want to keep testing Twilio and neighborhood access invites. 
