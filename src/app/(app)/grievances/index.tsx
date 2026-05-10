@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f1f5f9',
     borderRadius: 12,
-    height: 48,
+    height: 60,
     paddingHorizontal: 16,
   },
   searchIcon: {

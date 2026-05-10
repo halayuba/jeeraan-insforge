@@ -144,11 +144,13 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
-    padding: 12,
+    paddingHorizontal: 16,
+    height: 60,
     fontSize: 16,
     fontFamily: 'Manrope-Regular',
+    color: '#0f172a',
   },
   button: {
     backgroundColor: '#1193d4',
@@ -170,7 +172,7 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: '#ddd',
+    backgroundColor: '#cbd5e1',
   },
   dividerText: {
     marginHorizontal: 10,

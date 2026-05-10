@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   Calendar,
   ChevronDown,
   Megaphone,
@@ -226,10 +225,12 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
-    height: 48,
+    height: 60,
     paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
   },
   searchIcon: {
     marginRight: 8,
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 16,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#cbd5e1',
   },
   imagePreview: {
     width: '100%',

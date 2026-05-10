@@ -25,6 +25,21 @@ export function useJoinRequests(neighborhoodId: string | null) {
     mutationFn: async ({ request, adminName, neighborhoodName, adminId }: { request: any, adminName: string, neighborhoodName: string, adminId: string }) => {
       console.log(`[APPROVE] Starting approval for request ID: ${request.id}, Phone: ${request.phone}`);
       
+      // 0. Check for existing active invite
+      const { data: existingInvite } = await insforge.database
+        .from('invites')
+        .select('id')
+        .eq('neighborhood_id', request.neighborhood_id)
+        .eq('phone', request.phone)
+        .gt('expires_at', new Date().toISOString())
+        .is('used_at', null)
+        .maybeSingle();
+
+      if (existingInvite) {
+        console.warn('[APPROVE] Active invite already exists for:', request.phone);
+        throw new Error('An active invite already exists for this phone number.');
+      }
+
       // 2. We generate an invite code
       const inviteCode = Math.floor(100000 + Math.random() * 900000).toString();
       console.log(`[APPROVE] Generated invite code: ${inviteCode}`);
@@ -116,10 +131,25 @@ export function useJoinRequests(neighborhoodId: string | null) {
     mutationFn: async ({ request, adminName, neighborhoodName, adminId }: { request: any, adminName: string, neighborhoodName: string, adminId: string }) => {
       console.log(`[ADMIN APPROVE] Starting manual approval for request ID: ${request.id}`);
       
-      // 1. Generate an invite code
+      // 1. Check for existing active invite
+      const { data: existingInvite } = await insforge.database
+        .from('invites')
+        .select('id')
+        .eq('neighborhood_id', request.neighborhood_id)
+        .eq('phone', request.phone)
+        .gt('expires_at', new Date().toISOString())
+        .is('used_at', null)
+        .maybeSingle();
+
+      if (existingInvite) {
+        console.warn('[ADMIN APPROVE] Active invite already exists for:', request.phone);
+        throw new Error('An active invite already exists for this phone number.');
+      }
+
+      // 2. Generate an invite code
       const inviteCode = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // 2. Mark request as approved with manual method
+      // 3. Mark request as approved with manual method
       const { error: updateError } = await insforge.database
         .from('join_requests')
         .update({ 
@@ -133,7 +163,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
       
       if (updateError) throw updateError;
         
-      // 3. Insert invite into database
+      // 4. Insert invite into database
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
       

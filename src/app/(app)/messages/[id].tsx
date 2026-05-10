@@ -13,7 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, Send, Paperclip, Image as ImageIcon, X, FileText, MessageSquare } from 'lucide-react-native';
+import { Send, Paperclip, Image as ImageIcon, X, FileText, MessageSquare } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -153,27 +153,6 @@ export default function MessageThread() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <View style={styles.headerInfo}>
-          {recipient && (
-            <>
-              <MemberName 
-                name={recipient.full_name} 
-                isVisible={recipient.is_visible} 
-                anonymousId={recipient.anonymous_id}
-                textStyle={styles.headerTitle}
-              />
-              <Text style={styles.headerSubtitle}>Neighbor</Text>
-            </>
-          )}
-        </View>
-        <View style={styles.iconButton} />
-      </View>
-
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1193d4" />

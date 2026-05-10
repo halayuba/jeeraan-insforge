@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   FileText,
 } from 'lucide-react-native'
 
@@ -111,7 +110,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },

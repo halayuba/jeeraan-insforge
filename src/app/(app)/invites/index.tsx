@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   avatarPlaceholder: {
     width: 48,
-    height: 48,
+    height: 60,
     borderRadius: 24,
     backgroundColor: '#f1f5f9',
     alignItems: 'center',

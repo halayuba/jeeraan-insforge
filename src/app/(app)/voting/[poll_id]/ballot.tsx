@@ -10,7 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react-native';
+import { CheckCircle2 } from 'lucide-react-native';
 
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useElectionCandidates, useCastVote } from '../../../../hooks/useElections';
@@ -51,15 +51,6 @@ export default function BallotScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#111618" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Board Elections</Text>
-        <View style={styles.headerRight} />
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <Text style={styles.candidatesTitle}>Candidates</Text>
 
@@ -145,7 +136,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: 'rgba(246,247,248,0.9)',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#cbd5e1',
   },
   backButton: {
     width: 40,

@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   },
   lightGridItem: {
     backgroundColor: '#f1f5f9', // Very light gray
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   gridIcon: {
     marginBottom: 8,
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   secondaryButton: {
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#cbd5e1',
   },
   secondaryButtonText: {
     fontFamily: 'Manrope-Bold',
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
     paddingVertical: 24,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: '#cbd5e1',
     alignItems: 'center',
   },
   footerLinks: {

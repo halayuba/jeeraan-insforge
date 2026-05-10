@@ -1,4 +1,4 @@
-import { ArrowLeft, Send } from 'lucide-react-native';
+import { Send } from 'lucide-react-native';
 
 
 import React, { useState, useEffect } from 'react';
@@ -93,15 +93,6 @@ export default function ForumThread() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Thread View</Text>
-        <View style={styles.iconButton} />
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         
         {/* OP Post Header block */}
@@ -224,26 +215,276 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Bold',
     color: '#ffffff',
   },
-  header: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  threadOPBlock: {
+    marginBottom: 24,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  categoryBadge: {
+    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  categoryBadgeText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    color: '#1193d4',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  threadTitle: {
+    fontFamily: 'Manrope-ExtraBold',
+    fontSize: 24,
+    color: '#0f172a',
+    lineHeight: 32,
+    marginBottom: 16,
+  },
+  authorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    marginBottom: 16,
   },
-  iconButton: {
+  avatarCircleOP: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  avatarTextOP: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    color: '#64748b',
+  },
+  authorName: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 15,
+    color: '#1e293b',
+  },
+  timestamp: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 12,
+    color: '#94a3b8',
+  },
+  threadBodyText: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 16,
+    color: '#334155',
+    lineHeight: 24,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f1f5f9',
+    marginVertical: 16,
+  },
+  repliesHeader: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: '#0f172a',
+    marginBottom: 16,
+  },
+  repliesList: {
+    gap: 16,
+  },
+  replyCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 16,
+  },
+  replyAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#cbd5e1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  replyAvatarText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 12,
+    color: '#64748b',
+  },
+  replyAuthorName: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 14,
+    color: '#1e293b',
+    marginBottom: 4,
+  },
+  replyBodyText: {
+    fontFamily: 'Manrope-Regular',
+    fontSize: 15,
+    color: '#334155',
+    lineHeight: 22,
+    marginTop: 4,
+  },
+  bottomForm: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 12,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12, // Handle safe area padding manually or lightly
+  },
+  replyInput: {
+    flex: 1,
+    minHeight: 48,
+    maxHeight: 120,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+    fontFamily: 'Manrope-Regular',
+    fontSize: 15,
+    color: '#0f172a',
+    marginRight: 12,
+  },
+  sendButton: {
+    width: 48,
+    height: 60,
+    borderRadius: 24,
+    backgroundColor: '#1193d4',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
+  sendButtonDisabled: {
+    backgroundColor: '#94a3b8',
+  },
+});
+        
+        {/* OP Post Header block */}
+        <View style={styles.threadOPBlock}>
+          <View style={styles.metaRow}>
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryBadgeText}>{thread.category}</Text>
+            </View>
+          </View>
+          <Text style={styles.threadTitle}>{thread.title}</Text>
+          
+          <View style={styles.authorRow}>
+            <View style={styles.avatarCircleOP}>
+              <Text style={styles.avatarTextOP}>
+                {thread.author?.is_visible !== false 
+                  ? getInitials(thread.author?.full_name || 'U')
+                  : '?'
+                }
+              </Text>
+            </View>
+            <View>
+              <MemberName 
+                name={thread.author?.full_name} 
+                isVisible={thread.author?.is_visible} 
+                anonymousId={thread.author?.anonymous_id}
+                textStyle={styles.authorName}
+              />
+              <Text style={styles.timestamp}>{formatTimeAgo(thread.created_at)}</Text>
+            </View>
+          </View>
+          
+          <Text style={styles.threadBodyText}>{thread.content}</Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        <Text style={styles.repliesHeader}>
+          {replies.length} {replies.length === 1 ? 'Reply' : 'Replies'}
+        </Text>
+
+        {/* Replies List */}
+        <View style={styles.repliesList}>
+          {replies.map((reply) => (
+            <View key={reply.id} style={styles.replyCard}>
+              <View style={styles.authorRow}>
+                <View style={styles.replyAvatar}>
+                  <Text style={styles.replyAvatarText}>
+                    {reply.author?.is_visible !== false 
+                      ? getInitials(reply.author?.full_name || 'R')
+                      : '?'
+                    }
+                  </Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <MemberName 
+                      name={reply.author?.full_name} 
+                      isVisible={reply.author?.is_visible} 
+                      anonymousId={reply.author?.anonymous_id}
+                      textStyle={styles.replyAuthorName}
+                    />
+                    <Text style={styles.timestamp}>{formatTimeAgo(reply.created_at)}</Text>
+                  </View>
+                  <Text style={styles.replyBodyText}>{reply.content}</Text>
+                </View>
+              </View>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Sticky Bottom Form */}
+      <View style={styles.bottomForm}>
+        <TextInput
+          style={styles.replyInput}
+          placeholder="Write a reply..."
+          placeholderTextColor="#94a3b8"
+          value={newReply}
+          onChangeText={setNewReply}
+          multiline
+        />
+        <TouchableOpacity 
+          style={[styles.sendButton, (!newReply.trim() || submitting) && styles.sendButtonDisabled]}
+          onPress={handleReplySubmit}
+          disabled={!newReply.trim() || submitting}
+        >
+          {submitting ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <Send size={20} color="#ffffff" strokeWidth={2} />
+          )}
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
     flex: 1,
-    textAlign: 'center',
+    backgroundColor: '#ffffff',
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: '#0f172a',
+    marginBottom: 16,
+  },
+  backBtn: {
+    backgroundColor: '#1193d4',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backBtnText: {
+    fontFamily: 'Manrope-Bold',
+    color: '#ffffff',
   },
   scrollView: {
     flex: 1,
@@ -337,7 +578,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#cbd5e1',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -385,7 +626,7 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     width: 48,
-    height: 48,
+    height: 60,
     borderRadius: 24,
     backgroundColor: '#1193d4',
     alignItems: 'center',

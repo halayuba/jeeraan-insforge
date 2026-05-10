@@ -82,17 +82,6 @@ export default function AnnouncementDetails() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Announcement</Text>
-        <TouchableOpacity style={styles.iconButton}>
-          <Share2 size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Title & Metadata */}
         <Text style={styles.title}>{announcement.title}</Text>
@@ -172,29 +161,6 @@ const styles = StyleSheet.create({
   backBtnText: {
     fontFamily: 'Manrope-Bold',
     color: '#ffffff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-    backgroundColor: '#f8fafc',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
   },
   scrollView: {
     flex: 1,
@@ -291,6 +257,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 240,
     borderRadius: 12,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#cbd5e1',
   },
 });

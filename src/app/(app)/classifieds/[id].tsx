@@ -1,4 +1,4 @@
-import { ArrowLeft, MessageCircle, Share2, Tag, CheckCircle2, RotateCcw, AlertTriangle, Flag } from 'lucide-react-native';
+import { MessageCircle, Tag, CheckCircle2, RotateCcw, AlertTriangle } from 'lucide-react-native';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -137,23 +137,6 @@ export default function AdDetail() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-            <ArrowLeft size={24} color="#ffffff" strokeWidth={2} />
-          </TouchableOpacity>
-          <View style={styles.headerRight}>
-            {!isOwner && ad.status === 'active' && (
-              <TouchableOpacity style={styles.iconButton} onPress={handleReportAd}>
-                <Flag size={20} color="#ffffff" strokeWidth={2} />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.iconButton}>
-              <Share2 size={24} color="#ffffff" strokeWidth={2} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Image Gallery */}
         <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.imageGallery}>
           {ad.image_url ? (
@@ -294,29 +277,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f6f7f8',
   },
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 48,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    gap: 12,
-  },
   imageGallery: {
     height: 300,
     backgroundColor: '#f1f5f9',
@@ -435,14 +395,14 @@ const styles = StyleSheet.create({
   },
   sellerAvatar: {
     width: 48,
-    height: 48,
+    height: 60,
     borderRadius: 24,
   },
   sellerAvatarPlaceholder: {
     width: 48,
-    height: 48,
+    height: 60,
     borderRadius: 24,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#cbd5e1',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -488,7 +448,7 @@ const styles = StyleSheet.create({
   },
   deactivateButton: {
     backgroundColor: '#f1f5f9',
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   actionButtonText: {
     color: '#ffffff',

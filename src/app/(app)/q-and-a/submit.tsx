@@ -1,6 +1,3 @@
-import { Shield, X } from 'lucide-react-native';
-
-
 import React, { useState } from 'react';
 import {
   View,
@@ -53,25 +50,6 @@ export default function QuestionSubmit() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <X size={24} color="#0f172a" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ask a Question</Text>
-        <TouchableOpacity 
-          onPress={handleSubmit} 
-          disabled={loading || !questionText.trim()}
-          style={styles.iconButton}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#1193d4" />
-          ) : (
-            <Text style={[styles.submitText, !questionText.trim() && styles.disabledText]}>Submit</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           <Text style={styles.label}>Your Question</Text>
@@ -89,14 +67,22 @@ export default function QuestionSubmit() {
             Your question will be sent privately to the neighborhood admins. They may choose to make it public if it's helpful for the whole community.
           </Text>
         </View>
-
-        <View style={styles.infoCard}>
-          <Shield size={20} color="#64748b" style={{ marginRight: 8 }} strokeWidth={2} />
-          <Text style={styles.infoText}>
-            Admins will be notified and will respond as soon as possible.
-          </Text>
-        </View>
       </ScrollView>
+
+      {/* Sticky Submit Footer */}
+      <View style={styles.footer}>
+        <TouchableOpacity 
+          onPress={handleSubmit} 
+          disabled={loading || !questionText.trim()}
+          style={[styles.submitButton, (loading || !questionText.trim()) && styles.submitButtonDisabled]}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#ffffff" />
+          ) : (
+            <Text style={styles.submitButtonText}>Submit Question</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -105,36 +91,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f6f7f8',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  iconButton: {
-    minWidth: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-  },
-  submitText: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 16,
-    color: '#1193d4',
-  },
-  disabledText: {
-    color: '#cbd5e1',
   },
   scrollView: {
     flex: 1,
@@ -165,7 +121,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   hint: {
     fontFamily: 'Manrope-Medium',
@@ -174,17 +130,25 @@ const styles = StyleSheet.create({
     marginTop: 12,
     lineHeight: 18,
   },
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(100, 116, 139, 0.05)',
-    padding: 12,
-    borderRadius: 8,
+  footer: {
+    padding: 16,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
   },
-  infoText: {
-    fontFamily: 'Manrope-Medium',
-    fontSize: 13,
-    color: '#64748b',
-    flex: 1,
+  submitButton: {
+    backgroundColor: '#1193d4',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#94a3b8',
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontFamily: 'Manrope-Bold',
+    color: '#ffffff',
   },
 });

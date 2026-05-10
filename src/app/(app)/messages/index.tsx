@@ -230,9 +230,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 24,
-    height: 48,
+    height: 60,
     paddingHorizontal: 16,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
   },
   searchIcon: {
     marginRight: 8,
@@ -242,6 +244,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-Medium',
     fontSize: 16,
     color: '#0f172a',
+    height: '100%',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -360,11 +363,13 @@ const styles = StyleSheet.create({
   modalSearchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
+    backgroundColor: '#ffffff',
     borderRadius: 12,
     paddingHorizontal: 12,
-    height: 48,
+    height: 60,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
   },
   modalSearchInput: {
     flex: 1,

@@ -115,7 +115,7 @@ export default function QandAIndex() {
           <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 32 }} />
         ) : questions.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <HelpCircle size={64} color="#e2e8f0" strokeWidth={2} />
+            <HelpCircle size={64} color="#cbd5e1" strokeWidth={2} />
             <Text style={styles.emptyText}>No questions found.</Text>
             <Text style={styles.emptySubtext}>Be the first to ask a question!</Text>
           </View>

@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderStyle: 'dashed',
     overflow: 'hidden',
     marginBottom: 24,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   textInput: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 12,
     padding: 16,
     fontFamily: 'Manrope-Regular',

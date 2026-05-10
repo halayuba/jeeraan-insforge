@@ -1,6 +1,3 @@
-import { ArrowLeft } from 'lucide-react-native';
-
-
 import React, { useState } from 'react';
 import {
   View,
@@ -78,15 +75,6 @@ export default function CreateEvent() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Create New Event</Text>
-        <View style={styles.iconButton} />
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         
         <View style={styles.inputContainer}>
@@ -200,28 +188,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    backgroundColor: '#ffffff',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
-  },
   scrollView: {
     flex: 1,
   },
@@ -243,10 +209,10 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
   },
   input: {
-    height: 48,
+    height: 60,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     paddingHorizontal: 16,
     fontFamily: 'Manrope-Medium',
@@ -257,7 +223,7 @@ const styles = StyleSheet.create({
     minHeight: 120,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     padding: 16,
     fontFamily: 'Manrope-Medium',
@@ -265,10 +231,10 @@ const styles = StyleSheet.create({
     color: '#0f172a',
   },
   textAreaSmall: {
-    minHeight: 80,
+    minHeight: 120,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     padding: 16,
     fontFamily: 'Manrope-Medium',

@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown, PlusCircle, Search, Star } from 'lucide-react-native';
+import { ChevronDown, PlusCircle, Search, Star } from 'lucide-react-native';
 
 
 import React, { useState, useEffect } from 'react';
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f1f5f9',
     borderRadius: 8,
-    height: 48,
+    height: 60,
     paddingHorizontal: 16,
   },
   searchIcon: {

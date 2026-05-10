@@ -443,10 +443,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     margin: 16,
     paddingHorizontal: 16,
-    height: 48,
+    height: 60,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   searchInput: {
     flex: 1,
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   item: {
     flexDirection: 'row',
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   highlightAvatar: {
     width: 56,
@@ -556,7 +556,7 @@ const styles = StyleSheet.create({
   },
   avatar: {
     width: 48,
-    height: 48,
+    height: 60,
     borderRadius: 24,
     backgroundColor: '#f1f5f9',
   },
@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     alignItems: 'center',
   },
   statsLabel: {
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   },
   spinCTAIcon: {
     width: 48,
-    height: 48,
+    height: 60,
     borderRadius: 24,
     backgroundColor: '#1193d4',
     alignItems: 'center',
@@ -671,7 +671,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderStyle: 'dashed',
   },
   exploreButton: {
@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     overflow: 'hidden',
   },
   activityItem: {

@@ -8,7 +8,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, MessageCircle, MessageSquarePlus, Search, ThumbsUp, UserCircle2 } from 'lucide-react-native';
+import { MessageCircle, MessageSquarePlus, ThumbsUp, UserCircle2 } from 'lucide-react-native';
 
 import { useCandidateDetails } from '../../../../../../hooks/useElections';
 
@@ -54,17 +54,6 @@ export default function CandidateQAScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#0f172a" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Candidate Q&A</Text>
-        <TouchableOpacity style={styles.searchButton}>
-          <Search size={24} color="#0f172a" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
       {/* Tabs */}
       <View style={styles.tabBar}>
         {TABS.map((tab, index) => (
@@ -150,7 +139,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#cbd5e1',
   },
   backButton: {
     width: 40,
@@ -177,7 +166,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#cbd5e1',
     paddingHorizontal: 16,
     gap: 28,
   },

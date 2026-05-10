@@ -1,4 +1,4 @@
-import { ArrowLeft, Calendar, CalendarCheck, MoreVertical, Send, Star } from 'lucide-react-native';
+import { Calendar, CalendarCheck, Send, Star } from 'lucide-react-native';
 
 
 import React, { useState } from 'react';
@@ -126,17 +126,6 @@ export default function SubmitServiceOrder() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Submit Service Order</Text>
-        <TouchableOpacity style={styles.iconButton}>
-          <MoreVertical size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         
         {/* Resident Details */}
@@ -321,10 +310,10 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
   },
   input: {
-    height: 48,
+    height: 60,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     paddingHorizontal: 16,
     fontFamily: 'Manrope-Medium',
@@ -335,7 +324,7 @@ const styles = StyleSheet.create({
     minHeight: 100,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     padding: 16,
     fontFamily: 'Manrope-Medium',
@@ -345,24 +334,24 @@ const styles = StyleSheet.create({
   starsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 48,
+    height: 60,
     justifyContent: 'space-between',
   },
   starButton: {
     flex: 1,
     height: '100%',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 4,
   },
   readOnlyInputContainer: {
-    height: 48,
+    height: 60,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -375,10 +364,10 @@ const styles = StyleSheet.create({
     color: '#0f172a',
   },
   inputWithIconContainer: {
-    height: 48,
+    height: 60,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -414,7 +403,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     alignItems: 'center',
     justifyContent: 'center',
   },

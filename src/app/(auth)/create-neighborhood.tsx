@@ -315,9 +315,10 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+    height: 60,
     fontFamily: 'Manrope-Regular',
     fontSize: 16,
     color: '#0f172a',

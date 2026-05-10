@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, Info, Send, Shield, Trash2, Wrench, X } from 'lucide-react-native';
+import { Camera, Send, Shield, Trash2, Wrench, X } from 'lucide-react-native';
 
 import React, { useState } from 'react';
 import {
@@ -161,17 +161,6 @@ export default function SubmitGrievance() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Top App Bar */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Submit Grievance</Text>
-        <TouchableOpacity style={styles.iconButton}>
-          <Info size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Category Selection */}
         <View style={styles.section}>
@@ -292,30 +281,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-    backgroundColor: '#ffffff',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-    backgroundColor: '#f8fafc',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
-  },
   scrollView: {
     flex: 1,
   },
@@ -371,7 +336,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 12,
     height: 56,
     paddingHorizontal: 16,
@@ -382,7 +347,7 @@ const styles = StyleSheet.create({
   textArea: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 12,
     minHeight: 160,
     padding: 16,
@@ -401,7 +366,7 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     backgroundColor: '#f8fafc',
     borderWidth: 2,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderStyle: 'dashed',
     borderRadius: 12,
     alignItems: 'center',

@@ -1,4 +1,4 @@
-import { ArrowLeft, Star } from 'lucide-react-native';
+import { Star } from 'lucide-react-native';
 
 
 import React, { useState, useEffect } from 'react';
@@ -98,15 +98,6 @@ export default function ServiceOrderDetail() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Order Summary</Text>
-        <View style={styles.iconButton} />
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         
         {/* Status Card */}

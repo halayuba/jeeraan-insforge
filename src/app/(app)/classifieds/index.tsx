@@ -127,9 +127,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 24,
-    height: 48,
+    height: 60,
     paddingHorizontal: 16,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
   },
   searchIcon: {
     marginRight: 8,

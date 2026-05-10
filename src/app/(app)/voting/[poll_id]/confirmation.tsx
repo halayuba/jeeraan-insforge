@@ -1,4 +1,4 @@
-import { ArrowLeft, Vote } from 'lucide-react-native';
+import { Vote } from 'lucide-react-native';
 
 
 import React from 'react';
@@ -11,18 +11,6 @@ export default function ConfirmationScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.push('/(app)/voting' as any)}
-          style={styles.backButton}
-        >
-          <ArrowLeft size={24} color="#111618" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Board Election Ballot</Text>
-        <View style={styles.headerRight} />
-      </View>
-
       {/* Confirmation Content */}
       <View style={styles.content}>
         <View style={styles.iconContainer}>
@@ -65,7 +53,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#f6f7f8',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#cbd5e1',
   },
   backButton: {
     width: 40,

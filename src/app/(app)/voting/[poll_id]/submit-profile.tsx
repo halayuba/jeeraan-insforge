@@ -13,7 +13,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Camera, X } from 'lucide-react-native';
+import { Camera } from 'lucide-react-native';
 
 import { useAuthStore } from '../../../../store/useAuthStore';
 import { useProfile } from '../../../../hooks/useProfile';
@@ -80,15 +80,6 @@ export default function SubmitProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-          <X size={24} color="#0f172a" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Candidate Profile</Text>
-        <View style={styles.headerRight} />
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Photo Section */}
         <View style={styles.photoSection}>
@@ -173,7 +164,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#cbd5e1',
   },
   closeButton: {
     width: 40,
@@ -211,7 +202,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -242,7 +233,7 @@ const styles = StyleSheet.create({
   textArea: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
@@ -257,7 +248,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: '#cbd5e1',
   },
   submitButton: {
     width: '100%',

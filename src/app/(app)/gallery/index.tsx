@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: 100,
     height: 100,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#cbd5e1',
   },
   cardContent: {
     flex: 1,

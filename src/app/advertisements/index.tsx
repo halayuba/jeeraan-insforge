@@ -134,7 +134,7 @@ export default function AdvertisementsIndex() {
           <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 100 }} />
         ) : ads.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Layout size={64} color="#e2e8f0" strokeWidth={2} />
+            <Layout size={64} color="#cbd5e1" strokeWidth={2} />
             <Text style={styles.emptyText}>No advertisements available.</Text>
             <Text style={styles.emptySubtext}>Check back later for local offers!</Text>
           </View>

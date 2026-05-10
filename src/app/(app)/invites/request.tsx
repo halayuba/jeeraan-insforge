@@ -1,4 +1,4 @@
-import { ArrowLeft, Check } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 
 
 import React, { useState } from 'react';
@@ -88,14 +88,6 @@ export default function InviteRequestForm() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Invite a Neighbor</Text>
-        <View style={styles.iconButton} />
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <Text style={styles.formTitle}>Invite a friend from your neighborhood to join</Text>
         <Text style={styles.formSubtitle}>Submit a request to the neighborhood board to verify and invite your neighbor.</Text>
@@ -238,7 +230,7 @@ const styles = StyleSheet.create({
     height: 52,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 10,
     paddingHorizontal: 16,
     fontFamily: 'Manrope-Medium',

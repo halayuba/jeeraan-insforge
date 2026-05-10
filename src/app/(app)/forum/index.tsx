@@ -1,5 +1,4 @@
 import {
-  ArrowLeft,
   Dog,
   MessageSquare,
   PartyPopper,
@@ -179,7 +178,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 24,
-    height: 48,
+    height: 60,
     paddingHorizontal: 16,
     marginBottom: 24,
   },
@@ -213,7 +212,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     width: 48,
-    height: 48,
+    height: 60,
     borderRadius: 8,
     backgroundColor: 'rgba(17, 147, 212, 0.1)',
     alignItems: 'center',

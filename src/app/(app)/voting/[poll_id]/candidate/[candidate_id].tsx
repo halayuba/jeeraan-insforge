@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, ChevronRight, MessageSquare, Phone, Share2 } from 'lucide-react-native';
+import { ChevronRight, MessageSquare, Phone } from 'lucide-react-native';
 
 import { useCandidateDetails } from '../../../../../hooks/useElections';
 
@@ -50,17 +50,6 @@ export default function CandidateProfileScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#0f172a" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Candidate Profile</Text>
-        <TouchableOpacity style={styles.shareButton}>
-          <Share2 size={24} color="#0f172a" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
@@ -192,7 +181,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#cbd5e1',
   },
   backButton: {
     width: 44,
@@ -266,7 +255,7 @@ const styles = StyleSheet.create({
   messageButton: {
     flex: 1,
     flexDirection: 'row',
-    height: 48,
+    height: 60,
     backgroundColor: '#1193d4',
     borderRadius: 12,
     alignItems: 'center',
@@ -280,7 +269,7 @@ const styles = StyleSheet.create({
   },
   phoneButton: {
     width: 48,
-    height: 48,
+    height: 60,
     backgroundColor: 'rgba(17, 147, 212, 0.1)',
     borderRadius: 12,
     alignItems: 'center',
@@ -300,7 +289,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.04)',
     elevation: 1,
     marginRight: 12,

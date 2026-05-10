@@ -629,162 +629,118 @@ export default function NeighborhoodAccess() {
 
             {/* Horizontal Divider */}
             <View style={styles.divider} />
+          </View>
 
-            {/* Section 3: Add me to the waitlist */}
-            <TouchableOpacity
-              style={[
-                styles.accordionHeader,
-                expandedSection === 'waitlist' && styles.accordionHeaderActive,
-                { marginTop: 12 },
-              ]}
-              onPress={() => toggleSection('waitlist')}
-              activeOpacity={0.7}
-            >
+          {/* Section 3: Add me to the waitlist */}
+          <View style={[styles.card, { marginHorizontal: 16, marginBottom: 24 }]}>
+            <View style={styles.cardHeader}>
               <View style={styles.accordionTitleContainer}>
-                <IconCalendarUser 
-                  size={24} 
-                  color={expandedSection === 'waitlist' ? '#1193d4' : '#64748b'} 
-                  strokeWidth={2} 
-                />
-                <Text
-                  style={[
-                    styles.accordionTitle,
-                    expandedSection === 'waitlist' &&
-                      styles.accordionTitleActive,
-                  ]}
-                >
-                  Add me to the waitlist
-                </Text>
+                <IconCalendarUser size={24} color="#1193d4" strokeWidth={2} />
+                <Text style={styles.accordionTitle}>Add me to the waitlist</Text>
               </View>
-              {expandedSection === 'waitlist' ? (
-                <ChevronUp size={28} color="#64748b" strokeWidth={2} />
-              ) : (
-                <ChevronDown size={28} color="#64748b" strokeWidth={2} />
-              )}
-            </TouchableOpacity>
+            </View>
+            
+            <View style={{ padding: 16 }}>
+              <Text style={styles.sectionSubtitle}>
+                If you are not a resident of Loma Vista West but would like to be added to the waitlist, please fill out the form below.
+              </Text>
 
-            {expandedSection === 'waitlist' && (
-              <View style={styles.accordionContent}>
-                <Text style={styles.sectionSubtitle}>
-                  If you are not a resident of Loma Vista West but would like to
-                  be added to the waitlist, please fill out the form below.
-                </Text>
+              <View style={styles.formGroup}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Full Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Your Name"
+                    placeholderTextColor="#94a3b8"
+                    value={waitlistName}
+                    onChangeText={setWaitlistName}
+                  />
+                </View>
 
-                <View style={styles.formGroup}>
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Full Name</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Your Name"
-                      placeholderTextColor="#94a3b8"
-                      value={waitlistName}
-                      onChangeText={setWaitlistName}
-                    />
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Phone Number</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="+1 (555) 000-0000"
+                    placeholderTextColor="#94a3b8"
+                    keyboardType="phone-pad"
+                    value={waitlistPhone}
+                    onChangeText={setWaitlistPhone}
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Email Address</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="you@example.com"
+                    placeholderTextColor="#94a3b8"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={waitlistEmail}
+                    onChangeText={setWaitlistEmail}
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Interested in - Floorplans</Text>
+                  <View style={styles.floorplanContainer}>
+                    {FLOORPLAN_OPTIONS.map((option) => (
+                      <TouchableOpacity
+                        key={option}
+                        style={[
+                          styles.floorplanOption,
+                          waitlistFloorplan === option && styles.floorplanOptionSelected,
+                        ]}
+                        onPress={() => setWaitlistFloorplan(option)}
+                      >
+                        <View style={[
+                          styles.radio,
+                          waitlistFloorplan === option && styles.radioSelected,
+                        ]}>
+                          {waitlistFloorplan === option && <View style={styles.radioInner} />}
+                        </View>
+                        <Text style={[
+                          styles.floorplanOptionText,
+                          waitlistFloorplan === option && styles.floorplanOptionTextSelected,
+                        ]}>
+                          {option}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
                   </View>
+                </View>
 
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Phone Number</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="+1 (555) 000-0000"
-                      placeholderTextColor="#94a3b8"
-                      keyboardType="phone-pad"
-                      value={waitlistPhone}
-                      onChangeText={setWaitlistPhone}
-                    />
-                  </View>
-
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Email Address</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="you@example.com"
-                      placeholderTextColor="#94a3b8"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      value={waitlistEmail}
-                      onChangeText={setWaitlistEmail}
-                    />
-                  </View>
-
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Interested in - Floorplans</Text>
-                    <View style={styles.floorplanContainer}>
-                      {FLOORPLAN_OPTIONS.map((option) => (
-                        <TouchableOpacity
-                          key={option}
-                          style={[
-                            styles.floorplanOption,
-                            waitlistFloorplan === option && styles.floorplanOptionSelected,
-                          ]}
-                          onPress={() => setWaitlistFloorplan(option)}
-                        >
-                          <View style={[
-                            styles.radio,
-                            waitlistFloorplan === option && styles.radioSelected,
-                          ]}>
-                            {waitlistFloorplan === option && <View style={styles.radioInner} />}
-                          </View>
-                          <Text style={[
-                            styles.floorplanOptionText,
-                            waitlistFloorplan === option && styles.floorplanOptionTextSelected,
-                          ]}>
-                            {option}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.primaryButton,
-                      styles.submitButton,
-                      (!waitlistName ||
-                        !waitlistPhone ||
-                        !waitlistEmail ||
-                        !waitlistFloorplan ||
-                        submittingWaitlist) &&
-                        styles.disabledButton,
-                    ]}
-                    onPress={handleWaitlistSubmit}
-                    disabled={
-                      !waitlistName ||
+                <TouchableOpacity
+                  style={[
+                    styles.primaryButton,
+                    styles.submitButton,
+                    (!waitlistName ||
                       !waitlistPhone ||
                       !waitlistEmail ||
                       !waitlistFloorplan ||
-                      submittingWaitlist
-                    }
-                  >
-                    {submittingWaitlist ? (
-                      <ActivityIndicator color="#fff" />
-                    ) : (
-                      <Text style={styles.primaryButtonText}>
-                        Submit Request
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
+                      submittingWaitlist) &&
+                      styles.disabledButton,
+                  ]}
+                  onPress={handleWaitlistSubmit}
+                  disabled={
+                    !waitlistName ||
+                    !waitlistPhone ||
+                    !waitlistEmail ||
+                    !waitlistFloorplan ||
+                    submittingWaitlist
+                  }
+                >
+                  {submittingWaitlist ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.primaryButtonText}>
+                      Submit Request
+                    </Text>
+                  )}
+                </TouchableOpacity>
               </View>
-            )}
-
-            {/* Horizontal Divider */}
-            <View style={styles.divider} />
-
-            {/* 
-            <View style={{ marginTop: 24, alignItems: 'center', paddingBottom: 20 }}>
-              <Text
-                style={{
-                  fontFamily: 'Manrope-SemiBold',
-                  fontSize: 15,
-                  color: '#64748b',
-                  textAlign: 'center',
-                }}
-              >
-                Create a new Neighborhood (Admin) - Coming soon
-              </Text>
             </View>
-            */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -890,7 +846,7 @@ const styles = StyleSheet.create({
     padding: 24,
     backgroundColor: '#f8fafc',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: '#cbd5e1',
     alignItems: 'center',
     gap: 8,
   },
@@ -929,7 +885,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 12,
   },
   accordionHeaderActive: {
@@ -986,7 +942,7 @@ const styles = StyleSheet.create({
     borderColor: '#cbd5e1',
     borderRadius: 8,
     paddingHorizontal: 16,
-    height: 50,
+    height: 60,
     fontSize: 16,
     fontFamily: 'Manrope-Regular',
     color: '#0f172a',
@@ -1070,7 +1026,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     gap: 12,
   },
   floorplanOptionSelected: {
@@ -1160,7 +1116,7 @@ const styles = StyleSheet.create({
   modalButtonCancel: {
     backgroundColor: '#f1f5f9',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   modalButtonCancelText: {
     color: '#64748b',

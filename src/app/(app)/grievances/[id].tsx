@@ -1,4 +1,4 @@
-import { ArrowLeft, Send, Share2 } from 'lucide-react-native';
+import { Send } from 'lucide-react-native';
 
 
 import React, { useState, useEffect } from 'react';
@@ -126,23 +126,12 @@ export default function GrievanceDetails() {
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Grievance Details</Text>
-        <TouchableOpacity style={styles.iconButton}>
-          <Share2 size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* User Info Section */}
         <View style={styles.userInfoContainer}>
           <View style={styles.userInfoRow}>
             {/* Avatar placeholder */}
-            <View style={[styles.avatar, { backgroundColor: '#e2e8f0' }]} />
+            <View style={[styles.avatar, { backgroundColor: '#cbd5e1' }]} />
             <View style={styles.userInfoTextContainer}>
               <Text style={styles.userName}>{grievance.users?.username || 'Resident'}</Text>
               <Text style={styles.submitDate}>Submitted on {formatDate(grievance.created_at)}</Text>
@@ -199,7 +188,7 @@ export default function GrievanceDetails() {
           <View style={styles.commentsList}>
             {comments.map((comment) => (
               <View key={comment.id} style={styles.commentRow}>
-                <View style={[styles.commentAvatar, { backgroundColor: '#e2e8f0' }]} />
+                <View style={[styles.commentAvatar, { backgroundColor: '#cbd5e1' }]} />
                 <View style={styles.commentContent}>
                   <View style={styles.commentHeader}>
                     <Text style={styles.commentName}>{comment.users?.username || 'User'}</Text>
@@ -270,30 +259,6 @@ const styles = StyleSheet.create({
   backBtnText: {
     fontFamily: 'Manrope-Bold',
     color: '#ffffff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 20,
-    backgroundColor: '#f8fafc',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
   },
   scrollView: {
     flex: 1,
@@ -375,7 +340,7 @@ const styles = StyleSheet.create({
   imageItem: {
     height: 160,
     borderRadius: 12,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#cbd5e1',
   },
   imageItemHalf: {
     width: '48%',
@@ -418,7 +383,7 @@ const styles = StyleSheet.create({
   commentContent: {
     flex: 1,
     backgroundColor: '#ffffff',
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderWidth: 1,
     borderRadius: 12,
     borderTopLeftRadius: 0,
@@ -459,7 +424,7 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: '#cbd5e1',
   },
   inputContainer: {
     flex: 1,

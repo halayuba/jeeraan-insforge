@@ -1,5 +1,4 @@
 import { 
-  ArrowLeft,
   Briefcase, 
   Cake, 
   Camera, 
@@ -312,16 +311,6 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1e293b" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Profile</Text>
-        <TouchableOpacity onPress={handleSave} disabled={isActuallySaving} style={styles.saveButton}>
-          {isActuallySaving ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.saveText}>Save</Text>}
-        </TouchableOpacity>
-      </View>
-
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Top Profile Card */}
         <View style={styles.profileHeaderCard}>
@@ -565,6 +554,21 @@ export default function ProfileScreen() {
 
         <Text style={styles.versionText}>Jeeraan v1.2.0 • Neighbors App</Text>
       </ScrollView>
+
+      {/* Sticky Save Footer */}
+      <View style={styles.footer}>
+        <TouchableOpacity 
+          onPress={handleSave} 
+          disabled={isActuallySaving} 
+          style={[styles.saveButton, isActuallySaving && styles.saveButtonDisabled]}
+        >
+          {isActuallySaving ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.saveText}>Save Changes</Text>
+          )}
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -579,34 +583,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 60 : 20,
-    paddingBottom: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  backButton: {
-    padding: 8,
-    marginLeft: -8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontFamily: 'Manrope-Bold',
-    color: '#0f172a',
+  footer: {
+    padding: 16,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
   },
   saveButton: {
     backgroundColor: '#1193d4',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#94a3b8',
   },
   saveText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Manrope-Bold',
     color: '#fff',
   },
@@ -709,7 +703,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
     elevation: 2,
   },
@@ -785,7 +779,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
     color: '#1e293b',
     padding: 0,
-    height: 48,
+    height: 60,
   },
   socialTextInput: {
     flex: 1,

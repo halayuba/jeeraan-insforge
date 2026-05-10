@@ -1,4 +1,4 @@
-import { ArrowLeft, Mail, MessageCircle, Phone, Search } from 'lucide-react-native';
+import { Mail, MessageCircle, Phone, Search } from 'lucide-react-native';
 
 
 import React, { useState, useEffect } from 'react';
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 24,
-    height: 48,
+    height: 60,
     paddingHorizontal: 16,
     marginBottom: 24,
   },
@@ -156,12 +156,12 @@ const styles = StyleSheet.create({
   },
   memberAvatar: {
     width: 48,
-    height: 48,
+    height: 60,
     borderRadius: 24,
   },
   memberAvatarPlaceholder: {
     width: 48,
-    height: 48,
+    height: 60,
     borderRadius: 24,
     backgroundColor: 'rgba(17, 147, 212, 0.1)',
     alignItems: 'center',

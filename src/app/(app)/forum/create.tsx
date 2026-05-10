@@ -1,6 +1,3 @@
-import { ArrowLeft } from 'lucide-react-native';
-
-
 import React, { useState } from 'react';
 import {
   View,
@@ -100,15 +97,6 @@ export default function CreateForumPost() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Post</Text>
-        <View style={styles.iconButton} />
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         
         {/* Category Picker (Scrolling Tabs) */}
@@ -174,27 +162,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(17, 147, 212, 0.1)',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
-  },
   scrollView: {
     flex: 1,
   },
@@ -230,16 +197,20 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   input: {
-    backgroundColor: 'rgba(17, 147, 212, 0.05)',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
     borderRadius: 12,
-    height: 56,
+    height: 60,
     paddingHorizontal: 16,
     fontFamily: 'Manrope-Bold',
     fontSize: 16,
     color: '#0f172a',
   },
   textArea: {
-    backgroundColor: 'rgba(17, 147, 212, 0.05)',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
     borderRadius: 12,
     minHeight: 250,
     padding: 16,

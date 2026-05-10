@@ -36,7 +36,8 @@ function CustomHeader() {
     'q-and-a': '/(app)/q-and-a/submit'
   };
 
-  const showPlusIcon = !!PLUS_ACTIONS[featureKey];
+  const isSubPage = segments.some(s => ['create', 'submit', 'upload', '[id]', 'details'].includes(s) || s.match(/^[0-9a-f]{8}-/));
+  const showPlusIcon = !isSubPage && !!PLUS_ACTIONS[featureKey];
 
   useEffect(() => {
     const updateHeaderTitle = async () => {
@@ -56,7 +57,9 @@ function CustomHeader() {
           setHeaderTitle(data.title);
         } else {
           // Fallback to title-cased key if not found in table
-          const capitalized = featureKey.charAt(0).toUpperCase() + featureKey.slice(1).replace(/-/g, ' ');
+          let capitalized = featureKey.charAt(0).toUpperCase() + featureKey.slice(1).replace(/-/g, ' ');
+          // Special case for Q&A
+          if (featureKey === 'q-and-a') capitalized = 'Q & A';
           setHeaderTitle(capitalized);
         }
       } catch (err) {
@@ -189,7 +192,7 @@ export default function AppLayout() {
         tabBarInactiveTintColor: '#64748b',
         tabBarStyle: {
           backgroundColor: '#f6f7f8',
-          borderTopColor: '#e2e8f0',
+          borderTopColor: '#cbd5e1',
           paddingBottom: 12,
           height: 75,
         },

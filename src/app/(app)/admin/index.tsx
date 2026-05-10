@@ -280,7 +280,7 @@ export default function AdminDashboard() {
                 placeholder="Note Title (e.g. Board Minutes)"
               />
               <TextInput
-                style={[styles.adminInput, { marginTop: 8, height: 100, textAlignVertical: 'top', paddingTop: 12 }]}
+                style={[styles.adminInput, { marginTop: 8, height: 150, textAlignVertical: 'top', paddingTop: 12 }]}
                 value={newNote.message}
                 onChangeText={(text) => setNewNote({ ...newNote, message: text })}
                 placeholder="Note Message"
@@ -1270,19 +1270,21 @@ export default function AdminDashboard() {
             <View style={{ height: 24 }} />
 
             {/* Board Positions */}
-            <View style={styles.adminSection}>
-              <Text style={[styles.adminLabel, { marginBottom: 4 }]}>Open Board Positions</Text>
-              {boardPositions.map((pos) => (
-                <View key={pos.id} style={styles.positionItem}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.positionTitle}>{pos.title}</Text>
-                    {pos.description ? <Text style={styles.positionDesc}>{pos.description}</Text> : null}
+            <View style={[styles.adminSection, { gap: 8 }]}>
+              <Text style={[styles.adminLabel, { marginBottom: 0 }]}>Open Board Positions</Text>
+              <View style={{ gap: 0 }}>
+                {boardPositions.map((pos) => (
+                  <View key={pos.id} style={styles.positionItem}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.positionTitle}>{pos.title}</Text>
+                      {pos.description ? <Text style={styles.positionDesc}>{pos.description}</Text> : null}
+                    </View>
+                    <TouchableOpacity onPress={() => handleDeletePosition(pos.id)}>
+                      <Trash2 size={20} color="#ef4444" strokeWidth={2} />
+                    </TouchableOpacity>
                   </View>
-                  <TouchableOpacity onPress={() => handleDeletePosition(pos.id)}>
-                    <Trash2 size={20} color="#ef4444" strokeWidth={2} />
-                  </TouchableOpacity>
-                </View>
-              ))}
+                ))}
+              </View>
 
               <View style={styles.addPositionForm}>
                 <TextInput
@@ -1292,7 +1294,7 @@ export default function AdminDashboard() {
                   placeholder="Position Title (e.g. Treasurer)"
                 />
                 <TextInput
-                  style={[styles.adminInput, { marginTop: 8, height: 80, textAlignVertical: 'top', paddingTop: 8 }]}
+                  style={[styles.adminInput, { marginTop: 8, height: 120, textAlignVertical: 'top', paddingTop: 8 }]}
                   value={newPositionDesc}
                   onChangeText={setNewPositionDesc}
                   placeholder="Brief Description"
@@ -1632,7 +1634,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#f1f5f9',
+    borderColor: '#cbd5e1',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -1773,7 +1775,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   declineText: {
     fontFamily: 'Manrope-Bold',
@@ -1822,10 +1824,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   adminInput: {
-    height: 40,
+    height: 60,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     paddingHorizontal: 12,
     fontFamily: 'Manrope-Medium',
@@ -1837,7 +1839,7 @@ const styles = StyleSheet.create({
     height: 60,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     paddingHorizontal: 12,
     fontFamily: 'Manrope-Medium',
@@ -1882,7 +1884,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   addBtn: {
     flexDirection: 'row',
@@ -1904,7 +1906,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     marginBottom: 12,
   },
   qaHeader: {
@@ -1993,10 +1995,10 @@ const styles = StyleSheet.create({
   responseInput: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 8,
     padding: 12,
-    minHeight: 80,
+    minHeight: 120,
     fontFamily: 'Manrope-Medium',
     fontSize: 14,
     color: '#0f172a',
@@ -2086,7 +2088,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#cbd5e1',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -2130,7 +2132,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#f1f5f9',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   activeFilterChip: {
     backgroundColor: 'rgba(17, 147, 212, 0.1)',
@@ -2154,7 +2156,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   sortButtonText: {
     fontFamily: 'Manrope-Medium',
@@ -2176,7 +2178,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   waitlistInfo: {
     flex: 1,
@@ -2216,7 +2218,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   adDetailRow: {
     flexDirection: 'row',
@@ -2239,7 +2241,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: '#cbd5e1',
   },
   adDetailImagePreview: {
     width: '100%',

@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   avatarPlaceholder: {
-    backgroundColor: '#e2e8f0',
+    backgroundColor: '#cbd5e1',
   },
   authorName: {
     fontFamily: 'Manrope-Bold',
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingTop: 12,

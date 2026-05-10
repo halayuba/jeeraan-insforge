@@ -30,6 +30,8 @@ issue_May9-5: see @q-and-a.png - for the Q & A screen, update the Info modal to 
 issue_May9-6: see @move-plus-then-remove-second-header.png and @plus-icon.png - position the IconSquareRoundedPlusFilled icon to the left of the IconInfoSquareRounded icon. Make the plus icon blue. Remove the second header if a screen has more than one. Some screens only the Admins and Moderators can add a new entry (so do not include a plus icon on top becuase new records are only created from the dashboard): Announcements, News Letter. Other screens all members may add new entries: Direct Messages, Events, Service Orders, Forum, Classified Ads, Grievances, Gallery, Q and A. Other screens are just a list view so do not include the plus icon: Members, Leaderboard, FAQ. I will look into Whiteboard later to decide.
 issue_May9-7: see @invite-screen.png, remove the text under the header for the Newsletter screen because it has been replaced with the info icon.
 issue_May9-8: see @duplicated-header.png - for the community gallery, remove the internal screen header.
+issue_May9-9: see @classified-ads-db.png and @classified-ads.png, the classified ads screen does not show the listed ad (from the DB) now, previously I was able to see the Ad.
+issue_May9-10: see @grievances-db.png and @grievances.png, the Grievances screen does not show anything in the list (but the DB has one), previously I was able to see the record from the DB.
 
 
 

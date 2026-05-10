@@ -152,18 +152,6 @@ export default function WhiteboardScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.headerContent}>
-        <View style={styles.iconContainer}>
-          <IconChalkboard size={36} color="#ffffff" strokeWidth={2} />
-        </View>
-        <Text style={styles.title}>Daily Whiteboard</Text>
-        <Text style={styles.subtitle}>
-          {publishedQuestion 
-            ? "Answer today's selected question to earn points!" 
-            : "Vote for the question you want to see today!"}
-        </Text>
-      </View>
-
       {publishedQuestion ? (
         <View style={styles.card}>
           <View style={styles.badge}>
@@ -236,43 +224,12 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 16,
     paddingBottom: 40,
+    paddingTop: 24,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  headerContent: {
-    alignItems: 'center',
-    marginBottom: 24,
-    paddingTop: 12,
-  },
-  iconContainer: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#1193d4',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    shadowColor: '#1193d4',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  title: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 24,
-    color: '#1e293b',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontFamily: 'Manrope-Medium',
-    fontSize: 15,
-    color: '#64748b',
-    textAlign: 'center',
-    paddingHorizontal: 20,
   },
   card: {
     backgroundColor: '#ffffff',
@@ -318,7 +275,7 @@ const styles = StyleSheet.create({
   textInput: {
     backgroundColor: '#f8fafc',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
     borderRadius: 12,
     padding: 16,
     fontFamily: 'Manrope-Regular',
@@ -384,7 +341,7 @@ const styles = StyleSheet.create({
   },
   voteButtonDisabled: {
     backgroundColor: '#f8fafc',
-    borderColor: '#e2e8f0',
+    borderColor: '#cbd5e1',
   },
   voteText: {
     fontFamily: 'Manrope-Bold',
