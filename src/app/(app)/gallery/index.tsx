@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Image, Modal, ScrollView } from 'react-native';
 import { insforge } from '../../../lib/insforge';
 import { useRouter } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
-import { IconPlus, IconMessageCircle, IconThumbUp } from '@tabler/icons-react-native';
+import { ArrowLeft, X, Info, ShieldCheck } from 'lucide-react-native';
+import { IconPlus, IconMessageCircle, IconThumbUp, IconX, IconInfoCircle } from '@tabler/icons-react-native';
 
 export default function GalleryScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<any[]>([]);
+  const [showAlert, setShowAlert] = useState(true);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -17,9 +19,6 @@ export default function GalleryScreen() {
   const fetchPosts = async () => {
     setLoading(true);
     try {
-      // Query approved posts
-      // Ideally we should join with user_profiles but we can do a secondary fetch or use a database view
-      // For simplicity here, we'll fetch posts then fetch profiles
       const { data, error } = await insforge.database
         .from('gallery_posts')
         .select('*')
@@ -30,7 +29,6 @@ export default function GalleryScreen() {
       if (error) throw error;
       
       if (data && data.length > 0) {
-        // Fetch user profiles for avatars
         const userIds = [...new Set(data.map(p => p.user_id))];
         const { data: profiles } = await insforge.database
           .from('user_profiles')
@@ -42,7 +40,6 @@ export default function GalleryScreen() {
           profiles.forEach(p => profileMap[p.user_id] = p);
         }
         
-        // Map public URLs
         const postsWithProfiles = data.map(post => {
           let imageUrl = post.image_url;
           if (!imageUrl.startsWith('http')) {
@@ -67,8 +64,16 @@ export default function GalleryScreen() {
     }
   };
 
+  const handleAddPress = () => {
+    setShowPolicyModal(true);
+  };
+
+  const handleAgree = () => {
+    setShowPolicyModal(false);
+    router.push('/(app)/gallery/upload' as any);
+  };
+
   const renderItem = ({ item }: { item: any }) => {
-    // Truncate description to 60-70 chars
     const shortDesc = item.description.length > 65 
       ? item.description.substring(0, 65) + '...' 
       : item.description;
@@ -100,10 +105,6 @@ export default function GalleryScreen() {
                 <IconThumbUp size={14} color="#64748b" />
                 <Text style={styles.statText}>{item.votes_count}</Text>
               </View>
-              {/* <View style={styles.statItem}>
-                <IconMessageCircle size={14} color="#64748b" />
-                <Text style={styles.statText}>0</Text> 
-              </View> */}
             </View>
           </View>
         </View>
@@ -113,6 +114,24 @@ export default function GalleryScreen() {
 
   return (
     <View style={styles.container}>
+      {showAlert && (
+        <View style={styles.alertContainer}>
+          <View style={styles.alertIcon}>
+            <IconInfoCircle size={20} color="#1193d4" strokeWidth={2.5} />
+          </View>
+          <View style={styles.alertContent}>
+            <Text style={styles.alertTitle}>Gallery Site Rules</Text>
+            <Text style={styles.alertText}>
+              Share the beauty of our neighborhood! Post non-personal images like nature, travel, or objects. 
+              Limit: 1 upload per day. Faces and identifiable people are strictly prohibited.
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => setShowAlert(false)} style={styles.alertClose}>
+            <IconX size={18} color="#94a3b8" />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {loading ? (
         <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 40 }} />
       ) : (
@@ -129,10 +148,69 @@ export default function GalleryScreen() {
       
       <TouchableOpacity 
         style={styles.fab}
-        onPress={() => router.push('/(app)/gallery/upload' as any)}
+        onPress={handleAddPress}
       >
         <IconPlus size={24} color="#ffffff" />
       </TouchableOpacity>
+
+      <Modal
+        visible={showPolicyModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowPolicyModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View style={styles.policyIconContainer}>
+                <ShieldCheck size={32} color="#1193d4" strokeWidth={2} />
+              </View>
+              <Text style={styles.modalTitle}>Image Policy</Text>
+            </View>
+
+            <ScrollView style={styles.modalBody}>
+              <Text style={styles.policyIntroduction}>
+                By uploading an image to the Jeeraan Community Gallery, you agree to the following terms:
+              </Text>
+              
+              <View style={styles.policyItem}>
+                <View style={styles.policyBullet} />
+                <Text style={styles.policyText}>Images must not contain identifiable individuals or faces.</Text>
+              </View>
+              
+              <View style={styles.policyItem}>
+                <View style={styles.policyBullet} />
+                <Text style={styles.policyText}>Content must be appropriate, respectful, and non-personal.</Text>
+              </View>
+              
+              <View style={styles.policyItem}>
+                <View style={styles.policyBullet} />
+                <Text style={styles.policyText}>You must own the rights to the image you are uploading.</Text>
+              </View>
+              
+              <View style={styles.policyItem}>
+                <View style={styles.policyBullet} />
+                <Text style={styles.policyText}>Jeeraan reserves the right to remove content that violates community standards.</Text>
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity 
+                style={styles.cancelButton} 
+                onPress={() => setShowPolicyModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.agreeButton} 
+                onPress={handleAgree}
+              >
+                <Text style={styles.agreeButtonText}>I Agree</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -141,6 +219,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f6f7f8',
+  },
+  alertContainer: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(17, 147, 212, 0.08)',
+    margin: 16,
+    marginBottom: 0,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(17, 147, 212, 0.2)',
+  },
+  alertIcon: {
+    marginRight: 12,
+    marginTop: 2,
+  },
+  alertContent: {
+    flex: 1,
+  },
+  alertTitle: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 14,
+    color: '#1193d4',
+    marginBottom: 4,
+  },
+  alertText: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 13,
+    color: '#334155',
+    lineHeight: 18,
+  },
+  alertClose: {
+    marginLeft: 8,
+    marginTop: -4,
+    marginRight: -4,
+    padding: 4,
   },
   listContainer: {
     padding: 16,
@@ -237,5 +350,95 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 6,
     elevation: 5,
-  }
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 24,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  policyIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 22,
+    color: '#0f172a',
+  },
+  modalBody: {
+    marginBottom: 24,
+  },
+  policyIntroduction: {
+    fontFamily: 'Manrope-SemiBold',
+    fontSize: 15,
+    color: '#334155',
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  policyItem: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    paddingRight: 8,
+  },
+  policyBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#1193d4',
+    marginTop: 8,
+    marginRight: 10,
+  },
+  policyText: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 20,
+    flex: 1,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: '#64748b',
+  },
+  agreeButton: {
+    flex: 2,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#1193d4',
+    alignItems: 'center',
+  },
+  agreeButtonText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: '#ffffff',
+  },
 });

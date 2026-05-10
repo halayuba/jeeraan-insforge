@@ -20,6 +20,7 @@ import { useAuthStore } from '../../../store/useAuthStore';
 import { MemberName } from '../../../components/MemberName';
 import { useToast } from '../../../contexts/ToastContext';
 import { useClassifiedAd, useUpdateClassifiedAd } from '../../../hooks/useClassifieds';
+import { useReportContent } from '../../../hooks/useReportContent';
 
 const { width } = Dimensions.get('window');
 

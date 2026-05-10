@@ -12,7 +12,7 @@ export function useGrievances(status?: string) {
         .from('grievances')
         .select(`
           *,
-          users:user_profiles(username, full_name, avatar_url)
+          users:user_profiles(full_name, avatar_url)
         `)
         .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
@@ -48,7 +48,7 @@ export function useGrievance(id: string | string[] | undefined) {
         .from('grievances')
         .select(`
           *,
-          users:user_profiles(username, full_name, avatar_url)
+          users:user_profiles(full_name, avatar_url)
         `)
         .eq('id', id)
         .single();
@@ -78,7 +78,7 @@ export function useGrievanceComments(grievanceId: string | string[] | undefined)
         .from('grievance_comments')
         .select(`
           *,
-          users:user_profiles(username, full_name, avatar_url)
+          users:user_profiles(full_name, avatar_url)
         `)
         .eq('grievance_id', grievanceId)
         .order('created_at', { ascending: false });

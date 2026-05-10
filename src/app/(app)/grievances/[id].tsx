@@ -133,7 +133,7 @@ export default function GrievanceDetails() {
             {/* Avatar placeholder */}
             <View style={[styles.avatar, { backgroundColor: '#cbd5e1' }]} />
             <View style={styles.userInfoTextContainer}>
-              <Text style={styles.userName}>{grievance.users?.username || 'Resident'}</Text>
+              <Text style={styles.userName}>{grievance.users?.full_name || 'Resident'}</Text>
               <Text style={styles.submitDate}>Submitted on {formatDate(grievance.created_at)}</Text>
               
               <View style={[styles.statusBadge, { backgroundColor: getStatusBgColor(grievance.status) }]}>
@@ -191,7 +191,7 @@ export default function GrievanceDetails() {
                 <View style={[styles.commentAvatar, { backgroundColor: '#cbd5e1' }]} />
                 <View style={styles.commentContent}>
                   <View style={styles.commentHeader}>
-                    <Text style={styles.commentName}>{comment.users?.username || 'User'}</Text>
+                    <Text style={styles.commentName}>{comment.users?.full_name || 'User'}</Text>
                     <Text style={styles.commentTime}>{formatTimeAgo(comment.created_at)}</Text>
                   </View>
                   <Text style={styles.commentText}>{comment.content}</Text>

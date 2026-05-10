@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { 
   IconSpeakerphone,
   IconUsersGroup,
@@ -11,12 +12,15 @@ import {
   IconMessages,
   IconTag,
   IconNews,
-  IconUserQuestion,
+  IconMicrophoneFilled,
   IconClipboardSearch,
   IconTrophy,
   IconMessageUser,
   IconChalkboard,
-  IconPhoto
+  IconPhoto,
+  IconCalendarDollar,
+  IconFilePencil,
+  IconX
 } from '@tabler/icons-react-native';
 
 const GRID_ITEMS = [
@@ -30,18 +34,22 @@ const GRID_ITEMS = [
   { id: 'forum', title: 'Forum', icon: IconMessages },
   { id: 'classifieds', title: 'Classified Ads', icon: IconTag },
   { id: 'notes', title: 'Newsletter', icon: IconNews },
-  { id: 'grievances', title: 'Grievances', icon: IconUserQuestion },
+  { id: 'grievances', title: 'Grievances', icon: IconMicrophoneFilled },
   { id: 'whiteboard', title: 'Whiteboard', icon: IconChalkboard },
   { id: 'gallery', title: 'Community Gallery', icon: IconPhoto },
   { id: 'leaderboard', title: 'Leaderboard', icon: IconTrophy },
+  { id: 'carrying-charges', title: 'Carrying Charges', icon: IconCalendarDollar },
+  { id: 'committees', title: 'Committees', icon: IconFilePencil },
   { id: 'q-and-a', title: 'Q & A', icon: IconClipboardSearch },
   { id: 'faq', title: 'FAQ', icon: IconHelp },
 ];
 
 export default function HomeIndex() {
   const router = useRouter();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedService, setSelectedService] = useState('');
 
-  const handlePress = (id: string) => {
+  const handlePress = (id: string, title: string) => {
     if (id === 'voting') {
       router.push('/(app)/voting' as any);
     } else if (id === 'messages') {
@@ -74,6 +82,9 @@ export default function HomeIndex() {
       router.push('/(app)/whiteboard' as any);
     } else if (id === 'gallery') {
       router.push('/(app)/gallery' as any);
+    } else if (id === 'carrying-charges' || id === 'committees') {
+      setSelectedService(title);
+      setModalVisible(true);
     }
   };
 
@@ -86,7 +97,7 @@ export default function HomeIndex() {
             <TouchableOpacity 
               key={item.id} 
               style={styles.gridItem}
-              onPress={() => handlePress(item.id)}
+              onPress={() => handlePress(item.id, item.title)}
             >
               <View style={styles.iconContainer}>
                 <IconComponent size={32} color="#1193d4" strokeWidth={2} />
@@ -96,6 +107,38 @@ export default function HomeIndex() {
           );
         })}
       </View>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity 
+              style={styles.closeButton} 
+              onPress={() => setModalVisible(false)}
+            >
+              <IconX size={24} color="#64748b" />
+            </TouchableOpacity>
+            
+            <View style={styles.modalIconContainer}>
+              <IconSpeakerphone size={48} color="#1193d4" strokeWidth={1.5} />
+            </View>
+            
+            <Text style={styles.modalTitle}>{selectedService}</Text>
+            <Text style={styles.modalMessage}>Launching soon</Text>
+            
+            <TouchableOpacity 
+              style={styles.modalButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Got it</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -137,5 +180,60 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#334155',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    padding: 4,
+  },
+  modalIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(17, 147, 212, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 20,
+    color: '#0f172a',
+    marginBottom: 8,
+  },
+  modalMessage: {
+    fontFamily: 'Manrope-Medium',
+    fontSize: 16,
+    color: '#64748b',
+    marginBottom: 24,
+  },
+  modalButton: {
+    backgroundColor: '#1193d4',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    fontFamily: 'Manrope-Bold',
+    fontSize: 16,
+    color: '#ffffff',
   }
 });
