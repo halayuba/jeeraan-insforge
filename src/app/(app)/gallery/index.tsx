@@ -113,15 +113,6 @@ export default function GalleryScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Community Gallery</Text>
-        <View style={styles.iconButton} />
-      </View>
-
       {loading ? (
         <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 40 }} />
       ) : (
@@ -150,26 +141,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f6f7f8',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#ffffff',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
   },
   listContainer: {
     padding: 16,

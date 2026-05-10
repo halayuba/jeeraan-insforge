@@ -110,29 +110,7 @@ export default function QandAIndex() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Q & A</Text>
-        <TouchableOpacity 
-          onPress={() => router.push('/(app)/q-and-a/submit' as any)}
-          style={styles.iconButton}
-        >
-          <PlusCircle size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.introCard}>
-          <Info size={24} color="#1193d4" style={{ marginBottom: 8 }} strokeWidth={2} />
-          <Text style={styles.introTitle}>Neighborhood Q & A</Text>
-          <Text style={styles.introDescription}>
-            Ask questions to your neighborhood admins. Public questions are visible to all members.
-          </Text>
-        </View>
-
         {loading ? (
           <ActivityIndicator size="large" color="#1193d4" style={{ marginTop: 32 }} />
         ) : questions.length === 0 ? (
@@ -154,56 +132,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f6f7f8',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    backgroundColor: '#ffffff',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 100,
-  },
-  introCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    borderLeftWidth: 4,
-    borderLeftColor: '#1193d4',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
-    elevation: 3,
-  },
-  introTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 16,
-    color: '#1e293b',
-    marginBottom: 4,
-  },
-  introDescription: {
-    fontFamily: 'Manrope-Medium',
-    fontSize: 14,
-    color: '#64748b',
-    lineHeight: 20,
   },
   questionCard: {
     backgroundColor: '#ffffff',

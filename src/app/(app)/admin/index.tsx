@@ -1013,14 +1013,6 @@ export default function AdminDashboard() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* Top Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Community Management</Text>
-          <TouchableOpacity style={styles.filterButton}>
-            <Text style={styles.filterText}>Loma Vista West</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
@@ -1599,31 +1591,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 20,
-    color: '#0f172a',
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 4,
-  },
-  filterText: {
-    fontFamily: 'Manrope-SemiBold',
-    fontSize: 12,
-    color: '#1193d4',
   },
   statsGrid: {
     flexDirection: 'row',

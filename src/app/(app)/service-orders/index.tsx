@@ -87,20 +87,6 @@ export default function ServiceOrdersIndex() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Service Orders</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/(app)/service-orders/submit' as any)}
-          style={styles.iconButton}
-        >
-          <PlusCircle size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
@@ -184,28 +170,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
   },
   searchContainer: {
     paddingHorizontal: 16,

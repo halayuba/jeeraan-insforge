@@ -11,23 +11,32 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowLeft, Search, Mail, Plus, X } from 'lucide-react-native';
 
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useConversations } from '../../../hooks/useDMs';
 import { useMemberSearch } from '../../../hooks/useMemberSearch';
-import { MemberName } from '../../../components/MemberName';
 
 export default function MessagesIndex() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const { user, neighborhoodId } = useAuthStore();
   const { data: conversations = [], isLoading: loading } = useConversations();
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Search Modal State
   const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
   const [memberSearchQuery, setMemberSearchQuery] = useState('');
+
+  // Handle the 'new' param from global plus button
+  React.useEffect(() => {
+    if (params.new === 'true') {
+      setIsSearchModalVisible(true);
+      // Clear the param
+      router.setParams({ new: '' });
+    }
+  }, [params.new]);
   
   const { data: searchResults = [], isLoading: isSearchingMembers } = useMemberSearch(
     neighborhoodId, 
@@ -52,20 +61,6 @@ export default function MessagesIndex() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Direct Messages</Text>
-        <TouchableOpacity 
-          onPress={() => setIsSearchModalVisible(true)} 
-          style={styles.iconButton}
-        >
-          <Plus size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Search Bar */}
         <View style={styles.searchContainer}>
@@ -222,28 +217,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f6f7f8',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    backgroundColor: '#ffffff',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
   },
   scrollView: {
     flex: 1,

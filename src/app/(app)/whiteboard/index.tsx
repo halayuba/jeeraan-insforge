@@ -151,28 +151,18 @@ export default function WhiteboardScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Whiteboard</Text>
-        <View style={styles.iconButton} />
-      </View>
-
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.headerContent}>
-          <View style={styles.iconContainer}>
-            <IconChalkboard size={36} color="#ffffff" strokeWidth={2} />
-          </View>
-          <Text style={styles.title}>Daily Whiteboard</Text>
-          <Text style={styles.subtitle}>
-            {publishedQuestion 
-              ? "Answer today's selected question to earn points!" 
-              : "Vote for the question you want to see today!"}
-          </Text>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <View style={styles.headerContent}>
+        <View style={styles.iconContainer}>
+          <IconChalkboard size={36} color="#ffffff" strokeWidth={2} />
         </View>
+        <Text style={styles.title}>Daily Whiteboard</Text>
+        <Text style={styles.subtitle}>
+          {publishedQuestion 
+            ? "Answer today's selected question to earn points!" 
+            : "Vote for the question you want to see today!"}
+        </Text>
+      </View>
 
       {publishedQuestion ? (
         <View style={styles.card}>
@@ -234,8 +224,7 @@ export default function WhiteboardScreen() {
           <Text style={styles.emptyStateText}>The AI is preparing today's questions. Please check back soon!</Text>
         </View>
       )}
-      </ScrollView>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -243,26 +232,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f6f7f8',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#ffffff',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
   },
   contentContainer: {
     padding: 16,

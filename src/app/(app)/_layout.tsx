@@ -1,5 +1,5 @@
-import { BarChart3, Bell, HelpCircle, Home, Menu, User, X } from 'lucide-react-native';
-import { IconInfoSquareRounded, IconHome } from '@tabler/icons-react-native';
+import { BarChart3, Bell, HelpCircle, Home, Menu, User, X, ArrowLeft } from 'lucide-react-native';
+import { IconInfoSquareRounded, IconSquareRoundedPlusFilled } from '@tabler/icons-react-native';
 import { Tabs, useSegments, useRouter } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet, Modal, ScrollView } from 'react-native';
@@ -16,33 +16,85 @@ function CustomHeader() {
   const [modalVisible, setModalVisible] = useState(false);
   const [featureInfo, setFeatureInfo] = useState<{title: string, summary: string} | null>(null);
   const [loading, setLoading] = useState(false);
+  const [headerTitle, setHeaderTitle] = useState('Neighborhood Hub');
 
-  const handleHomePress = () => {
-    router.replace('/(app)/hub');
+  const lastSegment = segments[segments.length - 1];
+  let featureKey = lastSegment === '(app)' ? 'hub' : lastSegment;
+  if (featureKey?.startsWith('[') || !featureKey) {
+    featureKey = segments[segments.length - 2] || 'hub';
+  }
+
+  // Define screens that show the PLUS icon and their destination routes
+  const PLUS_ACTIONS: Record<string, string> = {
+    'messages': '/(app)/messages?new=true',
+    'events': '/(app)/events/create',
+    'service-orders': '/(app)/service-orders/submit',
+    'forum': '/(app)/forum/create',
+    'classifieds': '/(app)/classifieds/create',
+    'grievances': '/(app)/grievances/submit',
+    'gallery': '/(app)/gallery/upload',
+    'q-and-a': '/(app)/q-and-a/submit'
+  };
+
+  const showPlusIcon = !!PLUS_ACTIONS[featureKey];
+
+  useEffect(() => {
+    const updateHeaderTitle = async () => {
+      if (featureKey === 'profile' || featureKey === 'faq' || featureKey === 'hub') {
+        setHeaderTitle('Neighborhood Hub');
+        return;
+      }
+
+      try {
+        const { data, error } = await insforge.database
+          .from('feature_info')
+          .select('title')
+          .eq('feature_key', featureKey)
+          .maybeSingle();
+
+        if (data?.title) {
+          setHeaderTitle(data.title);
+        } else {
+          // Fallback to title-cased key if not found in table
+          const capitalized = featureKey.charAt(0).toUpperCase() + featureKey.slice(1).replace(/-/g, ' ');
+          setHeaderTitle(capitalized);
+        }
+      } catch (err) {
+        setHeaderTitle('Neighborhood Hub');
+      }
+    };
+
+    updateHeaderTitle();
+  }, [featureKey]);
+
+  const handleBackPress = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(app)/hub');
+    }
+  };
+
+  const handlePlusPress = () => {
+    const route = PLUS_ACTIONS[featureKey];
+    if (route) {
+      router.push(route as any);
+    }
   };
 
   const handleInfoPress = async () => {
     setModalVisible(true);
     setLoading(true);
     
-    // Determine feature key from segments
-    // segments usually look like ['(app)', 'hub'] or ['(app)', 'announcements', '[id]']
-    const lastSegment = segments[segments.length - 1];
-    let featureKey = lastSegment === '(app)' ? 'hub' : lastSegment;
-    
-    // Handle dynamic routes or nested segments
-    if (featureKey?.startsWith('[') || !featureKey) {
-      featureKey = segments[segments.length - 2] || 'hub';
-    }
-
     // Special cases
-    if (featureKey === 'profile' || featureKey === 'faq') featureKey = 'hub';
+    let infoKey = featureKey;
+    if (infoKey === 'profile' || infoKey === 'faq') infoKey = 'hub';
 
     try {
       const { data, error } = await insforge.database
         .from('feature_info')
         .select('title, summary')
-        .eq('feature_key', featureKey)
+        .eq('feature_key', infoKey)
         .maybeSingle();
 
       if (error) throw error;
@@ -58,19 +110,26 @@ function CustomHeader() {
   return (
     <SafeAreaView edges={['top']} style={styles.headerContainer}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleHomePress}>
-          <IconHome size={28} color="#0f172a" strokeWidth={2} />
+        <TouchableOpacity onPress={handleBackPress}>
+          <ArrowLeft size={28} color="#0f172a" strokeWidth={2} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Neighborhood Hub</Text>
+          <Text style={styles.headerTitle}>{headerTitle}</Text>
           {/* LevelBadge is only for residents and moderators */}
           {(userRole === 'resident' || userRole === 'moderator') && globalRole !== 'super_admin' && (
             <LevelBadge level={userLevel} size="small" />
           )}
         </View>
-        <TouchableOpacity onPress={handleInfoPress}>
-          <IconInfoSquareRounded size={28} color="#0f172a" strokeWidth={2} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          {showPlusIcon && (
+            <TouchableOpacity onPress={handlePlusPress}>
+              <IconSquareRoundedPlusFilled size={30} color="#1193d4" />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={handleInfoPress}>
+            <IconInfoSquareRounded size={28} color="#0f172a" strokeWidth={2} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Modal
@@ -114,9 +173,6 @@ export default function AppLayout() {
   const segments = useSegments();
   const router = useRouter();
 
-  // Use segments only for internal checks
-  const currentPath = segments.join('/');
-
   if (!isInitialized || loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f6f7f8' }}>
@@ -124,10 +180,6 @@ export default function AppLayout() {
       </View>
     );
   }
-
-  // NOTE: We used to return null here during redirects, but that caused a blank screen.
-  // We now rely on UnifiedAuthGuard to handle the redirect while this layout continues to render.
-
 
   return (
     <Tabs 

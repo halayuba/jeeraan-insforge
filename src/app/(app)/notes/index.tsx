@@ -34,18 +34,6 @@ export default function NotesIndex() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.iconButton}
-        >
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Neighborhood Notes</Text>
-        <View style={styles.iconButton} />
-      </View>
-
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
@@ -56,10 +44,6 @@ export default function NotesIndex() {
           />
         }
       >
-        <Text style={styles.subtitle}>
-          Important documents, meeting minutes, and reports shared by your neighborhood admins.
-        </Text>
-
         {loading ? (
           <ActivityIndicator
             size="large"
@@ -93,41 +77,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f6f7f8',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: 'Manrope-Bold',
-    fontSize: 18,
-    color: '#0f172a',
-    flex: 1,
-    textAlign: 'center',
-  },
   scrollContainer: {
     flex: 1,
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 40,
-  },
-  subtitle: {
-    fontFamily: 'Manrope-Medium',
-    fontSize: 14,
-    color: '#64748b',
-    marginBottom: 24,
-    lineHeight: 20,
   },
   loader: {
     marginTop: 40,

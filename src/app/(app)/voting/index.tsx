@@ -41,15 +41,6 @@ export default function VotingIndex() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#1193d4" strokeWidth={2} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Election Information</Text>
-        <View style={styles.headerRight} />
-      </View>
-
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Open Board Positions */}
         <Text style={styles.sectionTitle}>Open Board Positions</Text>
@@ -136,33 +127,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f6f7f8',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontFamily: 'Manrope-Bold',
-    color: '#111618',
-    flex: 1,
-    textAlign: 'center',
-  },
-  headerRight: {
-    width: 40,
   },
   scrollView: {
     flex: 1,
