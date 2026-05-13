@@ -12,7 +12,7 @@ export function useGrievances(status?: string) {
         .from('grievances')
         .select(`
           *,
-          users:user_profiles(full_name, avatar_url)
+          author:user_profiles(full_name, avatar_url)
         `)
         .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
@@ -30,7 +30,7 @@ export function useGrievances(status?: string) {
 
       return (data || []).map((g: any) => ({
         ...g,
-        users: Array.isArray(g.users) ? g.users[0] : g.users
+        author: Array.isArray(g.author) ? g.author[0] : g.author
       }));
     },
     enabled: !!neighborhoodId,

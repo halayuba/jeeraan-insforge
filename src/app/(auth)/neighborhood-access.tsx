@@ -1,5 +1,12 @@
-import { ArrowLeft, Check, ChevronDown, ChevronUp, Key, UserPlus } from 'lucide-react-native';
-import { IconCalendarUser } from '@tabler/icons-react-native';
+import { IconCalendarUser } from '@tabler/icons-react-native'
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Key,
+  UserPlus,
+} from 'lucide-react-native'
 
 import { Link, useRouter } from 'expo-router'
 import React, { useEffect, useState } from 'react'
@@ -17,10 +24,10 @@ import {
   View,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { JeeraanLogo } from '../../components/JeeraanLogo'
+import { useToast } from '../../contexts/ToastContext'
 import { insforge } from '../../lib/insforge'
 import { FLOORPLAN_OPTIONS, submitWaitlistRequest } from '../../lib/waitlist'
-import { useToast } from '../../contexts/ToastContext'
-import { JeeraanLogo } from '../../components/JeeraanLogo'
 
 export default function NeighborhoodAccess() {
   const router = useRouter()
@@ -48,13 +55,17 @@ export default function NeighborhoodAccess() {
   // Early Access Modal State
   const [showEarlyAccessModal, setShowEarlyAccessModal] = useState(false)
   const [earlyAccessChecked, setEarlyAccessChecked] = useState(false)
-  const [modalAction, setModalAction] = useState<'request' | 'invite' | null>(null)
+  const [modalAction, setModalAction] = useState<'request' | 'invite' | null>(
+    null,
+  )
 
   // Waitlist State
   const [waitlistName, setWaitlistName] = useState('')
   const [waitlistPhone, setWaitlistPhone] = useState('')
   const [waitlistEmail, setWaitlistEmail] = useState('')
-  const [waitlistFloorplan, setWaitlistFloorplan] = useState(FLOORPLAN_OPTIONS[4]) // Default to "Any of the above"
+  const [waitlistFloorplan, setWaitlistFloorplan] = useState(
+    FLOORPLAN_OPTIONS[4],
+  ) // Default to "Any of the above"
   const [submittingWaitlist, setSubmittingWaitlist] = useState(false)
 
   const [neighborhood, setNeighborhood] = useState<any>(null) // MVP: Single active neighborhood
@@ -66,17 +77,25 @@ export default function NeighborhoodAccess() {
 
   const fetchNeighborhood = async () => {
     try {
+      console.log('[NeighborhoodAccess] Fetching neighborhood...');
       const { data, error } = await insforge.database
         .from('neighborhoods')
         .select('*')
         .limit(1)
-        .single()
+        .maybeSingle()
 
-      if (!error && data) {
+      if (error) {
+        console.error('[NeighborhoodAccess] Error fetching neighborhood:', error);
+      }
+
+      if (data) {
+        console.log('[NeighborhoodAccess] Found neighborhood:', data.name);
         setNeighborhood(data)
+      } else {
+        console.warn('[NeighborhoodAccess] No neighborhood found');
       }
     } catch (err) {
-      console.error(err)
+      console.error('[NeighborhoodAccess] Unexpected error in fetchNeighborhood:', err);
     } finally {
       setLoadingNeighborhood(false)
     }
@@ -104,7 +123,10 @@ export default function NeighborhoodAccess() {
 
   const handleJoinViaCode = () => {
     if (!invitePhone || !inviteCode || inviteCode.length !== 6) {
-      Alert.alert('Invalid Input', 'Please enter both your phone number and the 6-digit invite code.')
+      Alert.alert(
+        'Invalid Input',
+        'Please enter both your phone number and the 6-digit invite code.',
+      )
       return
     }
 
@@ -115,29 +137,67 @@ export default function NeighborhoodAccess() {
   const performInviteCodeValidation = async () => {
     setValidatingCode(true)
     try {
-      // Call the Edge Function to validate the invite
-      const { data, error } = await insforge.functions.invoke('validate-invite', {
-        body: { 
-          code: inviteCode.toUpperCase(),
-          phone: invitePhone
+      // Robust phone sanitization (E.164)
+      let sanitizedPhone = invitePhone.replace(/[^\d+]/g, '');
+      if (!sanitizedPhone.startsWith('+')) {
+        if (sanitizedPhone.length === 10) {
+          sanitizedPhone = '+1' + sanitizedPhone;
+        } else {
+          sanitizedPhone = '+' + sanitizedPhone;
         }
-      })
-
-      if (error || !data || !data.success) {
-        Alert.alert('Error', error?.message || data?.error || 'Invalid or expired invite code.')
-      } else {
-        // Invite is valid! Direct to sign-up and pass the code
-        Alert.alert('Success', 'Invite code verified. Please set your password to continue.')
-        router.push({
-          pathname: '/(auth)/sign-up',
-          params: {
-            inviteCode: data.invite.code || inviteCode.toUpperCase(),
-            phone: invitePhone,
-            neighborhoodId: data.invite.neighborhood_id,
-          },
-        })
       }
-    } catch (err) {
+      
+      console.log('[Invite] Starting validation for:', sanitizedPhone);
+      console.log('[Invite] Target URL:', insforge.functions.getFunctionUrl('validate-invite'));
+      
+      const { data, error } = await insforge.functions.invoke(
+        'validate-invite',
+        {
+          body: {
+            code: inviteCode.toUpperCase(),
+            phone: sanitizedPhone,
+          },
+        },
+      )
+
+      if (error) {
+        // System level error (e.g. 401 Unauthorized from the platform)
+        console.error('[Invite] System error invoking function:', error);
+        Alert.alert('System Error', error.message || 'Failed to reach validation service.');
+        return;
+      }
+
+      if (data?.success) {
+        console.log('[Invite] Validation success');
+        Alert.alert(
+          'Success',
+          'Invite code verified. Please set your password to continue.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                console.log('[Invite] User clicked OK, pushing to sign-up');
+                router.push({
+                  pathname: '/(auth)/sign-up',
+                  params: {
+                    inviteCode: data.invite.code || inviteCode.toUpperCase(),
+                    phone: sanitizedPhone,
+                    neighborhoodId: data.invite.neighborhood_id,
+                  },
+                })
+              }
+            }
+          ]
+        )
+      } else {
+        // Function-level error (e.g. "Invalid code")
+        const errorMsg = data?.error || 'Invalid or expired invite code.';
+        console.warn('[Invite] Function-level rejection:', errorMsg);
+        if (data?.twilioError) console.warn('[Invite] Twilio detail:', data.twilioError);
+        Alert.alert('Validation Failed', errorMsg);
+      }
+    } catch (err: any) {
+      console.error('[Invite] Unexpected error during validation:', err);
       Alert.alert('Error', 'Failed to validate invite code.')
     } finally {
       setValidatingCode(false)
@@ -147,7 +207,10 @@ export default function NeighborhoodAccess() {
 
   const handleRequestToJoin = () => {
     if (!fullName || !phone || !email || !address) {
-      Alert.alert('Error', 'Please enter your full name, phone number, email, and address.')
+      Alert.alert(
+        'Error',
+        'Please enter your full name, phone number, email, and address.',
+      )
       return
     }
     if (!neighborhood) {
@@ -176,15 +239,15 @@ export default function NeighborhoodAccess() {
         .select('id')
         .eq('phone', phone)
         .eq('status', 'pending')
-        .maybeSingle();
+        .maybeSingle()
 
       if (existingRequestPhone) {
         Alert.alert(
           'Request Already Submitted',
           'A join request with this phone number is already pending. Please wait for an admin to review it.',
-        );
-        setSubmittingRequest(false);
-        return;
+        )
+        setSubmittingRequest(false)
+        return
       }
 
       // 1b. Check for existing pending join request by email
@@ -193,15 +256,15 @@ export default function NeighborhoodAccess() {
         .select('id')
         .eq('email', email)
         .eq('status', 'pending')
-        .maybeSingle();
+        .maybeSingle()
 
       if (existingRequestEmail) {
         Alert.alert(
           'Request Already Submitted',
           'A join request with this email address is already pending. Please wait for an admin to review it.',
-        );
-        setSubmittingRequest(false);
-        return;
+        )
+        setSubmittingRequest(false)
+        return
       }
 
       // 2. Check if already a member before allowing request submission
@@ -209,22 +272,22 @@ export default function NeighborhoodAccess() {
         .from('user_profiles')
         .select('user_id')
         .eq('phone', phone)
-        .maybeSingle();
+        .maybeSingle()
 
       if (profile) {
         const { data: membership } = await insforge.database
           .from('user_neighborhoods')
           .select('id')
           .eq('user_id', profile.user_id)
-          .maybeSingle();
-        
+          .maybeSingle()
+
         if (membership) {
           Alert.alert(
             'Already a Member',
             'A user with this phone number already belongs to a neighborhood. Please sign in instead.',
-          );
-          setSubmittingRequest(false);
-          return;
+          )
+          setSubmittingRequest(false)
+          return
         }
       }
 
@@ -242,13 +305,19 @@ export default function NeighborhoodAccess() {
 
       if (error) {
         if (error.code === '23505') {
-          showToast('Your request has already been submitted with this phone number or email address.', 'warning')
+          showToast(
+            'Your request has already been submitted with this phone number or email address.',
+            'warning',
+          )
         } else {
           showToast('Failed to submit request. Please try again.', 'error')
           console.error(error)
         }
       } else {
-        showToast('Thank you! Your request has been submitted successfully. It will be reviewed by an admin within 24 hours.', 'success')
+        showToast(
+          'Thank you! Your request has been submitted successfully. It will be reviewed by an admin within 24 hours.',
+          'success',
+        )
         router.replace('/')
       }
     } catch (err) {
@@ -259,7 +328,12 @@ export default function NeighborhoodAccess() {
   }
 
   const handleWaitlistSubmit = async () => {
-    if (!waitlistName || !waitlistPhone || !waitlistEmail || !waitlistFloorplan) {
+    if (
+      !waitlistName ||
+      !waitlistPhone ||
+      !waitlistEmail ||
+      !waitlistFloorplan
+    ) {
       Alert.alert('Error', 'Please fill out all fields.')
       return
     }
@@ -276,15 +350,15 @@ export default function NeighborhoodAccess() {
         .from('waitlist_requests')
         .select('id')
         .eq('phone_number', waitlistPhone)
-        .maybeSingle();
+        .maybeSingle()
 
       if (existingWaitlistPhone) {
         Alert.alert(
           'Already on Waitlist',
           'A waitlist request with this phone number already exists.',
-        );
-        setSubmittingWaitlist(false);
-        return;
+        )
+        setSubmittingWaitlist(false)
+        return
       }
 
       // 2. Check for existing waitlist request by email
@@ -292,15 +366,15 @@ export default function NeighborhoodAccess() {
         .from('waitlist_requests')
         .select('id')
         .eq('email_address', waitlistEmail)
-        .maybeSingle();
+        .maybeSingle()
 
       if (existingWaitlistEmail) {
         Alert.alert(
           'Already on Waitlist',
           'A waitlist request with this email address already exists.',
-        );
-        setSubmittingWaitlist(false);
-        return;
+        )
+        setSubmittingWaitlist(false)
+        return
       }
 
       const { error } = await submitWaitlistRequest({
@@ -313,13 +387,22 @@ export default function NeighborhoodAccess() {
 
       if (error) {
         if (error.code === '23505') {
-          showToast('A waitlist request with this phone number or email address already exists.', 'warning')
+          showToast(
+            'A waitlist request with this phone number or email address already exists.',
+            'warning',
+          )
         } else {
-          showToast('Failed to submit waitlist request. Please try again.', 'error')
+          showToast(
+            'Failed to submit waitlist request. Please try again.',
+            'error',
+          )
           console.error(error)
         }
       } else {
-        showToast('Your request to be added to the waitlist will be reviewed by the Neighborhood admin then will be forwarded to one of the office staff members and someone will get in touch with you soon to explain the procedure for accepting new applicants.', 'success')
+        showToast(
+          'Your request to be added to the waitlist will be reviewed by the Neighborhood admin then will be forwarded to one of the office staff members and someone will get in touch with you soon to explain the procedure for accepting new applicants.',
+          'success',
+        )
         router.replace('/')
       }
     } catch (err) {
@@ -351,7 +434,7 @@ export default function NeighborhoodAccess() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.logoContainer}>
-            <JeeraanLogo width={180} height={60} />
+            <JeeraanLogo width={340} height={110} />
           </View>
           {/* Prominent Sign In Section */}
           <View style={styles.prominentSignIn}>
@@ -435,7 +518,8 @@ export default function NeighborhoodAccess() {
                 <TouchableOpacity
                   style={[
                     styles.primaryButton,
-                    (!inviteCode || !invitePhone || validatingCode) && styles.disabledButton,
+                    (!inviteCode || !invitePhone || validatingCode) &&
+                      styles.disabledButton,
                   ]}
                   onPress={handleJoinViaCode}
                   disabled={!inviteCode || !invitePhone || validatingCode}
@@ -460,7 +544,11 @@ export default function NeighborhoodAccess() {
               activeOpacity={0.7}
             >
               <View style={styles.accordionTitleContainer}>
-                <UserPlus size={24} color={expandedSection === 'request' ? '#1193d4' : '#64748b'} strokeWidth={2} />
+                <UserPlus
+                  size={24}
+                  color={expandedSection === 'request' ? '#1193d4' : '#64748b'}
+                  strokeWidth={2}
+                />
                 <Text
                   style={[
                     styles.accordionTitle,
@@ -629,118 +717,150 @@ export default function NeighborhoodAccess() {
 
             {/* Horizontal Divider */}
             <View style={styles.divider} />
-          </View>
 
-          {/* Section 3: Add me to the waitlist */}
-          <View style={[styles.card, { marginHorizontal: 16, marginBottom: 24 }]}>
-            <View style={styles.cardHeader}>
+            {/* Section 3: Add me to the waitlist */}
+            <TouchableOpacity
+              style={[
+                styles.accordionHeader,
+                expandedSection === 'waitlist' && styles.accordionHeaderActive,
+                { marginTop: 12 },
+              ]}
+              onPress={() => toggleSection('waitlist')}
+              activeOpacity={0.7}
+            >
               <View style={styles.accordionTitleContainer}>
-                <IconCalendarUser size={24} color="#1193d4" strokeWidth={2} />
-                <Text style={styles.accordionTitle}>Add me to the waitlist</Text>
-              </View>
-            </View>
-            
-            <View style={{ padding: 16 }}>
-              <Text style={styles.sectionSubtitle}>
-                If you are not a resident of Loma Vista West but would like to be added to the waitlist, please fill out the form below.
-              </Text>
-
-              <View style={styles.formGroup}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Full Name</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Your Name"
-                    placeholderTextColor="#94a3b8"
-                    value={waitlistName}
-                    onChangeText={setWaitlistName}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Phone Number</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="+1 (555) 000-0000"
-                    placeholderTextColor="#94a3b8"
-                    keyboardType="phone-pad"
-                    value={waitlistPhone}
-                    onChangeText={setWaitlistPhone}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Email Address</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="you@example.com"
-                    placeholderTextColor="#94a3b8"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    value={waitlistEmail}
-                    onChangeText={setWaitlistEmail}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Interested in - Floorplans</Text>
-                  <View style={styles.floorplanContainer}>
-                    {FLOORPLAN_OPTIONS.map((option) => (
-                      <TouchableOpacity
-                        key={option}
-                        style={[
-                          styles.floorplanOption,
-                          waitlistFloorplan === option && styles.floorplanOptionSelected,
-                        ]}
-                        onPress={() => setWaitlistFloorplan(option)}
-                      >
-                        <View style={[
-                          styles.radio,
-                          waitlistFloorplan === option && styles.radioSelected,
-                        ]}>
-                          {waitlistFloorplan === option && <View style={styles.radioInner} />}
-                        </View>
-                        <Text style={[
-                          styles.floorplanOptionText,
-                          waitlistFloorplan === option && styles.floorplanOptionTextSelected,
-                        ]}>
-                          {option}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-
-                <TouchableOpacity
+                <IconCalendarUser
+                  size={24}
+                  color={expandedSection === 'waitlist' ? '#1193d4' : '#64748b'}
+                  strokeWidth={2}
+                />
+                <Text
                   style={[
-                    styles.primaryButton,
-                    styles.submitButton,
-                    (!waitlistName ||
+                    styles.accordionTitle,
+                    expandedSection === 'waitlist' && styles.accordionTitleActive,
+                  ]}
+                >
+                  Add me to the waitlist
+                </Text>
+              </View>
+              {expandedSection === 'waitlist' ? (
+                <ChevronUp size={28} color="#64748b" strokeWidth={2} />
+              ) : (
+                <ChevronDown size={28} color="#64748b" strokeWidth={2} />
+              )}
+            </TouchableOpacity>
+
+            {expandedSection === 'waitlist' && (
+              <View style={styles.accordionContent}>
+                <Text style={styles.sectionSubtitle}>
+                  If you are not a resident of Loma Vista West but would like to
+                  be added to the waitlist, please fill out the form below.
+                </Text>
+
+                <View style={styles.formGroup}>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Full Name</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Your Name"
+                      placeholderTextColor="#94a3b8"
+                      value={waitlistName}
+                      onChangeText={setWaitlistName}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Phone Number</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="+1 (555) 000-0000"
+                      placeholderTextColor="#94a3b8"
+                      keyboardType="phone-pad"
+                      value={waitlistPhone}
+                      onChangeText={setWaitlistPhone}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Email Address</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="you@example.com"
+                      placeholderTextColor="#94a3b8"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      value={waitlistEmail}
+                      onChangeText={setWaitlistEmail}
+                    />
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Interested in - Floorplans</Text>
+                    <View style={styles.floorplanContainer}>
+                      {FLOORPLAN_OPTIONS.map((option) => (
+                        <TouchableOpacity
+                          key={option}
+                          style={[
+                            styles.floorplanOption,
+                            waitlistFloorplan === option &&
+                              styles.floorplanOptionSelected,
+                          ]}
+                          onPress={() => setWaitlistFloorplan(option)}
+                        >
+                          <View
+                            style={[
+                              styles.radio,
+                              waitlistFloorplan === option &&
+                                styles.radioSelected,
+                            ]}
+                          >
+                            {waitlistFloorplan === option && (
+                              <View style={styles.radioInner} />
+                            )}
+                          </View>
+                          <Text
+                            style={[
+                              styles.floorplanOptionText,
+                              waitlistFloorplan === option &&
+                                styles.floorplanOptionTextSelected,
+                            ]}
+                          >
+                            {option}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.primaryButton,
+                      styles.submitButton,
+                      (!waitlistName ||
+                        !waitlistPhone ||
+                        !waitlistEmail ||
+                        !waitlistFloorplan ||
+                        submittingWaitlist) &&
+                        styles.disabledButton,
+                    ]}
+                    onPress={handleWaitlistSubmit}
+                    disabled={
+                      !waitlistName ||
                       !waitlistPhone ||
                       !waitlistEmail ||
                       !waitlistFloorplan ||
-                      submittingWaitlist) &&
-                      styles.disabledButton,
-                  ]}
-                  onPress={handleWaitlistSubmit}
-                  disabled={
-                    !waitlistName ||
-                    !waitlistPhone ||
-                    !waitlistEmail ||
-                    !waitlistFloorplan ||
-                    submittingWaitlist
-                  }
-                >
-                  {submittingWaitlist ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.primaryButtonText}>
-                      Submit Request
-                    </Text>
-                  )}
-                </TouchableOpacity>
+                      submittingWaitlist
+                    }
+                  >
+                    {submittingWaitlist ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.primaryButtonText}>Submit Request</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -756,7 +876,9 @@ export default function NeighborhoodAccess() {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Technical Preview</Text>
             <Text style={styles.modalBody}>
-              Today we're sharing an early version of what the next version of Jeeraan will look like as a technical preview. It's very early, but we get the best feedback when we work in public.
+              Today we're sharing an early version of what the next version of
+              Jeeraan will look like as a technical preview. It's very early,
+              but we get the best feedback when we work in public.
             </Text>
 
             <TouchableOpacity
@@ -775,7 +897,8 @@ export default function NeighborhoodAccess() {
                 )}
               </View>
               <Text style={styles.modalCheckboxLabel}>
-                I understand that Jeeraan is not production ready and I would like to proceed
+                I understand that Jeeraan is not production ready and I would
+                like to proceed
               </Text>
             </TouchableOpacity>
 

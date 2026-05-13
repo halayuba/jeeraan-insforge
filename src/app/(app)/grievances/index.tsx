@@ -104,7 +104,7 @@ export default function GrievancesIndex() {
                     <View style={[styles.statusDot, { backgroundColor: getStatusColor(grievance.status) }]} />
                   </View>
                   <Text style={styles.cardSubtitle}>
-                    {grievance.users?.full_name || 'Resident'} • {formatDate(grievance.created_at)}
+                    {grievance.author?.full_name || 'Resident'} • {formatDate(grievance.created_at)}
                   </Text>
                 </View>
               </View>

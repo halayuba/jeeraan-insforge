@@ -1,57 +1,67 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { insforge } from '../../lib/insforge';
-import { Link } from 'expo-router';
-import { useAuthStore } from '../../store/useAuthStore';
-import { JeeraanLogo } from '../../components/JeeraanLogo';
-import { useToast } from '../../contexts/ToastContext';
+import { Link } from 'expo-router'
+import React, { useState } from 'react'
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+import { JeeraanLogo } from '../../components/JeeraanLogo'
+import { useToast } from '../../contexts/ToastContext'
+import { insforge } from '../../lib/insforge'
+import { useAuthStore } from '../../store/useAuthStore'
 
 export default function SignIn() {
-  const { refreshAuth } = useAuthStore();
-  const { showToast } = useToast();
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { refreshAuth } = useAuthStore()
+  const { showToast } = useToast()
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleSignIn = async () => {
     if (!phone || !password) {
-      showToast('Please enter both phone number and password.', 'error');
-      return;
+      showToast('Please enter both phone number and password.', 'error')
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     // Passing phone number to the email field as InsForge treats it as an identifier
     const { error } = await insforge.auth.signInWithPassword({
       email: phone,
       password,
-    });
-    setLoading(false);
+    })
+    setLoading(false)
 
     if (error) {
-      showToast(error.message || 'Sign in failed. Please check your credentials.', 'error');
+      showToast(
+        error.message || 'Sign in failed. Please check your credentials.',
+        'error',
+      )
     } else {
-      await refreshAuth();
+      await refreshAuth()
     }
-  };
+  }
 
   const handleOAuth = async (provider: 'google' | 'facebook') => {
     const { error } = await insforge.auth.signInWithOAuth({
       provider,
-      redirectTo: 'http://localhost:8081/(app)' // Needs proper deep linking configuration based on environment later
-    });
+      redirectTo: 'http://localhost:8081/(app)', // Needs proper deep linking configuration based on environment later
+    })
 
     if (error) {
-      showToast(error.message || 'OAuth authentication failed.', 'error');
-    } 
-  };
+      showToast(error.message || 'OAuth authentication failed.', 'error')
+    }
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
-        <JeeraanLogo width={180} height={60} />
+        <JeeraanLogo width={288} height={96} />
       </View>
       <Text style={styles.title}>Welcome Back</Text>
-      
+
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Phone Number</Text>
         <TextInput
@@ -75,12 +85,16 @@ export default function SignIn() {
         />
       </View>
 
-      <TouchableOpacity 
-        style={styles.button} 
+      <TouchableOpacity
+        style={styles.button}
         onPress={handleSignIn}
         disabled={loading}
       >
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign In</Text>}
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Sign In</Text>
+        )}
       </TouchableOpacity>
 
       <View style={styles.dividerContainer}>
@@ -89,15 +103,15 @@ export default function SignIn() {
         <View style={styles.divider} />
       </View>
 
-      <TouchableOpacity 
-        style={[styles.button, styles.googleButton]} 
+      <TouchableOpacity
+        style={[styles.button, styles.googleButton]}
         onPress={() => handleOAuth('google')}
       >
         <Text style={styles.googleButtonText}>Continue with Google</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
-        style={[styles.button, styles.facebookButton]} 
+      <TouchableOpacity
+        style={[styles.button, styles.facebookButton]}
         onPress={() => handleOAuth('facebook')}
       >
         <Text style={styles.facebookButtonText}>Continue with Facebook</Text>
@@ -112,7 +126,7 @@ export default function SignIn() {
         </Link>
       </View>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -208,4 +222,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope-SemiBold',
     color: '#1193d4',
   },
-});
+})

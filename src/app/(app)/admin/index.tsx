@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, Eye, HelpCircle, Layout, MessageCircle, Plus, Shield, ShieldAlert, Trash2, UserMinus, UserPlus, Vote, XCircle, DollarSign, Flag } from 'lucide-react-native';
+import { AlertCircle, ArrowLeft, ChevronDown, ChevronUp, CloudUpload, Eye, HelpCircle, Layout, MessageCircle, Plus, Shield, ShieldAlert, Trash2, UserMinus, UserPlus, Users, Vote, XCircle, DollarSign, Flag } from 'lucide-react-native';
 import { IconCalendarUser, IconArrowsSort, IconFilter, IconPencilFilled, IconCopyCheckFilled } from '@tabler/icons-react-native';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -280,7 +280,7 @@ export default function AdminDashboard() {
                 placeholder="Note Title (e.g. Board Minutes)"
               />
               <TextInput
-                style={[styles.adminInput, { marginTop: 8, height: 150, textAlignVertical: 'top', paddingTop: 12 }]}
+                style={[styles.adminInputTextArea, { marginTop: 8 }]}
                 value={newNote.message}
                 onChangeText={(text) => setNewNote({ ...newNote, message: text })}
                 placeholder="Note Message"
@@ -409,7 +409,7 @@ export default function AdminDashboard() {
         <Text style={styles.adminLabel}>Points Awarded per Action</Text>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>New Announcement</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>New Announcement</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_announcement)}
@@ -419,7 +419,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>Invite Accepted</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>Invite Accepted</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_invite_accepted)}
@@ -429,7 +429,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>Work Order Feedback</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>Work Order Feedback</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_work_order_feedback)}
@@ -439,7 +439,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>New Forum Topic</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>New Forum Topic</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_forum_topic)}
@@ -449,7 +449,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>New Classified Ad</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>New Classified Ad</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_classified_ad)}
@@ -459,7 +459,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>Grievance Submission</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>Grievance Submission</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.points_grievance_submission)}
@@ -487,7 +487,7 @@ export default function AdminDashboard() {
         <Text style={styles.adminLabel}>Level Thresholds (Points Required)</Text>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>Level 2 Threshold</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>Level 2 Threshold</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.level_2_threshold)}
@@ -497,7 +497,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>Level 3 Threshold</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>Level 3 Threshold</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.level_3_threshold)}
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>Maximum Levels</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>Maximum Levels</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.max_levels)}
@@ -535,7 +535,7 @@ export default function AdminDashboard() {
         <Text style={styles.adminLabel}>Moderation & Rules</Text>
         
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>Moderator Eligibility Threshold (Points)</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>Moderator Eligibility Threshold (Points)</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.moderator_threshold)}
@@ -545,7 +545,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>Daily Points Cap (0 for No Cap)</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>Daily Points Cap (0 for No Cap)</Text>
           <TextInput
             style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
             value={String(gamificationSettings.daily_points_cap || 0)}
@@ -555,7 +555,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-          <Text style={styles.inputLabel}>Gamification Engine Active</Text>
+          <Text style={[styles.inputLabel, { flex: 1 }]}>Gamification Engine Active</Text>
           <TouchableOpacity 
             onPress={() => {
               const newVal = !gamificationSettings.is_active;
@@ -1072,6 +1072,13 @@ export default function AdminDashboard() {
         </View>
 
         {/* Membership Management Section */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Users size={20} color="#1193d4" strokeWidth={2} />
+              <Text style={styles.cardTitle}>Membership Management</Text>
+            </View>
+          </View>
 
           {/* Tab Selector */}
           <View style={styles.tabContainer}>
@@ -1117,8 +1124,9 @@ export default function AdminDashboard() {
           {activeTab === 'approved' && renderApprovedTab()}
           {activeTab === 'rejected' && renderRejectedTab()}
           {activeTab === 'moderation' && renderModerationTab()}
+        </View>
 
-          {renderNotesSection()}
+        {renderNotesSection()}
 
           {renderWaitlistSection()}
           {/* Engagement & Gamification Settings */}
@@ -1139,7 +1147,7 @@ export default function AdminDashboard() {
             
             <View style={styles.adminSection}>
               <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-                <Text style={styles.inputLabel}>Enable Monetization</Text>
+                <Text style={[styles.inputLabel, { flex: 1 }]}>Enable Monetization</Text>
                 {savingMonetization ? (
                   <ActivityIndicator size="small" color="#1193d4" />
                 ) : (
@@ -1202,7 +1210,7 @@ export default function AdminDashboard() {
             
             <View style={styles.adminSection}>
               <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-                <Text style={styles.inputLabel}>Enable Direct Messaging</Text>
+                <Text style={[styles.inputLabel, { flex: 1 }]}>Enable Direct Messaging</Text>
                 <Switch 
                   value={isDmEnabled}
                   onValueChange={setIsDmEnabled}
@@ -1211,7 +1219,7 @@ export default function AdminDashboard() {
               </View>
 
               <View style={[styles.inputGroup, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
-                <Text style={styles.inputLabel}>Max Daily Messages per User</Text>
+                <Text style={[styles.inputLabel, { flex: 1 }]}>Max Daily Messages per User</Text>
                 <TextInput
                   style={[styles.adminInput, { flex: 0, width: 80, textAlign: 'right' }]}
                   value={String(maxDailyMessages)}
@@ -1244,8 +1252,8 @@ export default function AdminDashboard() {
             </View>
 
             {/* Voting Date */}
-            <View style={styles.adminSection}>
-              <Text style={[styles.adminLabel, { marginBottom: 0 }]}>Voting Date (MM-DD-YYYY)</Text>
+            <View style={[styles.adminSection, { gap: 4 }]}>
+              <Text style={styles.inputLabel}>Voting Date (MM-DD-YYYY)</Text>
               <View style={styles.inputRow}>
                 <TextInput
                   style={styles.adminInput}
@@ -1267,12 +1275,12 @@ export default function AdminDashboard() {
               </View>
             </View>
 
-            <View style={{ height: 24 }} />
+            <View style={{ height: 32 }} />
 
             {/* Board Positions */}
-            <View style={[styles.adminSection, { gap: 8 }]}>
-              <Text style={[styles.adminLabel, { marginBottom: 0 }]}>Open Board Positions</Text>
-              <View style={{ gap: 0 }}>
+            <View style={[styles.adminSection, { gap: 12 }]}>
+              <Text style={styles.adminLabel}>Open Board Positions</Text>
+              <View style={{ gap: 0, marginTop: -4 }}>
                 {boardPositions.map((pos) => (
                   <View key={pos.id} style={styles.positionItem}>
                     <View style={{ flex: 1 }}>
@@ -1294,7 +1302,7 @@ export default function AdminDashboard() {
                   placeholder="Position Title (e.g. Treasurer)"
                 />
                 <TextInput
-                  style={[styles.adminInput, { marginTop: 8, height: 120, textAlignVertical: 'top', paddingTop: 8 }]}
+                  style={[styles.adminInputTextArea, { marginTop: 8 }]}
                   value={newPositionDesc}
                   onChangeText={setNewPositionDesc}
                   placeholder="Brief Description"
@@ -1828,11 +1836,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: 12,
+    paddingHorizontal: 16,
     fontFamily: 'Manrope-Medium',
-    fontSize: 14,
+    fontSize: 15,
     color: '#0f172a',
+  },
+  adminInputTextArea: {
+    height: 150,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    fontFamily: 'Manrope-Medium',
+    fontSize: 15,
+    color: '#0f172a',
+    textAlignVertical: 'top',
   },
   adminInput60: {
     width: '100%',
@@ -1840,10 +1861,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#cbd5e1',
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: 12,
+    paddingHorizontal: 16,
     fontFamily: 'Manrope-Medium',
-    fontSize: 16,
+    fontSize: 15,
     color: '#0f172a',
   },
   saveBtn: {

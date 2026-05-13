@@ -54,7 +54,11 @@ function CustomHeader() {
           .maybeSingle();
 
         if (data?.title) {
-          setHeaderTitle(data.title);
+          let title = data.title;
+          if (featureKey === 'q-and-a' || title.toLowerCase() === 'q & a') {
+            title = 'Q & A';
+          }
+          setHeaderTitle(title);
         } else {
           // Fallback to title-cased key if not found in table
           let capitalized = featureKey.charAt(0).toUpperCase() + featureKey.slice(1).replace(/-/g, ' ');

@@ -30,11 +30,12 @@ export function useClassifieds(neighborhoodId: string | null) {
       }));
 
       // Filter: Show all active/sold ads, but only show pending/inactive to the owner
-      return formattedData.filter((ad: any) => 
-        ad.status === 'active' || 
-        ad.status === 'sold' || 
-        ad.user_id === user?.id
-      );
+      return formattedData.filter((ad: any) => {
+        const status = ad.status || 'active';
+        return status === 'active' || 
+               status === 'sold' || 
+               ad.user_id === user?.id;
+      });
     },
     enabled: !!neighborhoodId,
   });

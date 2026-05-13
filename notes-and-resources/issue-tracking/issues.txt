@@ -38,7 +38,11 @@ feature_May10-2: Foor the Gallery, display a dissmissable Alert message containi
 
 issue_May10-1: Uncaught ReferenceError: useReportContent is not defined see @classifieds-useReportContent.png. 
 issue_May10-2: the Grievances screen does not show anything in the list. GET ￼https://5gvd6vyw.us-east.insforge.app/api/database/records/grievances?selec…ghborhood_id=eq.785dce54-2952-466a-9ba3-79aa59640aa0&order=created_at.desc 400 (Bad Request)
-
+issue_May10-3: increase the size of the logo on the Splash screen. 
+issue_May10-4: similarly increase the size of the logo on the @neighborhood-access.tsx. 
+issue_May10-5: @neighborhood-access.tsx the "Add me to the waitlist" was a clickable dropdown just like "Request to Join" but now it is not. Bring it back as it was previously and note that you should not change any code unless instructed. We never came close to this screen for a long time.
+==========================================================================================================================================
+issue_May11-1: see @membership-management.png there should a card containing the different tabs for Membership Management right above the Notes Management.
 
 
 

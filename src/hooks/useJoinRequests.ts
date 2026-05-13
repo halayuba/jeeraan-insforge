@@ -23,20 +23,21 @@ export function useJoinRequests(neighborhoodId: string | null) {
 
   const approveMutation = useMutation({
     mutationFn: async ({ request, adminName, neighborhoodName, adminId }: { request: any, adminName: string, neighborhoodName: string, adminId: string }) => {
-      console.log(`[APPROVE] Starting approval for request ID: ${request.id}, Phone: ${request.phone}`);
+      const sanitizedPhone = request.phone.replace(/[^\d+]/g, '');
+      console.log(`[APPROVE] Starting approval for request ID: ${request.id}, Phone: ${sanitizedPhone}`);
       
       // 0. Check for existing active invite
       const { data: existingInvite } = await insforge.database
         .from('invites')
         .select('id')
         .eq('neighborhood_id', request.neighborhood_id)
-        .eq('phone', request.phone)
+        .eq('phone', sanitizedPhone)
         .gt('expires_at', new Date().toISOString())
         .is('used_at', null)
         .maybeSingle();
 
       if (existingInvite) {
-        console.warn('[APPROVE] Active invite already exists for:', request.phone);
+        console.warn('[APPROVE] Active invite already exists for:', sanitizedPhone);
         throw new Error('An active invite already exists for this phone number.');
       }
 
@@ -70,7 +71,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .insert([{
           code: inviteCode,
           neighborhood_id: request.neighborhood_id,
-          phone: request.phone,
+          phone: sanitizedPhone,
           expires_at: expiresAt.toISOString(),
           created_by: adminId
         }]);
@@ -80,12 +81,12 @@ export function useJoinRequests(neighborhoodId: string | null) {
         throw inviteError;
       }
       
-      console.log(`[APPROVE] Invoking send-invite-sms for ${request.phone}...`);
+      console.log(`[APPROVE] Invoking send-invite-sms for ${sanitizedPhone}...`);
         
       // 4. Call Edge Function to send SMS
       const { data: smsData, error: smsError } = await insforge.functions.invoke('send-invite-sms', {
         body: {
-          phone: request.phone,
+          phone: sanitizedPhone,
           inviteCode: inviteCode,
           neighborhoodName: neighborhoodName,
           adminName: adminName,
@@ -129,20 +130,21 @@ export function useJoinRequests(neighborhoodId: string | null) {
 
   const adminApproveMutation = useMutation({
     mutationFn: async ({ request, adminName, neighborhoodName, adminId }: { request: any, adminName: string, neighborhoodName: string, adminId: string }) => {
-      console.log(`[ADMIN APPROVE] Starting manual approval for request ID: ${request.id}`);
+      const sanitizedPhone = request.phone.replace(/[^\d+]/g, '');
+      console.log(`[ADMIN APPROVE] Starting manual approval for request ID: ${request.id}, Phone: ${sanitizedPhone}`);
       
       // 1. Check for existing active invite
       const { data: existingInvite } = await insforge.database
         .from('invites')
         .select('id')
         .eq('neighborhood_id', request.neighborhood_id)
-        .eq('phone', request.phone)
+        .eq('phone', sanitizedPhone)
         .gt('expires_at', new Date().toISOString())
         .is('used_at', null)
         .maybeSingle();
 
       if (existingInvite) {
-        console.warn('[ADMIN APPROVE] Active invite already exists for:', request.phone);
+        console.warn('[ADMIN APPROVE] Active invite already exists for:', sanitizedPhone);
         throw new Error('An active invite already exists for this phone number.');
       }
 
@@ -172,7 +174,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .insert([{
           code: inviteCode,
           neighborhood_id: request.neighborhood_id,
-          phone: request.phone,
+          phone: sanitizedPhone,
           expires_at: expiresAt.toISOString(),
           created_by: adminId
         }]);
@@ -230,13 +232,15 @@ export function useJoinRequests(neighborhoodId: string | null) {
 
   const sendProactiveInviteMutation = useMutation({
     mutationFn: async ({ name, phone, adminName, neighborhoodName, adminId }: { name: string, phone: string, adminName: string, neighborhoodName: string, adminId: string }) => {
-      console.log(`[PROACTIVE] Sending proactive invite to: ${name} (${phone})`);
+      // Basic phone sanitization: strip non-digits except '+'
+      const sanitizedPhone = phone.replace(/[^\d+]/g, '');
+      console.log(`[PROACTIVE] Sending proactive invite to: ${name} (${sanitizedPhone})`);
       
       // 1. Check if user is already a member of this neighborhood
       const { data: existingProfile } = await insforge.database
         .from('user_profiles')
         .select('user_id')
-        .eq('phone', phone)
+        .eq('phone', sanitizedPhone)
         .maybeSingle();
 
       if (existingProfile) {
@@ -248,7 +252,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
           .maybeSingle();
 
         if (existingMembership) {
-          console.warn('[PROACTIVE] User already a member:', phone);
+          console.warn('[PROACTIVE] User already a member:', sanitizedPhone);
           throw new Error('User is already a member of this neighborhood.');
         }
       }
@@ -258,13 +262,13 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .from('invites')
         .select('id')
         .eq('neighborhood_id', neighborhoodId)
-        .eq('phone', phone)
+        .eq('phone', sanitizedPhone)
         .gt('expires_at', new Date().toISOString())
         .is('used_at', null)
         .maybeSingle();
 
       if (existingInvite) {
-        console.warn('[PROACTIVE] Active invite already exists for:', phone);
+        console.warn('[PROACTIVE] Active invite already exists for:', sanitizedPhone);
         throw new Error('An active invite already exists for this phone number.');
       }
 
@@ -279,7 +283,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .insert([{
           code: inviteCode,
           neighborhood_id: neighborhoodId,
-          phone: phone,
+          phone: sanitizedPhone,
           expires_at: expiresAt.toISOString(),
           created_by: adminId
         }]);
@@ -289,11 +293,11 @@ export function useJoinRequests(neighborhoodId: string | null) {
         throw inviteError;
       }
 
-      console.log(`[PROACTIVE] Invoking send-invite-sms for ${phone}...`);
+      console.log(`[PROACTIVE] Invoking send-invite-sms for ${sanitizedPhone}...`);
 
       const { data: smsData, error: smsError } = await insforge.functions.invoke('send-invite-sms', {
         body: {
-          phone: phone,
+          phone: sanitizedPhone,
           inviteCode: inviteCode,
           neighborhoodName: neighborhoodName,
           adminName: adminName,

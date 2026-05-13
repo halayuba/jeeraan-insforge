@@ -15,9 +15,11 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   
   const { inviteCode, neighborhoodId } = useLocalSearchParams();
+  console.log('[SignUp] Received params:', { inviteCode, neighborhoodId });
 
   React.useEffect(() => {
     if (!inviteCode) {
+      console.warn('[SignUp] No inviteCode found, redirecting back...');
       Alert.alert('Access Restricted', 'You need a valid invite to create an account.');
       router.replace('/(auth)/neighborhood-access');
     }
