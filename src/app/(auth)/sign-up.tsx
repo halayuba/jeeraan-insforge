@@ -4,33 +4,90 @@ import { insforge } from '../../lib/insforge';
 import { useLocalSearchParams, useRouter, Link } from 'expo-router';
 import { useAuthStore } from '../../store/useAuthStore';
 import { JeeraanLogo } from '../../components/JeeraanLogo';
+import { useToast } from '../../contexts/ToastContext';
 
 export default function SignUp() {
   const router = useRouter();
+  const { showToast } = useToast();
   const { refreshAuth } = useAuthStore();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { inviteCode, neighborhoodId } = useLocalSearchParams();
-  console.log('[SignUp] Received params:', { inviteCode, neighborhoodId });
+  const { inviteCode, neighborhoodId, phone } = useLocalSearchParams();
+  console.log('[SignUp] Received params:', { inviteCode, neighborhoodId, phone });
 
   React.useEffect(() => {
     if (!inviteCode) {
       console.warn('[SignUp] No inviteCode found, redirecting back...');
       Alert.alert('Access Restricted', 'You need a valid invite to create an account.');
       router.replace('/(auth)/neighborhood-access');
+    } else {
+      fetchPrePopulatedData();
     }
   }, [inviteCode]);
+
+  const fetchPrePopulatedData = async () => {
+    try {
+      const actualPhone = Array.isArray(phone) ? phone[0] : phone;
+      const actualCode = Array.isArray(inviteCode) ? inviteCode[0] : inviteCode;
+      const actualNeighborhoodId = Array.isArray(neighborhoodId) ? neighborhoodId[0] : neighborhoodId;
+
+      if (!actualPhone && !actualCode) return;
+
+      // First try to fetch by phone and neighborhood_id (most reliable for both Twilio and Manual)
+      let query = insforge.database
+        .from('join_requests')
+        .select('name, email');
+
+      if (actualPhone) {
+        query = query.eq('phone', actualPhone);
+      } else if (actualCode) {
+        query = query.eq('invite_code', String(actualCode).toUpperCase());
+      }
+      
+      if (actualNeighborhoodId) {
+        query = query.eq('neighborhood_id', actualNeighborhoodId);
+      }
+
+      // Order by created_at desc to get the most recent request
+      const { data, error } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
+
+      if (data) {
+        if (data.name) setName(data.name);
+        if (data.email) setEmail(data.email);
+      } else if (actualPhone && actualCode) {
+        // Fallback: just try invite code alone
+        const { data: fallbackData } = await insforge.database
+          .from('join_requests')
+          .select('name, email')
+          .eq('invite_code', String(actualCode).toUpperCase())
+          .maybeSingle();
+          
+        if (fallbackData) {
+          if (fallbackData.name) setName(fallbackData.name);
+          if (fallbackData.email) setEmail(fallbackData.email);
+        }
+      }
+    } catch (err) {
+      console.error('[SignUp] Error fetching prepopulated data:', err);
+    }
+  };
   
   // States to manage the registration flow
   const [requiresVerification, setRequiresVerification] = useState(false);
 
   const handleSignUp = async () => {
-    if (!email || !password || !name) {
+    if (!email || !password || !name || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match.');
       return;
     }
 
@@ -78,7 +135,7 @@ export default function SignUp() {
       // 3. Mark invite as used and award points to inviter
       const { data: inviteData } = await insforge.database.from('invites')
         .update({ used_at: new Date().toISOString() })
-        .eq('code', inviteCode)
+        .eq('code', String(inviteCode).toUpperCase())
         .select('created_by, phone, neighborhood_id')
         .single();
 
@@ -221,6 +278,17 @@ export default function SignUp() {
           secureTextEntry
           value={password}
           onChangeText={setPassword}
+        />
+      </View>
+
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Confirm Password</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="********"
+          secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
         />
       </View>
 

@@ -12,6 +12,7 @@ import { FLOORPLAN_OPTIONS } from '../../../lib/waitlist';
 
 // Hooks
 import { useJoinRequests } from '../../../hooks/useJoinRequests';
+import { useToast } from '../../../contexts/ToastContext';
 import { useQuestions } from '../../../hooks/useQuestions';
 import { useAdminNotes } from '../../../hooks/useAdminNotes';
 import { useModerationQueue } from '../../../hooks/useModerationQueue';
@@ -30,6 +31,7 @@ import { useNeighborhood } from '../../../hooks/useNeighborhood';
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { showToast } = useToast();
   const { user, fullName, globalRole, neighborhoodId } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'members' | 'rejected' | 'moderation'>('pending');
   
@@ -170,17 +172,11 @@ export default function AdminDashboard() {
 
         if (notifications && notifications.length > 0) {
           notifications.forEach(async (notif: any) => {
-            Alert.alert(notif.title, notif.message, [
-              { 
-                text: 'OK', 
-                onPress: async () => {
-                  await insforge.database
-                    .from('notifications')
-                    .update({ is_read: true })
-                    .eq('id', notif.id);
-                }
-              }
-            ]);
+            showToast(`${notif.title}: ${notif.message}`, 'info');
+            await insforge.database
+              .from('notifications')
+              .update({ is_read: true })
+              .eq('id', notif.id);
           });
         }
       } catch (err) {

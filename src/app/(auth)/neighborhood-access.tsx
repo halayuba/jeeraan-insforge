@@ -111,7 +111,7 @@ export default function NeighborhoodAccess() {
     if (modalAction === 'request') {
       performJoinRequestSubmission()
     } else if (modalAction === 'invite') {
-      performInviteCodeValidation()
+      performManualInviteCodeValidation()
     }
   }
 
@@ -134,6 +134,72 @@ export default function NeighborhoodAccess() {
     setShowEarlyAccessModal(true)
   }
 
+  const performManualInviteCodeValidation = async () => {
+    setValidatingCode(true)
+    try {
+      let sanitizedPhone = invitePhone.replace(/[^\d+]/g, '');
+      if (!sanitizedPhone.startsWith('+')) {
+        if (sanitizedPhone.length === 10) {
+          sanitizedPhone = '+1' + sanitizedPhone;
+        } else {
+          sanitizedPhone = '+' + sanitizedPhone;
+        }
+      }
+      
+      console.log('[Invite] Starting manual validation for:', invitePhone);
+      console.log(`[Invite] Code: ${inviteCode.toUpperCase()}, Sanitized Phone: ${sanitizedPhone}`);
+      
+      // First check the invites table (handles both proactive invites and approved requests)
+      console.log('[Invite] Querying invites table...');
+      const { data: inviteData, error: inviteError } = await insforge.database
+        .from('invites')
+        .select('neighborhood_id, code, phone')
+        .eq('code', inviteCode.toUpperCase())
+        .is('used_at', null)
+        .gt('expires_at', new Date().toISOString())
+
+      if (inviteError) {
+        console.error('[Invite] Error querying invites table:', inviteError);
+      } else {
+        console.log('[Invite] Results from invites table:', inviteData?.length);
+      }
+
+      let validRequest = inviteData?.find(
+        (inv) => inv.phone === invitePhone || inv.phone === sanitizedPhone || (inv.phone && inv.phone.replace(/[^\d+]/g, '') === sanitizedPhone.replace(/[^\d+]/g, ''))
+      );
+
+      if (validRequest) {
+        console.log('[Invite] Match found in invites table!');
+        console.log('[Invite] Manual validation success. Marking as used and redirecting to sign-up...');
+        
+        // Mark invite as used immediately so it cannot be reused
+        await insforge.database
+          .from('invites')
+          .update({ used_at: new Date().toISOString() })
+          .eq('code', validRequest.code.toUpperCase());
+
+        showToast('Invite code verified. Please set your password to continue.', 'success');
+        router.push({
+          pathname: '/(auth)/sign-up',
+          params: {
+            inviteCode: inviteCode.toUpperCase(),
+            phone: sanitizedPhone,
+            neighborhoodId: validRequest.neighborhood_id,
+          },
+        });
+      } else {
+        console.warn('[Invite] Manual validation failed: no matching approved request found in either table.');
+        showToast('Invalid invite code or phone number. Please check and try again.', 'error');
+      }
+    } catch (err: any) {
+      console.error('[Invite] Unexpected error during manual validation:', err);
+      showToast('An unexpected error occurred during validation. Check console for details.', 'error');
+    } finally {
+      setValidatingCode(false)
+      setModalAction(null)
+    }
+  }
+
   const performInviteCodeValidation = async () => {
     setValidatingCode(true)
     try {
@@ -148,7 +214,6 @@ export default function NeighborhoodAccess() {
       }
       
       console.log('[Invite] Starting validation for:', sanitizedPhone);
-      console.log('[Invite] Target URL:', insforge.functions.getFunctionUrl('validate-invite'));
       
       const { data, error } = await insforge.functions.invoke(
         'validate-invite',
@@ -168,37 +233,33 @@ export default function NeighborhoodAccess() {
       }
 
       if (data?.success) {
-        console.log('[Invite] Validation success');
-        Alert.alert(
-          'Success',
-          'Invite code verified. Please set your password to continue.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                console.log('[Invite] User clicked OK, pushing to sign-up');
-                router.push({
-                  pathname: '/(auth)/sign-up',
-                  params: {
-                    inviteCode: data.invite.code || inviteCode.toUpperCase(),
-                    phone: sanitizedPhone,
-                    neighborhoodId: data.invite.neighborhood_id,
-                  },
-                })
-              }
-            }
-          ]
-        )
+        console.log('[Invite] Validation success. Marking as used...');
+        
+        const codeToUpdate = data.invite?.code || inviteCode;
+        await insforge.database
+          .from('invites')
+          .update({ used_at: new Date().toISOString() })
+          .eq('code', codeToUpdate.toUpperCase());
+
+        showToast('Invite code verified. Please set your password to continue.', 'success');
+        router.push({
+          pathname: '/(auth)/sign-up',
+          params: {
+            inviteCode: data.invite.code || inviteCode.toUpperCase(),
+            phone: sanitizedPhone,
+            neighborhoodId: data.invite.neighborhood_id,
+          },
+        });
       } else {
         // Function-level error (e.g. "Invalid code")
         const errorMsg = data?.error || 'Invalid or expired invite code.';
         console.warn('[Invite] Function-level rejection:', errorMsg);
         if (data?.twilioError) console.warn('[Invite] Twilio detail:', data.twilioError);
-        Alert.alert('Validation Failed', errorMsg);
+        showToast('Invalid invite code or phone number. Please check and try again.', 'error');
       }
     } catch (err: any) {
       console.error('[Invite] Unexpected error during validation:', err);
-      Alert.alert('Error', 'Failed to validate invite code.')
+      showToast('Failed to validate invite code.', 'error');
     } finally {
       setValidatingCode(false)
       setModalAction(null)
