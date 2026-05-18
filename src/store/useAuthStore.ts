@@ -63,6 +63,8 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       err.error === 'unauthorized'
     ) {
       console.log('Session expired or invalid, clearing auth state');
+      // Clear the SDK session to avoid sending the bad token again
+      insforge.auth.signOut().catch(() => {});
       get().clearAuthState();
     }
   },

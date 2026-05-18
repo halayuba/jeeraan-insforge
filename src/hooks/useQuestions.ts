@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { insforge } from '../lib/insforge';
 import { Alert } from 'react-native';
+import { useAuthStore } from '../store/useAuthStore';
 
 export function useQuestions(neighborhoodId: string | null) {
   const queryClient = useQueryClient();
+  const handleAuthError = useAuthStore(state => state.handleAuthError);
 
   const query = useQuery({
     queryKey: ['questions', neighborhoodId],
@@ -18,7 +20,10 @@ export function useQuestions(neighborhoodId: string | null) {
         .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       
       return (data || []).map((q: any) => ({
         ...q,
@@ -34,14 +39,19 @@ export function useQuestions(neighborhoodId: string | null) {
         .from('questions')
         .update({ is_public: isPublic })
         .eq('id', id);
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['questions', neighborhoodId] });
+      queryClient.invalidateQueries({ queryKey: ['questions'] });
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error('Failed to toggle question status:', err);
-      Alert.alert('Error', 'Failed to update status');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', 'Failed to update status');
+      }
     }
   });
 
@@ -51,15 +61,20 @@ export function useQuestions(neighborhoodId: string | null) {
         .from('questions')
         .update({ answer_text: answerText.trim() })
         .eq('id', id);
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['questions', neighborhoodId] });
+      queryClient.invalidateQueries({ queryKey: ['questions'] });
       Alert.alert('Success', 'Response saved');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error('Failed to save response:', err);
-      Alert.alert('Error', 'Failed to save response');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', 'Failed to save response');
+      }
     }
   });
 

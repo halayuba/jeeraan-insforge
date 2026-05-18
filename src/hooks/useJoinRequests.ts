@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { insforge } from '../lib/insforge';
 import { Alert } from 'react-native';
+import { useAuthStore } from '../store/useAuthStore';
 
 export function useJoinRequests(neighborhoodId: string | null) {
   const queryClient = useQueryClient();
+  const handleAuthError = useAuthStore(state => state.handleAuthError);
 
   const query = useQuery({
     queryKey: ['joinRequests', neighborhoodId],
@@ -15,7 +17,10 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       return data || [];
     },
     enabled: !!neighborhoodId,
@@ -27,7 +32,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
       console.log(`[APPROVE] Starting approval for request ID: ${request.id}, Phone: ${sanitizedPhone}`);
       
       // 0. Check for existing active invite
-      const { data: existingInvite } = await insforge.database
+      const { data: existingInvite, error: existingInviteError } = await insforge.database
         .from('invites')
         .select('id')
         .eq('neighborhood_id', request.neighborhood_id)
@@ -35,6 +40,11 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .gt('expires_at', new Date().toISOString())
         .is('used_at', null)
         .maybeSingle();
+
+      if (existingInviteError) {
+        handleAuthError(existingInviteError);
+        throw existingInviteError;
+      }
 
       if (existingInvite) {
         console.warn('[APPROVE] Active invite already exists for:', sanitizedPhone);
@@ -59,6 +69,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
       
       if (updateError) {
         console.error('[APPROVE] Error updating join_requests:', updateError);
+        handleAuthError(updateError);
         throw updateError;
       }
         
@@ -78,6 +89,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
 
       if (inviteError) {
         console.error('[APPROVE] Error inserting invite:', inviteError);
+        handleAuthError(inviteError);
         throw inviteError;
       }
       
@@ -123,8 +135,10 @@ export function useJoinRequests(neighborhoodId: string | null) {
     },
     onError: (err: any) => {
       console.error('[APPROVE ERROR] Full error object:', err);
-      const message = err.message || 'Failed to approve request. Please try again.';
-      Alert.alert('Error', message);
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        const message = err.message || 'Failed to approve request. Please try again.';
+        Alert.alert('Error', message);
+      }
     }
   });
 
@@ -134,7 +148,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
       console.log(`[ADMIN APPROVE] Starting manual approval for request ID: ${request.id}, Phone: ${sanitizedPhone}`);
       
       // 1. Check for existing active invite
-      const { data: existingInvite } = await insforge.database
+      const { data: existingInvite, error: existingInviteError } = await insforge.database
         .from('invites')
         .select('id')
         .eq('neighborhood_id', request.neighborhood_id)
@@ -142,6 +156,11 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .gt('expires_at', new Date().toISOString())
         .is('used_at', null)
         .maybeSingle();
+
+      if (existingInviteError) {
+        handleAuthError(existingInviteError);
+        throw existingInviteError;
+      }
 
       if (existingInvite) {
         console.warn('[ADMIN APPROVE] Active invite already exists for:', sanitizedPhone);
@@ -163,7 +182,10 @@ export function useJoinRequests(neighborhoodId: string | null) {
         })
         .eq('id', request.id);
       
-      if (updateError) throw updateError;
+      if (updateError) {
+        handleAuthError(updateError);
+        throw updateError;
+      }
         
       // 4. Insert invite into database
       const expiresAt = new Date();
@@ -179,7 +201,10 @@ export function useJoinRequests(neighborhoodId: string | null) {
           created_by: adminId
         }]);
 
-      if (inviteError) throw inviteError;
+      if (inviteError) {
+        handleAuthError(inviteError);
+        throw inviteError;
+      }
       
       return { inviteCode };
     },
@@ -188,7 +213,9 @@ export function useJoinRequests(neighborhoodId: string | null) {
       Alert.alert('Success', 'Request approved manually. You can now copy the SMS invite from the Approved tab.');
     },
     onError: (err: any) => {
-      Alert.alert('Error', err.message || 'Failed to approve request.');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', err.message || 'Failed to approve request.');
+      }
     }
   });
 
@@ -198,13 +225,19 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .from('join_requests')
         .delete()
         .eq('id', id);
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['joinRequests', neighborhoodId] });
+      queryClient.invalidateQueries({ queryKey: ['joinRequests'] });
+      Alert.alert('Success', 'Request removed.');
     },
-    onError: (err) => {
-      Alert.alert('Error', 'Failed to remove request.');
+    onError: (err: any) => {
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', 'Failed to remove request.');
+      }
     }
   });
 
@@ -217,16 +250,20 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .eq('id', id);
       if (error) {
         console.error('[DECLINE] Error updating join_requests:', error);
+        handleAuthError(error);
         throw error;
       }
     },
     onSuccess: () => {
       console.log('[DECLINE SUCCESS]');
-      queryClient.invalidateQueries({ queryKey: ['joinRequests', neighborhoodId] });
+      queryClient.invalidateQueries({ queryKey: ['joinRequests'] });
+      Alert.alert('Success', 'Request declined.');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error('[DECLINE ERROR]', err);
-      Alert.alert('Error', 'Failed to decline request.');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', 'Failed to decline request.');
+      }
     }
   });
 
@@ -237,19 +274,29 @@ export function useJoinRequests(neighborhoodId: string | null) {
       console.log(`[PROACTIVE] Sending proactive invite to: ${name} (${sanitizedPhone})`);
       
       // 1. Check if user is already a member of this neighborhood
-      const { data: existingProfile } = await insforge.database
+      const { data: existingProfile, error: existingProfileError } = await insforge.database
         .from('user_profiles')
         .select('user_id')
         .eq('phone', sanitizedPhone)
         .maybeSingle();
 
+      if (existingProfileError) {
+        handleAuthError(existingProfileError);
+        throw existingProfileError;
+      }
+
       if (existingProfile) {
-        const { data: existingMembership } = await insforge.database
+        const { data: existingMembership, error: existingMembershipError } = await insforge.database
           .from('user_neighborhoods')
           .select('neighborhood_id')
           .eq('user_id', existingProfile.user_id)
           .eq('neighborhood_id', neighborhoodId)
           .maybeSingle();
+
+        if (existingMembershipError) {
+          handleAuthError(existingMembershipError);
+          throw existingMembershipError;
+        }
 
         if (existingMembership) {
           console.warn('[PROACTIVE] User already a member:', sanitizedPhone);
@@ -258,7 +305,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
       }
 
       // 2. Check for existing active invite
-      const { data: existingInvite } = await insforge.database
+      const { data: existingInvite, error: existingInviteError } = await insforge.database
         .from('invites')
         .select('id')
         .eq('neighborhood_id', neighborhoodId)
@@ -266,6 +313,11 @@ export function useJoinRequests(neighborhoodId: string | null) {
         .gt('expires_at', new Date().toISOString())
         .is('used_at', null)
         .maybeSingle();
+
+      if (existingInviteError) {
+        handleAuthError(existingInviteError);
+        throw existingInviteError;
+      }
 
       if (existingInvite) {
         console.warn('[PROACTIVE] Active invite already exists for:', sanitizedPhone);
@@ -290,6 +342,7 @@ export function useJoinRequests(neighborhoodId: string | null) {
 
       if (inviteError) {
         console.error('[PROACTIVE] Error inserting invite:', inviteError);
+        handleAuthError(inviteError);
         throw inviteError;
       }
 
@@ -331,8 +384,10 @@ export function useJoinRequests(neighborhoodId: string | null) {
     },
     onError: (err: any) => {
       console.error('[PROACTIVE ERROR] Full error object:', err);
-      const message = err.message || 'Failed to generate invite. Please try again.';
-      Alert.alert('Error', message);
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        const message = err.message || 'Failed to generate invite. Please try again.';
+        Alert.alert('Error', message);
+      }
     }
   });
 

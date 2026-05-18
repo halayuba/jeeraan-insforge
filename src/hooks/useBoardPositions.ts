@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { insforge } from '../lib/insforge';
 import { Alert } from 'react-native';
+import { useAuthStore } from '../store/useAuthStore';
 
 export function useBoardPositions(neighborhoodId: string | null, isOpenOnly?: boolean) {
   const queryClient = useQueryClient();
+  const handleAuthError = useAuthStore(state => state.handleAuthError);
 
   const query = useQuery({
     queryKey: ['boardPositions', neighborhoodId, isOpenOnly],
@@ -21,7 +23,10 @@ export function useBoardPositions(neighborhoodId: string | null, isOpenOnly?: bo
       
       const { data, error } = await dbQuery;
       
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       return data || [];
     },
     enabled: !!neighborhoodId,
@@ -39,16 +44,21 @@ export function useBoardPositions(neighborhoodId: string | null, isOpenOnly?: bo
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boardPositions', neighborhoodId] });
       Alert.alert('Success', 'Board position added');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error('Failed to add position:', err);
-      Alert.alert('Error', 'Failed to add position');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', 'Failed to add position');
+      }
     }
   });
 
@@ -59,14 +69,20 @@ export function useBoardPositions(neighborhoodId: string | null, isOpenOnly?: bo
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boardPositions', neighborhoodId] });
+      queryClient.invalidateQueries({ queryKey: ['boardPositions'] });
+      Alert.alert('Success', 'Board position deleted');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error('Failed to delete position:', err);
-      Alert.alert('Error', 'Failed to delete position');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', 'Failed to delete position');
+      }
     }
   });
 

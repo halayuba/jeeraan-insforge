@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { insforge } from '../lib/insforge';
 import { Alert } from 'react-native';
+import { useAuthStore } from '../store/useAuthStore';
 
 export function useAdminNotes(neighborhoodId: string | null) {
   const queryClient = useQueryClient();
+  const handleAuthError = useAuthStore(state => state.handleAuthError);
 
   const query = useQuery({
     queryKey: ['adminNotes', neighborhoodId],
@@ -15,7 +17,10 @@ export function useAdminNotes(neighborhoodId: string | null) {
         .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       return data || [];
     },
     enabled: !!neighborhoodId,
@@ -32,16 +37,21 @@ export function useAdminNotes(neighborhoodId: string | null) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminNotes', neighborhoodId] });
       Alert.alert('Success', 'Note created');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error('Failed to create note:', err);
-      Alert.alert('Error', 'Failed to create note');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', 'Failed to create note');
+      }
     }
   });
 
@@ -52,14 +62,20 @@ export function useAdminNotes(neighborhoodId: string | null) {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminNotes', neighborhoodId] });
+      queryClient.invalidateQueries({ queryKey: ['adminNotes'] });
+      Alert.alert('Success', 'Note deleted');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error('Failed to delete note:', err);
-      Alert.alert('Error', 'Failed to delete note');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', 'Failed to delete note');
+      }
     }
   });
 

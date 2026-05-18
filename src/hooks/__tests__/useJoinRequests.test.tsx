@@ -55,7 +55,10 @@ describe('useJoinRequests', () => {
 
     (insforge.database.from as jest.Mock).mockImplementation((table) => {
       if (table === 'join_requests') return { update: () => ({ eq: mockUpdate }) };
-      if (table === 'invites') return { insert: mockInsert };
+      if (table === 'invites') return { 
+        insert: mockInsert,
+        select: () => ({ eq: () => ({ eq: () => ({ gt: () => ({ is: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }) }) }) })
+      };
       return { select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }) };
     });
 
@@ -94,7 +97,10 @@ describe('useJoinRequests', () => {
     
     (insforge.database.from as jest.Mock).mockImplementation((table) => {
       if (table === 'join_requests') return { update: () => ({ eq: () => ({ error: null }) }) };
-      if (table === 'invites') return { insert: () => ({ error: null }) };
+      if (table === 'invites') return { 
+        insert: () => ({ error: null }),
+        select: () => ({ eq: () => ({ eq: () => ({ gt: () => ({ is: () => ({ maybeSingle: () => Promise.resolve({ data: null, error: null }) }) }) }) }) })
+      };
       return { select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [], error: null }) }) }) };
     });
 

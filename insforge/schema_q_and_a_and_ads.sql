@@ -73,17 +73,19 @@ CREATE POLICY "Admins can delete questions" ON public.questions
     );
 
 -- Advertisements Policies
-CREATE POLICY "Members can read advertisements for their neighborhood" ON public.advertisements
+CREATE POLICY "Anyone can read advertisements" ON public.advertisements
     FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.user_neighborhoods
-            WHERE user_id = auth.uid() AND neighborhood_id = advertisements.neighborhood_id
-        ) OR public.is_super_admin()
+        true
     );
 
 CREATE POLICY "Super admins can manage advertisements" ON public.advertisements
     FOR ALL USING (
         public.is_super_admin()
+    );
+
+CREATE POLICY "Admins can manage advertisements of their neighborhood" ON public.advertisements
+    FOR ALL USING (
+        public.is_admin_of(neighborhood_id)
     );
 
 -- Classified Ads Policies

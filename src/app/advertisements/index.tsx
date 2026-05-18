@@ -71,10 +71,27 @@ export default function AdvertisementsIndex() {
       setAds(data || []);
     } catch (err: any) {
       console.error('Error fetching ads:', err);
-      // Don't call handleAuthError for 401s if we're in a public route
-      const is401 = err.code === 'PGRST301' || err.statusCode === 401 || err.message?.includes('JWT expired');
-      if (neighborhoodId || !is401) {
-        handleAuthError(err);
+      const isAuthError = err.code === 'PGRST301' || err.statusCode === 401 || err.message?.includes('JWT expired');
+      
+      handleAuthError(err);
+      
+      if (!isAuthError) {
+        showToast('Failed to load advertisements. Please try again.', 'error');
+      } else {
+        // If it was an auth error, the first fetch might have failed due to an expired token.
+        // Now that handleAuthError has cleared it, a retry might work.
+        // We'll do one silent retry.
+        try {
+          const { data, error } = await insforge.database
+            .from('advertisements')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (!error) {
+            setAds(data || []);
+          }
+        } catch (retryErr) {
+          console.error('Retry fetch ads failed:', retryErr);
+        }
       }
     } finally {
       setLoading(false);

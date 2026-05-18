@@ -1,9 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { insforge } from '../lib/insforge';
+import { useAuthStore } from '../store/useAuthStore';
 import { Alert } from 'react-native';
 
 export function useAdminAds(neighborhoodId: string | null) {
   const queryClient = useQueryClient();
+  const { handleAuthError } = useAuthStore();
 
   const query = useQuery({
     queryKey: ['adminAds', neighborhoodId],
@@ -15,7 +17,10 @@ export function useAdminAds(neighborhoodId: string | null) {
         .eq('neighborhood_id', neighborhoodId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       return data || [];
     },
     enabled: !!neighborhoodId,
@@ -55,16 +60,21 @@ export function useAdminAds(neighborhoodId: string | null) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminAds', neighborhoodId] });
+      queryClient.invalidateQueries({ queryKey: ['adminAds'] });
       Alert.alert('Success', 'Advertisement created');
     },
     onError: (err) => {
       console.error('Failed to create advertisement:', err);
-      Alert.alert('Error', 'Failed to create advertisement');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', 'Failed to create advertisement');
+      }
     }
   });
 
@@ -75,14 +85,20 @@ export function useAdminAds(neighborhoodId: string | null) {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        handleAuthError(error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminAds', neighborhoodId] });
+      queryClient.invalidateQueries({ queryKey: ['adminAds'] });
+      Alert.alert('Success', 'Advertisement deleted');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       console.error('Failed to delete advertisement:', err);
-      Alert.alert('Error', 'Failed to delete advertisement');
+      if (!err.message?.includes('JWT') && err.code !== 'PGRST301') {
+        Alert.alert('Error', err.message || 'Failed to delete advertisement');
+      }
     }
   });
 
