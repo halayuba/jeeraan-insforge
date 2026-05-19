@@ -12,6 +12,7 @@ type AuthState = {
   userLevel: number;
   neighborhoodId: string | null;
   isBlocked: boolean;
+  sessionExpired: boolean;
 };
 
 type AuthActions = {
@@ -20,6 +21,7 @@ type AuthActions = {
   handleAuthError: (err: any) => void;
   initialize: () => Promise<void>;
   clearAuthState: () => void;
+  setSessionExpired: (expired: boolean) => void;
 };
 
 export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
@@ -34,8 +36,11 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   userLevel: 1,
   neighborhoodId: null,
   isBlocked: false,
+  sessionExpired: false,
 
   // Actions
+  setSessionExpired: (expired: boolean) => set({ sessionExpired: expired }),
+
   clearAuthState: () => {
     const state = get();
     // Don't trigger a re-render if we're already cleared and not loading
@@ -63,6 +68,12 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       err.error === 'unauthorized'
     ) {
       console.log('Session expired or invalid, clearing auth state');
+      
+      // If we haven't already marked the session as expired, do it now
+      if (!get().sessionExpired && get().session) {
+        set({ sessionExpired: true });
+      }
+
       // Clear the SDK session to avoid sending the bad token again
       insforge.auth.signOut().catch(() => {});
       get().clearAuthState();

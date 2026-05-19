@@ -80,15 +80,26 @@ export function useAdminAds(neighborhoodId: string | null) {
 
   const deleteAdMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await insforge.database
+      console.log('[Admin] Requesting deletion of advertisement ID:', id);
+      const { data, error, status } = await insforge.database
         .from('advertisements')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
+
+      console.log('[Admin] Delete response:', { status, data, error });
 
       if (error) {
         handleAuthError(error);
         throw error;
       }
+
+      if (!data || data.length === 0) {
+        console.error('[Admin] Delete failed: No rows affected. Likely an RLS block.');
+        throw new Error('Permission denied: You do not have authority to delete this advertisement.');
+      }
+      
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminAds'] });

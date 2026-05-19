@@ -1,6 +1,7 @@
 import { useRouter, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useToast } from '../contexts/ToastContext';
 
 /**
  * UnifiedAuthGuard
@@ -11,13 +12,21 @@ import { useAuthStore } from '../store/useAuthStore';
  * "Maximum update depth exceeded" error in Expo Router.
  */
 export function UnifiedAuthGuard({ children }: { children: React.ReactNode }) {
-  const { session, loading, isInitialized, userRole, globalRole, neighborhoodId, isBlocked } = useAuthStore();
+  const { session, loading, isInitialized, userRole, globalRole, neighborhoodId, isBlocked, sessionExpired, setSessionExpired } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
+  const { showToast } = useToast();
   const isRedirecting = useRef(false);
 
   const currentPath = segments.join('/');
   const rootSegment = segments[0];
+
+  useEffect(() => {
+    if (sessionExpired) {
+      showToast('Your session has expired. Please sign in again.', 'warning');
+      setSessionExpired(false);
+    }
+  }, [sessionExpired]);
 
   useEffect(() => {
     // 1. Wait until auth is fully initialized and NOT currently transitioning

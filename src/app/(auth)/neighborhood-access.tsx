@@ -146,11 +146,7 @@ export default function NeighborhoodAccess() {
         }
       }
       
-      console.log('[Invite] Starting manual validation for:', invitePhone);
-      console.log(`[Invite] Code: ${inviteCode.toUpperCase()}, Sanitized Phone: ${sanitizedPhone}`);
-      
       // First check the invites table (handles both proactive invites and approved requests)
-      console.log('[Invite] Querying invites table...');
       const { data: inviteData, error: inviteError } = await insforge.database
         .from('invites')
         .select('neighborhood_id, code, phone')
@@ -160,8 +156,6 @@ export default function NeighborhoodAccess() {
 
       if (inviteError) {
         console.error('[Invite] Error querying invites table:', inviteError);
-      } else {
-        console.log('[Invite] Results from invites table:', inviteData?.length);
       }
 
       let validRequest = inviteData?.find(
@@ -169,9 +163,6 @@ export default function NeighborhoodAccess() {
       );
 
       if (validRequest) {
-        console.log('[Invite] Match found in invites table!');
-        console.log('[Invite] Manual validation success. Marking as used and redirecting to sign-up...');
-        
         // Mark invite as used immediately so it cannot be reused
         await insforge.database
           .from('invites')

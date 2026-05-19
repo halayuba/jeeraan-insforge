@@ -18,7 +18,6 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   
   const { inviteCode, neighborhoodId, phone } = useLocalSearchParams();
-  console.log('[SignUp] Received params:', { inviteCode, neighborhoodId, phone });
 
   React.useEffect(() => {
     if (!inviteCode) {
@@ -38,42 +37,77 @@ export default function SignUp() {
 
       if (!actualPhone && !actualCode) return;
 
-      // First try to fetch by phone and neighborhood_id (most reliable for both Twilio and Manual)
-      let query = insforge.database
-        .from('join_requests')
-        .select('name, email');
-
-      if (actualPhone) {
-        query = query.eq('phone', actualPhone);
-      } else if (actualCode) {
-        query = query.eq('invite_code', String(actualCode).toUpperCase());
-      }
-      
-      if (actualNeighborhoodId) {
-        query = query.eq('neighborhood_id', actualNeighborhoodId);
-      }
-
-      // Order by created_at desc to get the most recent request
-      const { data, error } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
-
-      if (data) {
-        if (data.name) setName(data.name);
-        if (data.email) setEmail(data.email);
-      } else if (actualPhone && actualCode) {
-        // Fallback: just try invite code alone
-        const { data: fallbackData } = await insforge.database
+      // 1. Try by Invite Code + Neighborhood (Most reliable as invite_code is assigned specifically on approval)
+      if (actualCode) {
+        let query = insforge.database
           .from('join_requests')
           .select('name, email')
-          .eq('invite_code', String(actualCode).toUpperCase())
-          .maybeSingle();
+          .eq('invite_code', String(actualCode).toUpperCase());
+        
+        if (actualNeighborhoodId) {
+          query = query.eq('neighborhood_id', actualNeighborhoodId);
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
+        
+        if (error) {
+          console.error('[SignUp] Error querying by invite_code:', error);
+        }
+
+        if (data) {
+          if (data.name) setName(data.name);
+          if (data.email) setEmail(data.email);
+          return; // Success
+        }
+      }
+
+      // 2. Fallback to Phone if no data found by invite code (e.g. if invite_code wasn't stored in join_requests)
+      if (actualPhone) {
+        let query = insforge.database
+          .from('join_requests')
+          .select('name, email')
+          .eq('phone', actualPhone);
+
+        if (actualNeighborhoodId) {
+          query = query.eq('neighborhood_id', actualNeighborhoodId);
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false }).limit(1).maybeSingle();
+        
+        if (error) {
+          console.error('[SignUp] Error querying by phone:', error);
+        }
+
+        if (data) {
+          if (data.name) setName(data.name);
+          if (data.email) setEmail(data.email);
+          return;
+        }
+
+        // 3. If sanitized phone lookup failed, try to look for requests where phone contains the digits
+        // This is a bit risky but can help if stored format is different (e.g. (555) 000-0000)
+        const digitsOnly = actualPhone.replace(/\D/g, '');
+        if (digitsOnly.length >= 10) {
+          const last10 = digitsOnly.slice(-10);
           
-        if (fallbackData) {
-          if (fallbackData.name) setName(fallbackData.name);
-          if (fallbackData.email) setEmail(fallbackData.email);
+          let fuzzyQuery = insforge.database
+            .from('join_requests')
+            .select('name, email')
+            .ilike('phone', `%${last10}%`);
+            
+          if (actualNeighborhoodId) {
+            fuzzyQuery = fuzzyQuery.eq('neighborhood_id', actualNeighborhoodId);
+          }
+          
+          const { data: fuzzyData } = await fuzzyQuery.order('created_at', { ascending: false }).limit(1).maybeSingle();
+          if (fuzzyData) {
+            if (fuzzyData.name) setName(fuzzyData.name);
+            if (fuzzyData.email) setEmail(fuzzyData.email);
+          }
         }
       }
     } catch (err) {
-      console.error('[SignUp] Error fetching prepopulated data:', err);
+      console.error('[SignUp] Unexpected error fetching prepopulated data:', err);
     }
   };
   
@@ -136,6 +170,7 @@ export default function SignUp() {
       const { data: inviteData } = await insforge.database.from('invites')
         .update({ used_at: new Date().toISOString() })
         .eq('code', String(inviteCode).toUpperCase())
+        .eq('neighborhood_id', neighborhoodId)
         .select('created_by, phone, neighborhood_id')
         .single();
 

@@ -32,7 +32,7 @@ import { useNeighborhood } from '../../../hooks/useNeighborhood';
 export default function AdminDashboard() {
   const router = useRouter();
   const { showToast } = useToast();
-  const { user, fullName, globalRole, neighborhoodId } = useAuthStore();
+  const { user, fullName, globalRole, neighborhoodId, handleAuthError } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'members' | 'rejected' | 'moderation'>('pending');
   
   // Tab/UI State
@@ -179,8 +179,13 @@ export default function AdminDashboard() {
               .eq('id', notif.id);
           });
         }
-      } catch (err) {
-        console.error('Failed to check notifications:', err);
+      } catch (err: any) {
+        const isAuthError = err.message?.includes('JWT expired') || err.code === 'PGRST301' || err.statusCode === 401;
+        if (isAuthError) {
+          handleAuthError(err);
+        } else {
+          console.error('Failed to check notifications:', err);
+        }
       }
     };
 
