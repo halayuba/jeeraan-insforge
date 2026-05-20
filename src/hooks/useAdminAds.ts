@@ -80,6 +80,15 @@ export function useAdminAds(neighborhoodId: string | null) {
 
   const deleteAdMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Refresh the session to ensure a valid JWT is present before deleting.
+      // Without this, if the token was silently cleared (e.g. by handleAuthError
+      // during a background query refresh), the delete request would go out with
+      // the anon key and RLS would silently block it (returning 0 rows deleted).
+      const { data: sessionData } = await insforge.auth.getCurrentSession();
+      if (!sessionData?.session?.accessToken) {
+        throw new Error('Your session has expired. Please sign in again to delete advertisements.');
+      }
+
       console.log('[Admin] Requesting deletion of advertisement ID:', id);
       const { data, error, status } = await insforge.database
         .from('advertisements')
